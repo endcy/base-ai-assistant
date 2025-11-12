@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基础接口调用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .api-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .api-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            padding: 20px;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-header h2 {
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+        }
+
+        .card-header .endpoint {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-family: 'Courier New', monospace;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .result-container {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-container.streaming {
+            border-left-color: #f39c12;
+        }
+
+        .result-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .result-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+
+        .streaming-content {
+            color: #f39c12;
+            font-family: 'Courier New', monospace;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <a href="index.html" class="back-link">← 返回主页</a>
+        <h1>基础接口调用</h1>
+        <p class="subtitle">调用AI服务的各种接口，测试和验证功能</p>
+    </header>
+
+    <div class="api-container">
+        <!-- 刷新RAG文档向量 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>刷新RAG文档向量</h2>
+                <div class="endpoint">GET /energy-aidocument/refresh</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="refreshDocsUrl">API URL:</label>
+                    <input type="text" id="refreshDocsUrl" value="http://192.168.23.145:9051/energy-ai/document/refresh" placeholder="请输入API URL">
+                </div>
+                <button class="btn btn-block" onclick="refreshDocsApi()">调用接口</button>
+                <div class="loading" id="refreshDocsLoading">
+                    <div class="spinner"></div>
+                    <p>请求处理中...</p>
+                </div>
+                <div class="result-container" id="refreshDocsResult" style="display: none;">
+                    <h3>调用结果:</h3>
+                    <div class="result-content" id="refreshDocsResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 基础对话调用 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>基础对话调用</h2>
+                <div class="endpoint">GET /energy-ai/chat/sync</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="syncUrl">API URL:</label>
+                    <input type="text" id="syncUrl" value="http://192.168.23.145:9051/energy-ai/chat/sync" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="syncMessage">消息内容 (message):</label>
+                    <textarea id="syncMessage" placeholder="请输入消息内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="syncChatId">聊天ID (chatId):</label>
+                    <input type="text" id="syncChatId" placeholder="请输入聊天ID" value='1024'>
+                </div>
+                <button class="btn btn-block" onclick="callSyncApi()">调用接口</button>
+                <div class="loading" id="syncLoading">
+                    <div class="spinner"></div>
+                    <p>请求处理中...</p>
+                </div>
+                <div class="result-container" id="syncResult" style="display: none;">
+                    <h3>调用结果:</h3>
+                    <div class="result-content" id="syncResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 基础对话流式调用 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>基础对话流式调用</h2>
+                <div class="endpoint">GET /energy-ai/chat/sse</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="sseUrl">API URL:</label>
+                    <input type="text" id="sseUrl" value="http://192.168.23.145:9051/energy-ai/chat/sse" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="sseMessage">消息内容 (message):</label>
+                    <textarea id="sseMessage" placeholder="请输入消息内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="sseChatId">聊天ID (chatId):</label>
+                    <input type="text" id="sseChatId" placeholder="请输入聊天ID" value='1024'>
+                </div>
+                <button class="btn btn-block" onclick="callSseApi()">调用接口</button>
+                <div class="loading" id="sseLoading">
+                    <div class="spinner"></div>
+                    <p>连接流式输出中...</p>
+                </div>
+                <div class="result-container streaming" id="sseResult" style="display: none;">
+                    <h3>流式输出结果:</h3>
+                    <div class="result-content streaming-content" id="sseResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 检索增强调用 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>检索增强调用</h2>
+                <div class="endpoint">GET /energy-ai/chat/rag</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="ragUrl">API URL:</label>
+                    <input type="text" id="ragUrl" value="http://192.168.23.145:9051/energy-ai/chat/rag" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="ragMessage">消息内容 (message):</label>
+                    <textarea id="ragMessage" placeholder="请输入消息内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ragChatId">聊天ID (chatId):</label>
+                    <input type="text" id="ragChatId" placeholder="请输入聊天ID" value='1024'>
+                </div>
+                <button class="btn btn-block" onclick="callRagApi()">调用接口</button>
+                <div class="loading" id="ragLoading">
+                    <div class="spinner"></div>
+                    <p>请求处理中...</p>
+                </div>
+                <div class="result-container" id="ragResult" style="display: none;">
+                    <h3>调用结果:</h3>
+                    <div class="result-content" id="ragResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- mcp工具调用 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>MCP工具调用</h2>
+                <div class="endpoint">GET /energy-ai/chat/mcp</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="mcpToolUrl">API URL:</label>
+                    <input type="text" id="mcpToolUrl" value="http://192.168.23.145:9051/energy-ai/chat/mcp" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="toolsMessage">消息内容 (message):</label>
+                    <textarea id="mcpToolMessage" placeholder="请输入消息内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="toolsChatId">聊天ID (chatId):</label>
+                    <input type="text" id="mcpToolChatId" placeholder="请输入聊天ID" value='1024'>
+                </div>
+                <button class="btn btn-block" onclick="mcpToolApi()">调用接口</button>
+                <div class="loading" id="mcpToolLoading">
+                    <div class="spinner"></div>
+                    <p>请求处理中...</p>
+                </div>
+                <div class="result-container" id="mcpToolResult" style="display: none;">
+                    <h3>调用结果:</h3>
+                    <div class="result-content" id="mcpToolResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工具链调用 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>工具链调用</h2>
+                <div class="endpoint">GET /energy-ai/chat/tools</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="toolsUrl">API URL:</label>
+                    <input type="text" id="toolsUrl" value="http://192.168.23.145:9051/energy-ai/chat/tools" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="toolsMessage">消息内容 (message):</label>
+                    <textarea id="toolsMessage" placeholder="请输入消息内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="toolsChatId">聊天ID (chatId):</label>
+                    <input type="text" id="toolsChatId" placeholder="请输入聊天ID" value='1024'>
+                </div>
+                <button class="btn btn-block" onclick="callToolsApi()">调用接口</button>
+                <div class="loading" id="toolsLoading">
+                    <div class="spinner"></div>
+                    <p>请求处理中...</p>
+                </div>
+                <div class="result-container" id="toolsResult" style="display: none;">
+                    <h3>调用结果:</h3>
+                    <div class="result-content" id="toolsResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DeepSeek在线搜索调用 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>DeepSeek在线搜索调用</h2>
+                <div class="endpoint">POST /energy-ai/tool/deepseek/sync</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="deepseekUrl">API URL:</label>
+                    <input type="text" id="deepseekUrl" value="http://192.168.23.145:9051/energy-ai/tool/deepseek/sync" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="deepseekAnswerFormat">答案格式 (answerFormat):</label>
+                    <input type="text" id="deepseekAnswerFormat" placeholder="请输入答案格式" value='{"targetData": 答案}'>
+                </div>
+                <div class="form-group">
+                    <label for="deepseekQuestion">问题内容 (question):</label>
+                    <textarea id="deepseekQuestion" placeholder="请输入问题内容"></textarea>
+                </div>
+                <button class="btn btn-block" onclick="callDeepseekApi()">调用接口</button>
+                <div class="loading" id="deepseekLoading">
+                    <div class="spinner"></div>
+                    <p>请求处理中...</p>
+                </div>
+                <div class="result-container" id="deepseekResult" style="display: none;">
+                    <h3>调用结果:</h3>
+                    <div class="result-content" id="deepseekResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>智慧能源AI助手 © 2025 | 用于测试和验证AI服务接口</p>
+    </footer>
+</div>
+
+<script>
+    // 基础对话调用
+    function callSyncApi() {
+        const url = document.getElementById('syncUrl').value;
+        const message = document.getElementById('syncMessage').value;
+        const chatId = document.getElementById('syncChatId').value;
+
+        if (!message || !chatId) {
+            alert('请填写必填参数');
+            return;
+        }
+
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+
+        showLoading('sync');
+
+        fetch(fullUrl)
+            .then(response => response.text())
+            .then(data => {
+                hideLoading('sync');
+                showResult('sync', data);
+            })
+            .catch(error => {
+                hideLoading('sync');
+                showResult('sync', '错误: ' + error.message);
+            });
+    }
+
+    // 刷新RAG文档向量
+    function refreshDocsApi() {
+        const url = document.getElementById('refreshDocsUrl').value;
+
+        const fullUrl = `${url}`;
+
+        showLoading('refreshDocs');
+
+        fetch(fullUrl)
+            .then(response => response.text())
+            .then(data => {
+                hideLoading('refreshDocs');
+                showResult('refreshDocs', data);
+            })
+            .catch(error => {
+                hideLoading('refreshDocs');
+                showResult('refreshDocs', '错误: ' + error.message);
+            });
+    }
+
+    // 基础对话流式调用 (修正参数)
+    function callSseApi() {
+        const url = document.getElementById('sseUrl').value;
+        const message = document.getElementById('sseMessage').value;
+        const chatId = document.getElementById('sseChatId').value;
+
+        if (!message || !chatId) {
+            alert('请填写必填参数');
+            return;
+        }
+
+        // 修正参数，移除groupId和scopeType
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+
+        showLoading('sse');
+        showResult('sse', '', true);
+
+        const eventSource = new EventSource(fullUrl);
+        let resultContent = '';
+
+        eventSource.onmessage = function(event) {
+            resultContent += event.data;
+            document.getElementById('sseResultContent').textContent = resultContent;
+        };
+
+        eventSource.onerror = function(err) {
+            hideLoading('sse');
+            eventSource.close();
+            if (!resultContent) {
+                showResult('sse', '连接错误或已完成');
+            }
+        };
+
+        // 保存引用以便关闭
+        window.sseConnection = eventSource;
+    }
+
+    // 检索增强调用
+    function callRagApi() {
+        const url = document.getElementById('ragUrl').value;
+        const message = document.getElementById('ragMessage').value;
+        const chatId = document.getElementById('ragChatId').value;
+
+        if (!message || !chatId) {
+            alert('请填写必填参数');
+            return;
+        }
+
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+
+        showLoading('rag');
+
+        fetch(fullUrl)
+            .then(response => response.text())
+            .then(data => {
+                hideLoading('rag');
+                showResult('rag', data);
+            })
+            .catch(error => {
+                hideLoading('rag');
+                showResult('rag', '错误: ' + error.message);
+            });
+    }
+
+    // 工具链调用
+    function callToolsApi() {
+        const url = document.getElementById('toolsUrl').value;
+        const message = document.getElementById('toolsMessage').value;
+        const chatId = document.getElementById('toolsChatId').value;
+
+        if (!message || !chatId) {
+            alert('请填写必填参数');
+            return;
+        }
+
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+
+        showLoading('tools');
+
+        fetch(fullUrl)
+            .then(response => response.text())
+            .then(data => {
+                hideLoading('tools');
+                showResult('tools', data);
+            })
+            .catch(error => {
+                hideLoading('tools');
+                showResult('tools', '错误: ' + error.message);
+            });
+    }
+
+
+    // Mcp工具调用
+    function mcpToolApi() {
+        const url = document.getElementById('mcpToolUrl').value;
+        const message = document.getElementById('mcpToolMessage').value;
+        const chatId = document.getElementById('mcpToolChatId').value;
+
+        if (!message || !chatId) {
+            alert('请填写必填参数');
+            return;
+        }
+
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+
+        showLoading('mcpTool');
+
+        fetch(fullUrl)
+            .then(response => response.text())
+            .then(data => {
+                hideLoading('mcpTool');
+                showResult('mcpTool', data);
+            })
+            .catch(error => {
+                hideLoading('mcpTool');
+                showResult('mcpTool', '错误: ' + error.message);
+            });
+    }
+
+    // DeepSeek在线搜索调用 (修正为POST请求)
+    function callDeepseekApi() {
+        const url = document.getElementById('deepseekUrl').value;
+        const answerFormat = document.getElementById('deepseekAnswerFormat').value;
+        const question = document.getElementById('deepseekQuestion').value;
+
+        if (!answerFormat || !question) {
+            alert('请填写必填参数');
+            return;
+        }
+
+        showLoading('deepseek');
+
+        // 修正为POST请求，参数放在请求体中
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                answerFormat: answerFormat,
+                question: question
+            })
+        })
+            .then(response => response.text())
+            .then(data => {
+                hideLoading('deepseek');
+                showResult('deepseek', data);
+            })
+            .catch(error => {
+                hideLoading('deepseek');
+                showResult('deepseek', '错误: ' + error.message);
+            });
+    }
+
+    // 显示加载状态
+    function showLoading(type) {
+        document.getElementById(`${type}Loading`).style.display = 'block';
+        document.getElementById(`${type}Result`).style.display = 'none';
+
+        // 如果是SSE连接，关闭之前的连接
+        if (type === 'sse' && window.sseConnection) {
+            window.sseConnection.close();
+        }
+    }
+
+    // 隐藏加载状态
+    function hideLoading(type) {
+        document.getElementById(`${type}Loading`).style.display = 'none';
+    }
+
+    // 显示结果
+    function showResult(type, content, isStreaming = false) {
+        const resultContainer = document.getElementById(`${type}Result`);
+        const resultContent = document.getElementById(`${type}ResultContent`);
+
+        resultContent.textContent = content;
+        resultContainer.style.display = 'block';
+
+        if (isStreaming) {
+            resultContainer.classList.add('streaming');
+        } else {
+            resultContainer.classList.remove('streaming');
+        }
+    }
+
+    // 页面加载完成后聚焦到第一个输入框
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('syncMessage').focus();
+    });
+</script>
+</body>
+</html>

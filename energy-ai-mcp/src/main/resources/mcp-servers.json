@@ -1,0 +1,25 @@
+{
+  "@comment": "本地独立部署的MCP工具列表",
+  "mcpServers": {
+    "amap-maps": {
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@amap/amap-maps-mcp-server"
+      ],
+      "env": {
+        "AMAP_MAPS_API_KEY": "地图mcp api-key"
+      }
+    },
+    "test-mcp-server": {
+      "command": "java",
+      "args": [
+        "-Dspring.ai.mcp.server.stdio=true",
+        "-Dspring.main.web-application-type=none",
+        "-jar",
+        "test-mcp-server/target/test-mcp-server-1.0.0.jar"
+      ],
+      "env": {}
+    }
+  }
+}

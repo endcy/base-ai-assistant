@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识文档管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        input, select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+        }
+
+        .btn-warning:hover {
+            background: #d35400;
+        }
+
+        .btn-disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-disabled:hover {
+            background: #bdc3c7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #ff6b6b;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-info {
+            margin: 0 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            min-width: 40px;
+        }
+
+        .pagination .current-page {
+            background-color: #5a6fd8;
+            color: white;
+        }
+
+        .pagination .ellipsis {
+            background: none;
+            border: none;
+            cursor: default;
+            color: #999;
+        }
+
+        .pagination .ellipsis:hover {
+            background: none;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .page-sizer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
+
+        .page-sizer select {
+            padding: 5px 10px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            display: none;
+        }
+
+        .notification.success {
+            background-color: #2ecc71;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .pagination {
+                flex-direction: column;
+            }
+
+            .page-sizer {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>知识文档管理系统</h1>
+        <p>管理您的知识文档内容</p>
+    </header>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索标题...">
+            <button onclick="searchDocuments()">搜索</button>
+        </div>
+        <button class="btn-success" onclick="openCreateModal()">新增文档</button>
+    </div>
+
+    <table id="documentsTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>标题</th>
+            <th>范围类型</th>
+            <th>业务类型</th>
+            <th>是否公开</th>
+            <th>是否启用</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="documentsTableBody">
+        <!-- 数据将通过JS动态填充 -->
+        </tbody>
+    </table>
+
+    <div class="pagination" id="pagination">
+        <!-- 分页控件将通过JS动态生成 -->
+    </div>
+</div>
+
+<!-- 创建/编辑文档模态框 -->
+<div id="documentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">新增文档</h2>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="documentId">
+            <div class="form-group">
+                <label for="scopeType">范围类型 *</label>
+                <input type="text" id="scopeType" required>
+            </div>
+            <div class="form-group">
+                <label for="businessType">业务类型 *</label>
+                <input type="text" id="businessType" required>
+            </div>
+            <div class="form-group">
+                <label for="title">标题 *</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="form-group">
+                <label for="content">内容 *</label>
+                <textarea id="content" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="sourceType">来源类型</label>
+                <input type="text" id="sourceType">
+            </div>
+            <div class="form-group">
+                <label for="sourcePath">来源路径</label>
+                <input type="text" id="sourcePath">
+            </div>
+            <div class="form-group">
+                <label for="groupId">组ID</label>
+                <input type="number" id="groupId">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enablePublic"> 公开
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enabled"> 启用
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeModal()">取消</button>
+            <button class="btn-success" onclick="saveDocument()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 通知 -->
+<div id="notification" class="notification"></div>
+
+<script>
+    // 全局变量
+    let currentPage = 0;
+    let pageSize = 10;
+    let totalElements = 0;
+    let totalPages = 0;
+    let currentSearch = '';
+
+    // 页面加载完成后获取数据
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchDocuments();
+    });
+
+    // 获取文档列表
+    function fetchDocuments(page = 0) {
+        currentPage = page;
+        const url = `/api/knowledge-document?page=${page}&size=${pageSize}&title=${encodeURIComponent(currentSearch)}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应异常');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 根据实际返回的数据结构调整
+                const content = data.content || data.items || data.data || data;
+                totalElements = data.totalElements || data.total || content.length;
+                totalPages = data.totalPages || data.pageCount || Math.ceil(totalElements / pageSize);
+
+                renderTable(content);
+                renderPagination();
+            })
+            .catch(error => {
+                console.error('获取数据失败:', error);
+                showNotification('获取数据失败: ' + error.message, 'error');
+                renderTable([]);
+                renderPagination();
+            });
+    }
+
+    // 搜索文档
+    function searchDocuments() {
+        currentSearch = document.getElementById('searchInput').value.trim();
+        fetchDocuments(0); // 搜索时回到第一页
+    }
+
+    // 渲染表格
+    function renderTable(documents) {
+        const tbody = document.getElementById('documentsTableBody');
+        tbody.innerHTML = '';
+
+        if (!documents || documents.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="8" style="text-align: center;">暂无数据</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        documents.forEach(doc => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                    <td>${doc.id || '-'}</td>
+                    <td>${doc.title || '-'}</td>
+                    <td>${doc.scopeType || '-'}</td>
+                    <td>${doc.businessType || '-'}</td>
+                    <td>${doc.enablePublic ? '是' : '否'}</td>
+                    <td>${doc.enabled ? '是' : '否'}</td>
+                    <td>${formatDate(doc.createTime) || '-'}</td>
+                    <td class="actions">
+                        <button class="btn-warning" onclick='openEditModal(${JSON.stringify(doc).replace(/'/g, "\\'")})'>编辑</button>
+                        <button class="btn-danger" onclick="deleteDocument(${doc.id})">删除</button>
+                    </td>
+                `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 渲染分页控件
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        pagination.style.display = 'flex';
+
+        // 显示分页信息
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'pagination-info';
+        infoDiv.textContent = `第 ${currentPage + 1} 页，共 ${totalPages} 页，总计 ${totalElements} 条记录`;
+        pagination.appendChild(infoDiv);
+
+        // 上一页按钮
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '上一页';
+        if (currentPage === 0) {
+            prevButton.classList.add('btn-disabled');
+            prevButton.disabled = true;
+        } else {
+            prevButton.onclick = () => fetchDocuments(currentPage - 1);
+        }
+        pagination.appendChild(prevButton);
+
+        // 页码按钮
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+        // 调整起始页，确保显示足够的页码
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        // 第一页
+        if (startPage > 0) {
+            const firstButton = document.createElement('button');
+            firstButton.textContent = '1';
+            firstButton.onclick = () => fetchDocuments(0);
+            pagination.appendChild(firstButton);
+
+            if (startPage > 1) {
+                const ellipsis = document.createElement('button');
+                ellipsis.textContent = '...';
+                ellipsis.className = 'ellipsis';
+                ellipsis.disabled = true;
+                pagination.appendChild(ellipsis);
+            }
+        }
+
+        // 中间页码
+        for (let i = startPage; i <= endPage; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i + 1;
+            if (i === currentPage) {
+                pageButton.classList.add('current-page');
+                pageButton.disabled = true;
+            } else {
+                pageButton.onclick = () => fetchDocuments(i);
+            }
+            pagination.appendChild(pageButton);
+        }
+
+        // 最后一页
+        if (endPage < totalPages - 1) {
+            if (endPage < totalPages - 2) {
+                const ellipsis = document.createElement('button');
+                ellipsis.textContent = '...';
+                ellipsis.className = 'ellipsis';
+                ellipsis.disabled = true;
+                pagination.appendChild(ellipsis);
+            }
+
+            const lastButton = document.createElement('button');
+            lastButton.textContent = totalPages;
+            lastButton.onclick = () => fetchDocuments(totalPages - 1);
+            pagination.appendChild(lastButton);
+        }
+
+        // 下一页按钮
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '下一页';
+        if (currentPage === totalPages - 1) {
+            nextButton.classList.add('btn-disabled');
+            nextButton.disabled = true;
+        } else {
+            nextButton.onclick = () => fetchDocuments(currentPage + 1);
+        }
+        pagination.appendChild(nextButton);
+
+        // 页面大小选择器
+        const pageSizer = document.createElement('div');
+        pageSizer.className = 'page-sizer';
+        pageSizer.innerHTML = `
+                <span>每页显示:</span>
+                <select id="pageSizeSelect">
+                    <option value="5" ${pageSize === 5 ? 'selected' : ''}>5</option>
+                    <option value="10" ${pageSize === 10 ? 'selected' : ''}>10</option>
+                    <option value="20" ${pageSize === 20 ? 'selected' : ''}>20</option>
+                    <option value="50" ${pageSize === 50 ? 'selected' : ''}>50</option>
+                </select>
+                <span>条</span>
+            `;
+        pagination.appendChild(pageSizer);
+
+        // 绑定页面大小改变事件
+        document.getElementById('pageSizeSelect').addEventListener('change', function() {
+            pageSize = parseInt(this.value);
+            fetchDocuments(0); // 页面大小改变时回到第一页
+        });
+    }
+
+    // 打开创建模态框
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = '新增文档';
+        document.getElementById('documentId').value = '';
+        document.getElementById('scopeType').value = '';
+        document.getElementById('businessType').value = '';
+        document.getElementById('title').value = '';
+        document.getElementById('content').value = '';
+        document.getElementById('sourceType').value = '';
+        document.getElementById('sourcePath').value = '';
+        document.getElementById('groupId').value = '';
+        document.getElementById('enablePublic').checked = false;
+        document.getElementById('enabled').checked = true;
+        document.getElementById('documentModal').style.display = 'flex';
+    }
+
+    // 打开编辑模态框
+    function openEditModal(doc) {
+        document.getElementById('modalTitle').textContent = '编辑文档';
+        document.getElementById('documentId').value = doc.id || '';
+        document.getElementById('scopeType').value = doc.scopeType || '';
+        document.getElementById('businessType').value = doc.businessType || '';
+        document.getElementById('title').value = doc.title || '';
+        document.getElementById('content').value = doc.content || '';
+        document.getElementById('sourceType').value = doc.sourceType || '';
+        document.getElementById('sourcePath').value = doc.sourcePath || '';
+        document.getElementById('groupId').value = doc.groupId || '';
+        document.getElementById('enablePublic').checked = doc.enablePublic || false;
+        document.getElementById('enabled').checked = doc.enabled !== undefined ? doc.enabled : true;
+        document.getElementById('documentModal').style.display = 'flex';
+    }
+
+    // 关闭模态框
+    function closeModal() {
+        document.getElementById('documentModal').style.display = 'none';
+    }
+
+    // 保存文档
+    function saveDocument() {
+        const id = document.getElementById('documentId').value;
+        const docData = {
+            scopeType: document.getElementById('scopeType').value,
+            businessType: document.getElementById('businessType').value,
+            title: document.getElementById('title').value,
+            content: document.getElementById('content').value,
+            sourceType: document.getElementById('sourceType').value,
+            sourcePath: document.getElementById('sourcePath').value,
+            groupId: document.getElementById('groupId').value ?
+                parseInt(document.getElementById('groupId').value) : null,
+            enablePublic: document.getElementById('enablePublic').checked,
+            enabled: document.getElementById('enabled').checked
+        };
+
+        const isUpdate = !!id;
+        const url = isUpdate ? `/api/knowledge-document/${id}` : '/api/knowledge-document';
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(docData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('保存失败');
+            })
+            .then(() => {
+                closeModal();
+                fetchDocuments(currentPage);
+                showNotification(isUpdate ? '更新成功' : '创建成功', 'success');
+            })
+            .catch(error => {
+                showNotification('保存失败: ' + error.message, 'error');
+            });
+    }
+
+    // 删除文档
+    function deleteDocument(id) {
+        if (!confirm('确定要删除这个文档吗？')) {
+            return;
+        }
+
+        fetch(`/api/knowledge-document/${id}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    // 如果当前页只剩一个元素且不是第一页，删除后返回上一页
+                    if (document.getElementById('documentsTableBody').children.length === 1 && currentPage > 0) {
+                        fetchDocuments(currentPage - 1);
+                    } else {
+                        fetchDocuments(currentPage);
+                    }
+                    showNotification('删除成功', 'success');
+                } else {
+                    throw new Error('删除失败');
+                }
+            })
+            .catch(error => {
+                showNotification('删除失败: ' + error.message, 'error');
+            });
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // 显示通知
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'block';
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+
+    // 点击模态框外部关闭
+    window.onclick = function(event) {
+        const modal = document.getElementById('documentModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+    // 支持回车键搜索
+    document.getElementById('searchInput').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            searchDocuments();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧能源AI助手后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            padding: 25px;
+            color: white;
+            text-align: center;
+        }
+
+        .card-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+        }
+
+        .card-content {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .features {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .features li:before {
+            content: "✓";
+            color: #2ecc71;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .card-footer {
+            padding: 20px 25px;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .knowledge-card .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .context-card .card-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .api-card .card-header {
+            background: linear-gradient(135deg, #43cbff 0%, #9708cc 100%);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        .welcome-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .welcome-section h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .welcome-section p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .welcome-section h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>智慧能源AI助手后台</h1>
+        <p class="subtitle">一站式管理您的知识文档和用户对话记录</p>
+    </header>
+
+    <div class="welcome-section">
+        <h2>欢迎使用智慧能源AI助手后台</h2>
+        <p>在这里您可以轻松管理知识文档和用户对话记录，以及测试AI服务接口，提升工作效率和数据管理能力。</p>
+    </div>
+
+    <div class="menu-grid">
+        <div class="menu-card knowledge-card" onclick="navigateTo('knowledge-document.html')">
+            <div class="card-header">
+                <h2>知识文档管理</h2>
+                <p>Knowledge Document Management</p>
+            </div>
+            <div class="card-content">
+                <ul class="features">
+                    <li>创建和编辑知识文档</li>
+                    <li>按标题、类型等条件搜索</li>
+                    <li>完整的分页功能</li>
+                    <li>支持公开和私有文档</li>
+                    <li>文档版本管理</li>
+                </ul>
+                <p>管理您的企业知识库，方便团队共享和查找信息。</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn" onclick="navigateTo('knowledge-document.html'); event.stopPropagation();">进入管理</button>
+            </div>
+        </div>
+
+        <div class="menu-card context-card" onclick="navigateTo('context-user-record.html')">
+            <div class="card-header">
+                <h2>用户对话记录</h2>
+                <p>Context User Record Management</p>
+            </div>
+            <div class="card-content">
+                <ul class="features">
+                    <li>查看用户对话历史</li>
+                    <li>按问题内容搜索记录</li>
+                    <li>完整的分页功能</li>
+                    <li>启用/禁用记录状态</li>
+                    <li>详细的用户信息展示</li>
+                </ul>
+                <p>跟踪和分析用户与AI的交互记录，优化服务体验。</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn" onclick="navigateTo('context-user-record.html'); event.stopPropagation();">进入管理</button>
+            </div>
+        </div>
+
+        <div class="menu-card api-card" onclick="navigateTo('api.html')">
+            <div class="card-header">
+                <h2>基础接口调用</h2>
+                <p>API Testing</p>
+            </div>
+            <div class="card-content">
+                <ul class="features">
+                    <li>基础对话接口测试</li>
+                    <li>检索增强接口测试</li>
+                    <li>工具链接口测试</li>
+                    <li>DeepSeek搜索接口测试</li>
+                    <li>……</li>
+                </ul>
+                <p>测试和验证AI服务的各种接口功能，确保系统正常运行。</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn" onclick="navigateTo('api.html'); event.stopPropagation();">开始测试</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>智慧能源AI助手 © 2025 | 为您提供高效的智慧能源AI解决方案</p>
+    </footer>
+</div>
+
+<script>
+    function navigateTo(page) {
+        window.location.href = page;
+    }
+
+    // 添加键盘导航支持
+    document.addEventListener('keydown', function(event) {
+        // 按1键跳转到知识文档管理
+        if (event.key === '1') {
+            navigateTo('knowledge-document.html');
+        }
+        // 按2键跳转到用户对话记录管理
+        else if (event.key === '2') {
+            navigateTo('context-user-record.html');
+        }
+        // 按3键跳转到接口测试页面
+        else if (event.key === '3') {
+            navigateTo('api.html');
+        }
+    });
+</script>
+</body>
+</html>
