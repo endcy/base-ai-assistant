@@ -1,12 +1,13 @@
 package com.assistant.ai.repository.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.assistant.ai.repository.domain.context.DocumentQueryContext;
 import com.assistant.ai.repository.domain.query.VectorDocumentQueryParam;
 import com.assistant.ai.repository.domain.vector.VectorDocument;
 import com.assistant.ai.repository.pgsql.mapper.VectorDocumentMapper;
 import com.assistant.ai.repository.service.VectorStoreService;
 import com.assistant.service.common.utils.QueryHelpMybatisPlus;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,5 +68,10 @@ public class VectorStoreServiceImpl implements VectorStoreService {
         queryWrapper.isNotNull("metadata")
                     .eq("metadata->>'id'", docId);
         return vectorDocumentMapper.exists(queryWrapper);
+    }
+
+    @Override
+    public List<VectorDocument> retrieveWithTsQuery(DocumentQueryContext documentParams, int topK, double similarityThreshold) {
+        return vectorDocumentMapper.retrieveWithTsQuery(documentParams, topK, similarityThreshold);
     }
 }

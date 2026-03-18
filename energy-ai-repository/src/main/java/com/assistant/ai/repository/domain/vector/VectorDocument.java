@@ -1,10 +1,10 @@
 package com.assistant.ai.repository.domain.vector;
 
+import com.assistant.ai.repository.pgsql.config.PgVectorTypeHandler;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.assistant.ai.repository.pgsql.config.PgVectorTypeHandler;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 
@@ -46,5 +46,11 @@ public class VectorDocument implements Serializable {
      */
     @TableField(typeHandler = PgVectorTypeHandler.class)
     private Object embedding;
+
+    /**
+     * 相似度分数（BM25 检索或向量相似度检索得分）
+     */
+    @TableField(exist = false)
+    private Double score;
 
 }

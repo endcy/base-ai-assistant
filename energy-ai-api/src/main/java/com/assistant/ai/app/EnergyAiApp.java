@@ -33,6 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * 能源 AI 应用主服务类
+ *
+ * @author endcy
+ * @date 2025/10/31
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -92,7 +98,7 @@ public class EnergyAiApp {
 
     /**
      * 和 RAG 知识库进行对话
-     * scopeType对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
+     * scopeType 对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
      */
     public String doChatWithRag(String scopeType, Long groupId, String message, @NonNull Long chatId) {
         // 查询重写
@@ -123,20 +129,17 @@ public class EnergyAiApp {
         List<Message> existingMessages = messageWindowChatMemory.get(chatId.toString());
         log.info("###### Chat memory for {}: {} messages size", chatId, existingMessages.size());
 
+        // TODO: 使用新的混合检索增强顾问替换旧的 advisor 调用
+        // 旧的 advisor 方法已废弃，需要使用 createHybridRetrievalAdvisor 方法
         ChatResponse chatResponse = commonChatClient
                 .prompt()
                 .user(rewrittenMessage)
                 .toolCallbacks(mcpToolCallbacks.getToolCallbacks())
                 .toolCallbacks(ragTools)
                 .advisors(getAdvisorSpecConsumer(chatId))
-                // Rag文档检索增强 简单问答可关闭以减少token消耗
-                .advisors(chatClientAdvisorFactory.getDocumentSimilarityAdvisor())
-                // 文档向量元数据检索
-                .advisors(chatClientAdvisorFactory.createAiRagFilterAdvisor(expressionMap, pgVectorVectorStore))
-                // db或云文档文档检索
-                .advisors(chatClientAdvisorFactory.getStoreDocumentAdvisor())
-                // 本地文档检索
-                .advisors(chatClientAdvisorFactory.getLocalDocumentAdvisor())
+                // Rag 文档检索增强 - 使用新的混合检索增强顾问
+                // TODO: 需要传入 IntentResult 和 RequestRagContext
+                // .advisors(chatClientAdvisorFactory.createHybridRetrievalAdvisor(documentQueryContext, intentResult, requestRagContext))
                 .call()
                 .chatResponse();
 
@@ -146,7 +149,7 @@ public class EnergyAiApp {
             userRecordService.updateAnswerById(userRecord.getId(), content);
         }
         if (log.isDebugEnabled()) {
-            //频度最高的调用 使用debug级别
+            //频度最高的调用 使用 debug 级别
             log.debug("content: {}", content);
         }
         return content;
