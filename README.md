@@ -18,7 +18,7 @@
 
 ## 📖 项目简介
 
-### base-ai-assistant项目是什么？
+### base-ai-assistant 项目是什么？
 
 这是一个**企业级 AI 智能助手开发框架**，基于 Spring Boot 3.3.13、Spring AI 和 Spring AI Alibaba 构建。
 
@@ -28,6 +28,8 @@
 - ❌ **数据孤岛问题** → ✅ MCP 协议打通业务系统，实时获取业务数据
 - ❌ **通用模型不专业** → ✅ 意图分析 + 领域知识库，打造垂直领域专家
 - ❌ **工具调用困难** → ✅ 标准化工具链，让 AI 能执行实际业务操作
+
+以此为底座，您可以快速构建自己的企业级智能客服、智能运维、智能助手、简单工作流/垂直领域智能体的基础应用架构程序，可按需拓展。
 
 ### 🎯 适用场景
 
@@ -43,6 +45,34 @@
 
 ---
 
+## 🎬 演示界面
+
+1. 启动 energy-ai-api 工程
+2. 启动 energy-admin-api 工程后访问：http://localhost:9050/index.html
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>基础演示主页</b><br/>
+<img src="./.assets/img_1.png" width="300" alt="基础演示主页"/>
+</td>
+<td align="center">
+<b>文档内容管理</b><br/>
+<img src="./.assets/img_2.png" width="300" alt="文档内容管理"/>
+</td>
+<td align="center">
+<b>接口调用验证</b><br/>
+<img src="./.assets/img_3.png" width="300" alt="接口调用"/>
+</td>
+</tr>
+</table>
+</div>
+
+> **新增管理功能**：知识分类配置管理、Token 用量统计、批量文档导入
+
+---
+
 ## ✨ 核心特性
 
 ### 1. 🧠 混合检索增强 (Hybrid RAG)
@@ -50,29 +80,9 @@
 **痛点**：传统 RAG 系统检索召回率低、相关度不高。
 
 **解决方案**：多路召回 + 重排序的混合检索架构
-
-```
-用户问题
-  │
-  ├─→ 查询改写 (Query Rewriter) ──→ 改写为更易检索的表述
-  │
-  ├─→ 多查询扩展 (MultiQueryExpander) ──→ 生成 3 个不同角度的变体
-  │
-  ▼
-┌─────────────────────────────────────────────────┐
-│              并发多路检索（降低延迟）            │
-├─────────────┬─────────────┬─────────────┬───────┤
-│  本地文档   │  PG 向量检索 │  BM25 检索  │ 云检索 │
-│  检索器     │  (语义相似)  │ (关键词)    │ 库    │
-└─────────────┴─────────────┴─────────────┴───────┘
-  │
-  ├─→ 文档合并 + 去重
-  │
-  ├─→ Rerank 重排序（阿里百炼） ──→ 精排筛选 Top-K
-  │
-  ▼
-注入提示词上下文 → 大模型生成回答
-```
+<div align="center">
+<img src="./.assets/img_23.png" alt="RAG混合检索" width="400"/>
+</div>
 
 **效果对比**：
 
@@ -96,8 +106,8 @@
     业务类型分类      数据来源预测      工具链选择
     (businessType)   (dataScopeList)   (Tools)
           │               │               │
-    ┌─────┴─────┐   ┌─────┴─────┐        │
-    ▼           ▼   ▼           ▼        ▼
+    ┌─────┴─────┐   ┌─────┴─────┐         │
+    ▼           ▼   ▼           ▼         ▼
  充电运营    能源管理  本地文档  数据库文档  MCP 工具
 ```
 
@@ -198,12 +208,16 @@ MCP（Model Context Protocol）是 AI 与外部系统的标准化通信协议，
 | 远程 MCP (SSE)        | Server-Sent Events | 传统服务暴露        |
 | 远程 MCP (Streamable) | HTTP Stream        | **断线重连、生产推荐** |
 
+<div align="left">
+<img src="./.assets/img_17.png" alt="MCP 框架选择" width="600"/>
+</div>
+
 #### 已验证工具示例
 
 - 🔍 Pexels API 图片搜索（MCP 实现）
 - 📄 网页抓取工具
 - 🔎 DeepSeek 在线搜索
-- 📊 业务数据查询（待完善）
+- 📊 业务数据查询（订单、用户、站点/设备）
 - 📁 文件读写操作
 - 📋 PDF 生成工具
 
@@ -217,14 +231,14 @@ public class OrderMcpTools {
             title = "查询用户订单信息",
             description = """
                     【关键工具】当用户需要查询任何与充电订单相关的信息时，【必须】调用此工具。
-                    
+
                     **调用场景**：
                     - 根据订单号查询订单
                     - 查询最新订单
                     - 根据用户信息查询订单
                     - 查询订单状态（充电中、已完成）
                     - 查询订单金额等
-                    
+
                     **触发关键词**：订单、我的订单、最新订单、订单详情
                     """,
             returnDirect = true)
@@ -245,6 +259,36 @@ public class OrderMcpTools {
 - ✅ 参数描述清晰，说明必填/选填
 - ✅ 工具功能单一，避免"万能工具"
 - ✅ 返回值格式明确，便于大模型理解
+
+### 6. 🌐 多模型支持
+
+#### 云端模型（DashScope）
+
+```properties
+spring.ai.dashscope.api-key=YOUR_DASHSCOPE_API_KEY
+spring.ai.dashscope.chat.options.model=qwen3-max
+```
+
+- ✅ 支持阿里百炼所有模型（qwen3-max、qwen-plus 等）
+- ✅ 支持自定义 API 版本和端点
+- ✅ Token 用量可由运维跟踪监控
+
+#### 本地模型（Ollama）
+
+```properties
+spring.ai.ollama.base-url=http://localhost:11434
+spring.ai.ollama.chat.model=qwen3:8b
+```
+
+- ✅ 支持本地部署的开源模型
+- ✅ 可按需加载不同模型
+- ⚠️ 生产环境建议 32B 参数以上
+
+#### 模型微调
+
+在用户问题的意图识别，以及其他分类时，微调模型更加精准和高效，不浪费云端模型 token，最重要的是垂直领域做简单分类正是微调模型的强项。
+
+**语料数据集是关键！！！语料数据集是关键！！！语料数据集是关键！！！**
 
 ### 7. 📁 批量文档导入工具
 
@@ -292,29 +336,140 @@ result.getSkipCount();     // 跳过数量（已存在）
 
 ---
 
-## 🌐 多模型支持
+## 🏗️ 系统总体设计
 
-#### 云端模型（DashScope）
+### 总体流程设计
 
-```properties
-spring.ai.dashscope.api-key=YOUR_DASHSCOPE_API_KEY
-spring.ai.dashscope.chat.options.model=qwen3-max
+用户提问到输出回答内容，中间涉及意图分析、MCP 数据补充、RAG 检索增强、提示词工程、大模型调用输出等，完整流程图如下：
+
+<div align="center">
+<img src="./.assets/img_11.png" alt="总体流程设计" width="800"/>
+</div>
+
+MCP 应用适合于 RAG 之外的数据增强，作为 AI 与外部系统的"通用接口"，实现工具标准化调用。定义 MCP 功能可以包含例如用户需要获取天气数据、获取节假日信息等等功能，也可用于类似做数据预测前的条件数据查询，如目标温度湿度等时序数据、电网定价信息等等。
+
+<div align="center">
+<img src="./.assets/img_12.png" alt="MCP 应用" width="400"/>
+</div>
+
+**MCP 和 Tools 的关系**：
+
+- MCP 是一种标准化的通信协议，Spring AI 通过 `McpSyncToolCallbackProvider` 等实现类将 MCP 协议的工具映射为 `ToolCallback` 接口的实现。
+- Tools 是调用工具的定义，无论底层使用什么协议（MCP、Function Calling 等），由 LLM 意图识别之后框架自动选择调用。
+
+**Tools 及 MCP 定义的要点**：
+
+- 清晰的工具描述：`@Tool` 和 `@ToolParam` 的 description 务必准确、清晰，这是大模型判断是否调用和如何填参的主要依据。
+- 严格的参数模式：正确定义工具的输入参数以生成框架可读 JSON Schema，确保大模型能生成格式正确的参数。
+- 合理的工具设计：每个工具应功能单一且明确，避免过于复杂的功能，这有助于大模型做出更精准的决策。
+
+### 数据架构设计
+
+数据库文档管理使用的数据库可选，这里使用 MySQL 作为内容管理库，PGSQL 作为文档向量库，其中文档支持本地 md 文档，自定义拓展也可支持其他格式文档。工程中数据库支持多数据源。
+
+<div align="center">
+<img src="./.assets/img_13.png" alt="数据架构设计" width="800"/>
+</div>
+
+上述数据云文档为在线文档库的数据管理。实际使用过程中，localVectorStore 和 pgVectorStore 文档向量数据，可能和 cloudVectorStore（云知识库）数据存在冲突，为避免维护困难，工程中通过开关实现分开验证。
+
+### 程序架构设计
+
+本项目采用 Spring Boot + Spring AI 为基础底座，微服务应用的形式管理，支持水平扩容。
+
+- 注册中心采用 Nacos/阿里云 MSE
+- 配置中心采用 Apollo，可自定义按需变更为 Nacos
+- 任务调度中心框架 xxl-job
+- mysql/pgsql 多数据源支持
+- 微服务调用框架支持 Dubbo、Feign
+- 微服务熔断工具支持 resilience4j
+
+<div align="center">
+<img src="./.assets/img_14.png" alt="程序架构设计" width="800"/>
+</div>
+
+### 工程模块设计
+
+```
+base-ai-assistant/
+├── energy-admin-api/          # 管理后台（知识库管理、配置管理等）
+├── energy-ai-api/             # 核心服务（RAG、Agent、MCP 实现）
+├── energy-ai-mcp/             # MCP 服务定义
+├── energy-ai-repository/      # 数据持久化（MySQL、PGVector）
+├── energy-ai-rpc/             # RPC 接口定义（Dubbo/Feign）
+├── service-common/            # 通用服务（配置、工具类）
+└── service-domain/            # 领域模型定义
 ```
 
-- ✅ 支持阿里百炼所有模型（qwen3-max、qwen-plus 等）
-- ✅ 支持自定义 API 版本和端点
-- ✅ Token 用量可由运维跟踪监控
+### RAG 检索增强设计
 
-#### 本地模型（Ollama）
+参考"数据架构设计"，Rag 文档来源支持多样化，云知识库文档由云服务自动解析加载向量，这里仅讨论本地文档和知识管理数据库的文档 RAG 流程。
 
-```properties
-spring.ai.ollama.base-url=http://localhost:11434
-spring.ai.ollama.chat.model=qwen3:8b
-```
+<div align="center">
+<img src="./.assets/img_15.png" alt="RAG 检索增强设计" width="800"/>
+</div>
 
-- ✅ 支持本地部署的开源模型
-- ✅ 可按需加载不同模型
-- ⚠️ 生产环境建议 32B 参数以上
+### 文档向量库
+
+1. **pg 向量库 PgVectorStore**：存储管理后端维护的知识库文档表文档向量数据
+2. **内存向量库 SimpleVectorStore**：存储指定路径分类或指定 resources 目录的本地文档向量
+3. **云文档检索库 DashScopeDocumentRetriever**：针对云文档库文档检索，向量由云文档应用管理
+
+### 文档召回配置
+
+配置 ai.rag 相关参数，实现自定义配置类 ChatRagProperties，设定 rag 参数，默认向量相似度 0.6，召回数为 3；自定义多条件 Filter.Expression 生成工具，支持多条件的元数据查询。
+
+<div align="center">
+<img src="./.assets/img_16.png" alt="文档召回配置" width="600"/>
+</div>
+
+---
+
+## 🗄️ 数据结构设计
+
+### 云文档知识库
+
+使用 ModeScope 的应用加载和检索文档，即线上 RAG 应用，支持配置模型、元数据配置、文档分割方式等等配置，文档库需专人将知识内容文件化并手动上传和维护文档。
+
+<div align="center">
+<img src="./.assets/img_18.png" alt="云文档知识库" width="800"/>
+</div>
+
+### 本地知识库文档
+
+本地也支持类似 dify 等 rag 框架的本地文档管理，实现了工程 resources 源文件的文档库、指定目录的文档库等实现。
+
+<div align="center">
+<img src="./.assets/img_19.png" alt="本地知识库文档" width="400"/>
+</div>
+
+### 数据库知识文档
+
+区别于云知识库以及本地各类格式文件的知识库文档，数据库知识文档数据是文件数据数据库存储的一种形式，更为方便管理，也便于展示和实时维护。
+
+知识库文档表：`ai_knowledge_document`
+
+<div align="center">
+<img src="./.assets/img_20.png" alt="知识库文档表" width="600"/>
+</div>
+
+### 对话内容数据
+
+针对用户会话数据的存储，工程应该将用户对话持久化到文档或者数据表中。这里仅描述存储到数据库的对话信息实现的数据格式。
+
+用户对话记录表：`ai_context_user_record`
+
+<div align="center">
+<img src="./.assets/img_21.png" alt="对话内容数据" width="600"/>
+</div>
+
+### 向量存储
+
+知识文档向量化存储，用于用户问题使用文本向量相似度检索知识文档关联性查询。
+
+<div align="center">
+<img src="./.assets/img_22.png" alt="向量存储" width="500"/>
+</div>
 
 ---
 
@@ -435,294 +590,17 @@ java -jar energy-admin-api/target/energy-admin-api-1.0.0.jar
 
 ---
 
-## 🏗️ 架构设计
-
-### 总体流程
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     用户提问                                 │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  1. 意图分析 Agent                                           │
-│     - 业务类型识别 (businessType)                           │
-│     - 数据来源预测 (dataScopeList)                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  2. 查询改写 (Query Rewriter)                               │
-│     用户问题 → 更适合检索的表述                              │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  3. 多查询扩展 (MultiQueryExpander)                         │
-│     生成 3 个不同角度的查询变体                                │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  4. 并发多路检索                                             │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
-│  │ 本地文档 │ │向量检索  │ │ BM25 检索 │ │云知识库  │       │
-│  │ Retriever│ │Retriever │ │Retriever │ │Retriever │       │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  5. 文档合并 + 去重                                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  6. Rerank 重排序 (DashScope RerankModel)                   │
-│     精排筛选，保留得分 >= 0.1 的文档                           │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  7. 注入提示词上下文                                         │
-│     [检索到的文档] + [用户问题] → Prompt                     │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  8. 大模型生成回答                                           │
-│     (DashScope / Ollama)                                    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     输出回答                                 │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 工程模块
-
-```
-base-ai-assistant/
-├── energy-admin-api/          # 管理后台（知识库管理、配置管理等）
-├── energy-ai-api/             # 核心服务（RAG、Agent、MCP 实现）
-├── energy-ai-mcp/             # MCP 服务定义
-├── energy-ai-repository/      # 数据持久化（MySQL、PGVector）
-├── energy-ai-rpc/             # RPC 接口定义（Dubbo/Feign）
-├── service-common/            # 通用服务（配置、工具类）
-└── service-domain/            # 领域模型定义
-```
-
-### 技术栈
-
-| 类别    | 技术                | 版本       | 用途         |
-|-------|-------------------|----------|------------|
-| 基础框架  | Spring Boot       | 3.3.13   | 应用底座       |
-| AI 框架 | Spring AI         | 1.0.0-M7 | LLM 调用、RAG |
-| AI 扩展 | Spring AI Alibaba | 1.0.0.4  | 阿里百炼集成     |
-| 语言    | Java              | 21       | 开发语言       |
-| ORM   | MyBatis Plus      | 3.5.7    | 数据库操作      |
-| 工具库   | Hutool            | 5.8.26   | 工具类        |
-| 微服务   | Dubbo             | 3.3.0    | RPC 调用     |
-| 注册中心  | Nacos/MSE         | -        | 服务注册       |
-| 配置中心  | Apollo            | 2.1.0    | 配置管理       |
-| 任务调度  | XXL-Job           | 2.5.0    | 定时任务       |
-| 连接池   | Druid             | 1.2.18   | 数据库连接池     |
-| 熔断降级  | resilience4j      | -        | 服务保护       |
-
----
-
-## 📚 核心代码详解
-
-### 1. 混合检索顾问 (HybridRetrievalAdvisor)
-
-RAG 检索增强的核心组件：
-
-```java
-
-@Slf4j
-public class HybridRetrievalAdvisor implements BaseAdvisor {
-
-    private final RerankModel rerankModel;
-    private final List<BaseDocumentRetriever> documentRetrievers;
-    private final QueryExpander queryExpander;
-
-    @Override
-    public ChatClientRequest before(ChatClientRequest request, AdvisorChain advisorChain) {
-        // 1. 构建原始查询
-        var userMessage = request.prompt().getUserMessage();
-        Query originalQuery = Query.builder()
-                                   .text(userMessage.getText())
-                                   .build();
-
-        // 2. 多查询扩展（生成 3 个变体）
-        List<Query> querySplits = queryExpander.expand(originalQuery);
-
-        // 3. 并发多路检索
-        List<List<Document>> documentsList = documentRetrievers.stream()
-                                                               .map(retriever -> CompletableFuture.supplyAsync(
-                                                                       () -> retriever.retrieve(querySplits),
-                                                                       buildDefaultTaskExecutor()  // 线程池
-                                                               ))
-                                                               .toList()
-                                                               .stream()
-                                                               .map(CompletableFuture::join)
-                                                               .toList();
-
-        // 4. 文档合并去重
-        List<Document> merged = mergeDocuments(documentsList);
-
-        // 5. Rerank 重排序
-        List<Document> reranked = doRerank(request, merged);
-
-        // 6. 注入上下文
-        String context = reranked.stream()
-                                 .map(Document::getText)
-                                 .collect(Collectors.joining("\n"));
-
-        // 7. 增强提示词
-        return request.mutate()
-                      .prompt(request.prompt().augmentUserMessage(
-                              "参考信息:\n" + context + "\n问题:" + userMessage.getText()
-                      ))
-                      .build();
-    }
-}
-```
-
-### 2. 检索器工厂 (AdvisorRetrieverFactory)
-
-根据意图动态选择检索器：
-
-```java
-
-@Component
-public class AdvisorRetrieverFactory {
-
-    @Autowired
-    private PgVectorStore pgVectorVectorStore;
-    @Autowired
-    private SimpleVectorStore localVectorStore;
-    @Autowired
-    private VectorStoreService vectorStoreService;
-
-    public List<BaseDocumentRetriever> dynamicCreateRetrievers(
-            DocumentQueryContext documentParams,
-            IntentResult intentResult) {
-
-        List<BaseDocumentRetriever> retrievers = new ArrayList<>();
-
-        for (PossibleSourceTypeEnum dataScope : intentResult.getDataScopeList()) {
-            switch (dataScope) {
-                case LOCAL -> retrievers.add(new LocalDocumentRetriever(localVectorStore, ...));
-                case VECTOR -> {
-                    retrievers.add(new VectorDocumentRetriever(pgVectorVectorStore, ...));
-                    retrievers.add(new Bm25DocumentRetriever(vectorStoreService, ...));
-                }
-                case CLOUD -> retrievers.add(new AliDocumentRetriever(dashScopeConnectionProperties, ...));
-            }
-        }
-
-        return retrievers;
-    }
-}
-```
-
-### 3. 请求级 RAG 上下文
-
-```java
-
-@Component
-@RequestScope
-public class RequestRagContext {
-    private Long chatId;
-    private List<Document> relatedDocuments; // 检索到的关联文档
-
-    // Getter/Setter
-}
-```
-
----
-
-## 🗄️ 数据架构
-
-### 核心数据表
-
-#### 1. 知识文档表 (ai_knowledge_document)
-
-```sql
-CREATE TABLE ai_knowledge_document
-(
-    id            BIGINT PRIMARY KEY,
-    scope_type    VARCHAR(50) COMMENT '知识领域类型',
-    business_type VARCHAR(50) COMMENT '业务类型',
-    group_id      BIGINT COMMENT '租户/商户 ID',
-    content       TEXT COMMENT '文档内容',
-    source_type   VARCHAR(20) COMMENT '来源类型',
-    source_path   VARCHAR(255) COMMENT '来源路径',
-    status        TINYINT COMMENT '状态：0-下架 1-上架 2-待向量化 3-已完成',
-    create_time   DATETIME,
-    update_time   DATETIME
-);
-```
-
-**设计亮点**：
-
-- ✅ 多租户隔离：通过 `group_id` 实现数据隔离
-- ✅ 双层分类：`scope_type`（领域）+ `business_type`（业务）
-- ✅ 状态控制：控制文档是否参与检索
-
-#### 2. 对话记录表 (ai_context_user_record)
-
-```sql
-CREATE TABLE ai_context_user_record
-(
-    id            BIGINT PRIMARY KEY,
-    chat_id       BIGINT COMMENT '会话 ID',
-    group_id      BIGINT COMMENT '租户 ID',
-    scope_type    VARCHAR(50) COMMENT '知识领域',
-    business_type VARCHAR(50) COMMENT '业务类型',
-    question      TEXT COMMENT '用户问题',
-    answer        TEXT COMMENT 'AI 回答',
-    create_time   DATETIME
-);
-```
-
-#### 3. 向量存储表 (vector_store)
-
-```sql
--- PostgreSQL with pgvector extension
-CREATE TABLE vector_store
-(
-    id      VARCHAR PRIMARY KEY,
-    embedding VECTOR(1024) COMMENT '向量数据',
-    content TEXT COMMENT '文档内容',
-    metadata JSONB COMMENT '元数据'
-);
-
--- 创建 HNSW 向量索引（高性能相似度检索）
-CREATE INDEX vector_store_embedding_idx
-    ON vector_store USING hnsw (embedding vector_cosine_ops);
-
--- 创建 BM25 全文索引（关键词检索）
-CREATE INDEX vector_store_content_idx
-    ON vector_store USING gin (to_tsvector('simple', content));
-```
-
----
-
 ## 📋 部署指南
 
 ### 生产环境建议
 
 #### 1. 大模型选择
 
-| 场景     | 推荐模型                  | 说明       |
-|--------|-----------------------|----------|
-| 在线 RAG | qwen3-max / qwen-plus | 效果好，成本高  |
-| 意图分析   | qwen3-32b（微调）         | 精准分类，成本低 |
-| 本地部署   | qwen3:32b+            | 需 GPU 资源 |
+| 场景     | 推荐模型                     | 说明       |
+|--------|--------------------------|----------|
+| 在线 RAG | qwen3-max / qwen3.5-plus | 效果好，成本高  |
+| 意图分析   | qwen3.5-plus 9b（微调）      | 精准分类，成本低 |
+| 本地部署   | qwen3:32b+               | 需 GPU 资源 |
 
 #### 2. 向量数据库配置
 
@@ -879,12 +757,12 @@ spring.ai.dashscope.rerank.api-key=YOUR_RERANK_API_KEY
 
 ## 📝 待完善功能
 
-- [ ] 意图分析 Agent 完整实现（用户问题→业务分类→工具选择）
-- [ ] 业务数据 MCP 工具（订单查询、用户信息等数据库联动）
+- [√] 意图分析 Agent 完整实现（用户问题→业务分类→工具选择）
+- [√] 完整的工作流编排
+- [√] 对话历史持久化（Redis/数据库）
+- [√] Token 用量监控和统计
+- [ ] 业务数据 MCP 工具（按需拓展订单查询、用户信息等数据库联动）
 - [ ] 动态 SQL 生成 MCP（自然语言→SQL 查询）
-- [ ] 完整的工作流编排
-- [ ] 对话历史持久化（Redis/数据库）
-- [ ] Token 用量监控和统计
 
 ---
 
@@ -893,9 +771,9 @@ spring.ai.dashscope.rerank.api-key=YOUR_RERANK_API_KEY
 欢迎提交 Issue 和 Pull Request！
 
 1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
+2. 创建特性分支 (`git checkout -b feature/0318-amazing-feature`)
+3. 提交更改 (`git commit -m 'feat-0318: Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/0318-amazing-feature`)
 5. 开启 Pull Request
 
 ---
@@ -913,7 +791,6 @@ Apache License 2.0
 - [阿里云百炼](https://bailian.console.aliyun.com/)
 - [Ollama](https://ollama.ai/)
 - [MyBatis Plus](https://baomidou.com/)
-
 ---
 
 <div align="center">

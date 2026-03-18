@@ -1,8 +1,4 @@
--- Token 用量统计表
--- 用于记录每次 AI 请求的 token 消耗情况
--- Author: AI Assistant
--- Date: 2026-03-18
-
+-- Token 用量统计表 用于记录每次 AI 请求的 token 消耗情况
 CREATE TABLE `ai_token_usage`
 (
     `id`              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
