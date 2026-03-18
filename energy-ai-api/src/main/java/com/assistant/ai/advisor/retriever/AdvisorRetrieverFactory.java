@@ -1,5 +1,6 @@
 package com.assistant.ai.advisor.retriever;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeConnectionProperties;
 import com.assistant.ai.agent.model.IntentResult;
@@ -46,8 +47,9 @@ public class AdvisorRetrieverFactory {
                 case VECTOR -> {
                     // 在租户知识以外 针对平台级知识是共享的
                     if (documentParams.getGroupId() != null && !documentParams.getGroupId().equals(BusinessConstant.PLATFORM_GROUP_ID)) {
-                        documentParams.setGroupId(BusinessConstant.PLATFORM_GROUP_ID);
-                        documentRetrievers.add(new VectorDocumentRetriever(pgVectorVectorStore, chatRagProperties, documentParams));
+                        DocumentQueryContext documentParamsCp = BeanUtil.copyProperties(documentParams, DocumentQueryContext.class);
+                        documentParamsCp.setGroupId(BusinessConstant.PLATFORM_GROUP_ID);
+                        documentRetrievers.add(new VectorDocumentRetriever(pgVectorVectorStore, chatRagProperties, documentParamsCp));
                     }
                     documentRetrievers.add(new VectorDocumentRetriever(pgVectorVectorStore, chatRagProperties, documentParams));
                     documentRetrievers.add(new Bm25DocumentRetriever(vectorStoreService, chatRagProperties, documentParams));
