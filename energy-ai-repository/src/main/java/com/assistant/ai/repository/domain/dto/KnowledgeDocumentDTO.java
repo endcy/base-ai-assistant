@@ -1,12 +1,12 @@
 package com.assistant.ai.repository.domain.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.assistant.service.domain.enums.DocSourceTypeEnum;
 import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
 import com.assistant.service.domain.enums.KnowledgeContentTypeEnum;
 import com.assistant.service.domain.enums.KnowledgeScopeTypeEnum;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

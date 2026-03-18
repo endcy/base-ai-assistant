@@ -65,9 +65,13 @@ public interface TokenUsageService {
      */
     interface TokenUsageStatsDTO {
         Long getTotalRequestCount();
+
         Integer getTotalInputTokens();
+
         Integer getTotalOutputTokens();
+
         Integer getTotalTokens();
+
         Double getAvgRequestCostMs();
     }
 
@@ -76,12 +80,19 @@ public interface TokenUsageService {
      */
     interface TokenUsageDailyStatsDTO {
         String getRequestDate();
+
         String getModelName();
+
         String getScopeType();
+
         Long getRequestCount();
+
         Integer getTotalInputTokens();
+
         Integer getTotalOutputTokens();
+
         Integer getTotalTokens();
+
         Double getAvgRequestCostMs();
     }
 
@@ -90,9 +101,13 @@ public interface TokenUsageService {
      */
     interface TokenUsageUserStatsDTO {
         Long getUserId();
+
         Integer getUserType();
+
         Long getGroupId();
+
         Long getRequestCount();
+
         Integer getTotalTokens();
     }
 }

@@ -113,7 +113,7 @@ public class BatchImportResult implements Serializable {
      */
     public Integer getTotalCount() {
         return (successCount != null ? successCount : 0) +
-               (failCount != null ? failCount : 0) +
-               (skipCount != null ? skipCount : 0);
+                (failCount != null ? failCount : 0) +
+                (skipCount != null ? skipCount : 0);
     }
 }

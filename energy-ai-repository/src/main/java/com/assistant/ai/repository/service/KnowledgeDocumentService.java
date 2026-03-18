@@ -1,8 +1,8 @@
 package com.assistant.ai.repository.service;
 
-import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
 import com.assistant.ai.repository.domain.request.KnowledgeDocumentQueryParam;
+import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.service.common.base.PageInfo;
 import org.springframework.data.domain.Pageable;
 
@@ -50,8 +50,8 @@ public interface KnowledgeDocumentService {
     /**
      * 批量导入文档（从指定目录）
      *
-     * @param directoryPath 目录路径
-     * @param groupId       用户分组 ID（租户 ID）
+     * @param directoryPath    目录路径
+     * @param groupId          用户分组 ID（租户 ID）
      * @param defaultScopeType 默认知识领域类型（如果无法从路径推断）
      * @return 导入结果：成功数量、失败数量、详细信息
      */

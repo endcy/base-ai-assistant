@@ -33,11 +33,11 @@ public class UserInfoTool {
     ) {
         try {
             StringBuilder sqlBuilder = new StringBuilder("""
-                SELECT id, user_code, username, phone, email, user_type,
-                       group_id, balance, total_charge_count, total_discharge_count,
-                       status, create_time
-                FROM biz_user WHERE 1=1
-            """);
+                        SELECT id, user_code, username, phone, email, user_type,
+                               group_id, balance, total_charge_count, total_discharge_count,
+                               status, create_time
+                        FROM biz_user WHERE 1=1
+                    """);
 
             if (userId != null) {
                 sqlBuilder.append(" AND id = ?");
@@ -51,9 +51,12 @@ public class UserInfoTool {
             sqlBuilder.append(" LIMIT 10");
 
             List<Object> params = new java.util.ArrayList<>();
-            if (userId != null) params.add(userId);
-            if (StrUtil.isNotBlank(phone)) params.add(phone);
-            if (StrUtil.isNotBlank(username)) params.add(username);
+            if (userId != null)
+                params.add(userId);
+            if (StrUtil.isNotBlank(phone))
+                params.add(phone);
+            if (StrUtil.isNotBlank(username))
+                params.add(username);
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sqlBuilder.toString(), params.toArray());
 
@@ -72,9 +75,9 @@ public class UserInfoTool {
     public String queryUserBalance(@ToolParam(description = "用户 ID") Long userId) {
         try {
             String sql = """
-                SELECT id, username, balance, status
-                FROM biz_user WHERE id = ?
-            """;
+                        SELECT id, username, balance, status
+                        FROM biz_user WHERE id = ?
+                    """;
 
             Map<String, Object> result = jdbcTemplate.queryForMap(sql, userId);
 
@@ -96,11 +99,11 @@ public class UserInfoTool {
     public String queryUsersByGroup(@ToolParam(description = "租户 ID/分组 ID") Long groupId) {
         try {
             String sql = """
-                SELECT id, user_code, username, phone, user_type, balance,
-                       total_charge_count, total_discharge_count, status
-                FROM biz_user WHERE group_id = ?
-                ORDER BY create_time DESC LIMIT 50
-            """;
+                        SELECT id, user_code, username, phone, user_type, balance,
+                               total_charge_count, total_discharge_count, status
+                        FROM biz_user WHERE group_id = ?
+                        ORDER BY create_time DESC LIMIT 50
+                    """;
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, groupId);
 

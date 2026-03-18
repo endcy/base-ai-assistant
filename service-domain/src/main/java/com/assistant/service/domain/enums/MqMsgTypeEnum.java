@@ -1,10 +1,10 @@
 package com.assistant.service.domain.enums;
 
+import com.assistant.service.domain.bo.BaseMqMsgRequest;
+import com.assistant.service.domain.bo.ExMqMsgRequest;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.assistant.service.domain.bo.BaseMqMsgRequest;
-import com.assistant.service.domain.bo.ExMqMsgRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

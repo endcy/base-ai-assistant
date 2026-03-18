@@ -1,8 +1,8 @@
 package com.assistant.ai.controller;
 
 import com.assistant.ai.repository.domain.dto.KnowledgeCategoryConfigDTO;
-import com.assistant.ai.repository.domain.request.UpdateEnabledRequest;
 import com.assistant.ai.repository.domain.request.KnowledgeCategoryQueryParam;
+import com.assistant.ai.repository.domain.request.UpdateEnabledRequest;
 import com.assistant.ai.repository.service.KnowledgeCategoryConfigService;
 import com.assistant.service.common.annotation.LogRecord;
 import com.assistant.service.common.base.PageInfo;

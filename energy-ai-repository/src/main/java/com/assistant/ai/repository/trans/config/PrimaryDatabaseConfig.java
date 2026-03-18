@@ -2,13 +2,13 @@ package com.assistant.ai.repository.trans.config;
 
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.druid.pool.DruidDataSource;
+import com.assistant.service.common.config.CustomizedSqlInjector;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusProperties;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
-import com.assistant.service.common.config.CustomizedSqlInjector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.plugin.Interceptor;

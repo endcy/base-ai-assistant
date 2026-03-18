@@ -1,7 +1,7 @@
 package com.assistant.ai.repository.trans.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.assistant.ai.repository.domain.entity.TokenUsage;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

@@ -1,10 +1,6 @@
 package com.assistant.ai.repository.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.assistant.ai.repository.domain.dto.KnowledgeCategoryConfigDTO;
 import com.assistant.ai.repository.domain.entity.KnowledgeCategoryConfig;
 import com.assistant.ai.repository.domain.request.KnowledgeCategoryQueryParam;
@@ -14,6 +10,10 @@ import com.assistant.ai.repository.trans.mapper.KnowledgeCategoryConfigMapper;
 import com.assistant.service.common.base.PageInfo;
 import com.assistant.service.common.utils.PageUtil;
 import com.assistant.service.common.utils.QueryHelpMybatisPlus;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;

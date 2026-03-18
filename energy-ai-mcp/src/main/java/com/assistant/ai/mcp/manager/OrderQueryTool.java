@@ -33,11 +33,11 @@ public class OrderQueryTool {
     ) {
         try {
             StringBuilder sqlBuilder = new StringBuilder("""
-                SELECT id, order_no, user_id, station_id, station_name, device_id, device_name,
-                       order_type, status, start_time, end_time, total_power, total_amount,
-                       electricity_fee, service_fee, create_time
-                FROM biz_charge_order WHERE 1=1
-            """);
+                        SELECT id, order_no, user_id, station_id, station_name, device_id, device_name,
+                               order_type, status, start_time, end_time, total_power, total_amount,
+                               electricity_fee, service_fee, create_time
+                        FROM biz_charge_order WHERE 1=1
+                    """);
 
             if (StrUtil.isNotBlank(orderNo)) {
                 sqlBuilder.append(" AND order_no = ?");
@@ -51,9 +51,12 @@ public class OrderQueryTool {
             sqlBuilder.append(" ORDER BY create_time DESC LIMIT 10");
 
             List<Object> params = new java.util.ArrayList<>();
-            if (StrUtil.isNotBlank(orderNo)) params.add(orderNo);
-            if (userId != null) params.add(userId);
-            if (stationId != null) params.add(stationId);
+            if (StrUtil.isNotBlank(orderNo))
+                params.add(orderNo);
+            if (userId != null)
+                params.add(userId);
+            if (stationId != null)
+                params.add(stationId);
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sqlBuilder.toString(), params.toArray());
 
@@ -76,11 +79,11 @@ public class OrderQueryTool {
     ) {
         try {
             StringBuilder sqlBuilder = new StringBuilder("""
-                SELECT id, order_no, user_id, station_id, station_name, device_id, device_name,
-                       order_type, status, start_time, end_time, total_power, total_amount,
-                       income_amount, create_time
-                FROM biz_discharge_order WHERE 1=1
-            """);
+                        SELECT id, order_no, user_id, station_id, station_name, device_id, device_name,
+                               order_type, status, start_time, end_time, total_power, total_amount,
+                               income_amount, create_time
+                        FROM biz_discharge_order WHERE 1=1
+                    """);
 
             if (StrUtil.isNotBlank(orderNo)) {
                 sqlBuilder.append(" AND order_no = ?");
@@ -94,9 +97,12 @@ public class OrderQueryTool {
             sqlBuilder.append(" ORDER BY create_time DESC LIMIT 10");
 
             List<Object> params = new java.util.ArrayList<>();
-            if (StrUtil.isNotBlank(orderNo)) params.add(orderNo);
-            if (userId != null) params.add(userId);
-            if (stationId != null) params.add(stationId);
+            if (StrUtil.isNotBlank(orderNo))
+                params.add(orderNo);
+            if (userId != null)
+                params.add(userId);
+            if (stationId != null)
+                params.add(stationId);
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sqlBuilder.toString(), params.toArray());
 
@@ -115,20 +121,20 @@ public class OrderQueryTool {
     public String queryUserOrderStats(@ToolParam(description = "用户 ID") Long userId) {
         try {
             String sql = """
-                SELECT
-                    '充电订单' as order_type,
-                    COUNT(*) as order_count,
-                    COALESCE(SUM(total_amount), 0) as total_amount,
-                    COALESCE(SUM(total_power), 0) as total_power
-                FROM biz_charge_order WHERE user_id = ?
-                UNION ALL
-                SELECT
-                    '放电订单' as order_type,
-                    COUNT(*) as order_count,
-                    COALESCE(SUM(total_amount), 0) as total_amount,
-                    COALESCE(SUM(total_power), 0) as total_power
-                FROM biz_discharge_order WHERE user_id = ?
-            """;
+                        SELECT
+                            '充电订单' as order_type,
+                            COUNT(*) as order_count,
+                            COALESCE(SUM(total_amount), 0) as total_amount,
+                            COALESCE(SUM(total_power), 0) as total_power
+                        FROM biz_charge_order WHERE user_id = ?
+                        UNION ALL
+                        SELECT
+                            '放电订单' as order_type,
+                            COUNT(*) as order_count,
+                            COALESCE(SUM(total_amount), 0) as total_amount,
+                            COALESCE(SUM(total_power), 0) as total_power
+                        FROM biz_discharge_order WHERE user_id = ?
+                    """;
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, userId, userId);
 

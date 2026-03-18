@@ -1,9 +1,9 @@
 package com.assistant.ai.repository.service.convert;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
 import com.assistant.ai.repository.domain.entity.KnowledgeDocument;
 import com.assistant.service.common.base.PageInfo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

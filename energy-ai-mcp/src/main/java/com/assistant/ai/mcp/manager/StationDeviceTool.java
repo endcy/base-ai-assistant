@@ -33,11 +33,11 @@ public class StationDeviceTool {
     ) {
         try {
             StringBuilder sqlBuilder = new StringBuilder("""
-                SELECT id, station_code, station_name, province, city, district,
-                       address, latitude, longitude, status, total_devices,
-                       available_devices, group_id
-                FROM biz_station WHERE 1=1
-            """);
+                        SELECT id, station_code, station_name, province, city, district,
+                               address, latitude, longitude, status, total_devices,
+                               available_devices, group_id
+                        FROM biz_station WHERE 1=1
+                    """);
 
             if (stationId != null) {
                 sqlBuilder.append(" AND id = ?");
@@ -51,9 +51,12 @@ public class StationDeviceTool {
             sqlBuilder.append(" LIMIT 20");
 
             List<Object> params = new java.util.ArrayList<>();
-            if (stationId != null) params.add(stationId);
-            if (StrUtil.isNotBlank(stationName)) params.add("%" + stationName + "%");
-            if (StrUtil.isNotBlank(city)) params.add(city);
+            if (stationId != null)
+                params.add(stationId);
+            if (StrUtil.isNotBlank(stationName))
+                params.add("%" + stationName + "%");
+            if (StrUtil.isNotBlank(city))
+                params.add(city);
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sqlBuilder.toString(), params.toArray());
 
@@ -76,13 +79,13 @@ public class StationDeviceTool {
     ) {
         try {
             StringBuilder sqlBuilder = new StringBuilder("""
-                SELECT d.id, d.device_code, d.device_name, d.device_type,
-                       d.station_id, s.station_name, d.status, d.power_rating,
-                       d.group_id
-                FROM biz_device d
-                LEFT JOIN biz_station s ON d.station_id = s.id
-                WHERE 1=1
-            """);
+                        SELECT d.id, d.device_code, d.device_name, d.device_type,
+                               d.station_id, s.station_name, d.status, d.power_rating,
+                               d.group_id
+                        FROM biz_device d
+                        LEFT JOIN biz_station s ON d.station_id = s.id
+                        WHERE 1=1
+                    """);
 
             if (deviceId != null) {
                 sqlBuilder.append(" AND d.id = ?");
@@ -96,9 +99,12 @@ public class StationDeviceTool {
             sqlBuilder.append(" LIMIT 50");
 
             List<Object> params = new java.util.ArrayList<>();
-            if (deviceId != null) params.add(deviceId);
-            if (stationId != null) params.add(stationId);
-            if (StrUtil.isNotBlank(status)) params.add(status);
+            if (deviceId != null)
+                params.add(deviceId);
+            if (stationId != null)
+                params.add(stationId);
+            if (StrUtil.isNotBlank(status))
+                params.add(status);
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sqlBuilder.toString(), params.toArray());
 
@@ -117,9 +123,9 @@ public class StationDeviceTool {
     public String queryStationAvailableDevices(@ToolParam(description = "站点 ID") Long stationId) {
         try {
             String sql = """
-                SELECT station_name, total_devices, available_devices, status
-                FROM biz_station WHERE id = ?
-            """;
+                        SELECT station_name, total_devices, available_devices, status
+                        FROM biz_station WHERE id = ?
+                    """;
 
             Map<String, Object> result = jdbcTemplate.queryForMap(sql, stationId);
 
@@ -142,14 +148,14 @@ public class StationDeviceTool {
     public String queryStationStatsByCity() {
         try {
             String sql = """
-                SELECT city,
-                       COUNT(*) as station_count,
-                       SUM(total_devices) as total_devices,
-                       SUM(available_devices) as available_devices
-                FROM biz_station
-                GROUP BY city
-                ORDER BY station_count DESC
-            """;
+                        SELECT city,
+                               COUNT(*) as station_count,
+                               SUM(total_devices) as total_devices,
+                               SUM(available_devices) as available_devices
+                        FROM biz_station
+                        GROUP BY city
+                        ORDER BY station_count DESC
+                    """;
 
             List<Map<String, Object>> results = jdbcTemplate.queryForList(sql);
 

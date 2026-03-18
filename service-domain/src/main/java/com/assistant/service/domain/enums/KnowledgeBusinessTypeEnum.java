@@ -49,7 +49,7 @@ public enum KnowledgeBusinessTypeEnum {
             return UNKNOWN;
         }
         for (KnowledgeBusinessTypeEnum gender : KnowledgeBusinessTypeEnum.values()) {
-            if (gender.name().equals( value) || gender.type.equals(value)) {
+            if (gender.name().equals(value) || gender.type.equals(value)) {
                 return gender;
             }
         }

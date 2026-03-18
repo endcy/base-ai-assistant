@@ -1,9 +1,9 @@
 package com.assistant.ai.controller;
 
-import com.assistant.ai.repository.domain.request.BatchImportRequest;
-import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
+import com.assistant.ai.repository.domain.request.BatchImportRequest;
 import com.assistant.ai.repository.domain.request.KnowledgeDocumentQueryParam;
+import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.ai.repository.service.KnowledgeDocumentService;
 import com.assistant.service.common.annotation.LogRecord;
 import com.assistant.service.common.base.PageInfo;

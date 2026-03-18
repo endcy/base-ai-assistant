@@ -1,7 +1,6 @@
 package com.assistant.ai.agent;
 
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.fastjson.JSON;
 import com.assistant.ai.agent.model.IntentResult;
 import com.assistant.ai.domain.enums.PossibleSourceTypeEnum;
 import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
@@ -68,20 +67,20 @@ public class IntentAnalysisAgent {
 
         String promptTemplate = """
                 你是智慧能源 AI 中的一个意图分析专家。请分析用户问题的以下四个方面：
-
+                
                 1. **业务类型** (从以下类别中选择最匹配的一个):
                 """ + typeTips + """
-
+                
                 2. **数据来源** (可多选，按优先级排序):
                 """ + dataSourceTips + """
-
+                
                 3. **推荐工具** (可选择多个或空列表):
                 """ + toolTips + """
-
+                
                 4. **置信度** (1-10 的整数，10 表示最确定)
-
+                
                 用户问题：%s
-
+                
                 请以 JSON 格式返回分析结果，格式如下:
                 {
                     "businessType": "业务类型名称",
@@ -206,8 +205,7 @@ public class IntentAnalysisAgent {
         return switch (businessType.toUpperCase()) {
             case "CHARGE_ORDER", "DISCHARGE_ORDER", "ACCOUNT" -> PossibleSourceTypeEnum.DATABASE;
             case "STATION", "EQUIPMENT" -> PossibleSourceTypeEnum.DATABASE;
-            case "ALARM", "NORMS", "API", "PRODUCTION", "CLIENT_OPERATE", "ADMIN_OPERATE", "MAINTENANCE" ->
-                    PossibleSourceTypeEnum.VECTOR;
+            case "ALARM", "NORMS", "API", "PRODUCTION", "CLIENT_OPERATE", "ADMIN_OPERATE", "MAINTENANCE" -> PossibleSourceTypeEnum.VECTOR;
             case "REPORTER", "POWER_PREDICT" -> PossibleSourceTypeEnum.DATABASE;
             default -> PossibleSourceTypeEnum.VECTOR;
         };

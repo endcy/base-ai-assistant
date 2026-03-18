@@ -1,6 +1,5 @@
 package com.assistant.ai.app;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.assistant.ai.advisor.ChatClientAdvisorFactory;
 import com.assistant.ai.advisor.HybridRetrievalAdvisor;
@@ -31,9 +30,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
