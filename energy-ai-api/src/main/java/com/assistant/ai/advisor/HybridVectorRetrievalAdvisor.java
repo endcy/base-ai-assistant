@@ -30,7 +30,7 @@ import java.util.Map;
  * 统一数据库来源文档检索
  * 包含了 bm25 关键词检索 + 语义向量相似检索 + 重排序的 Advisor
  *
- * @author cxx641
+ * @author endcy
  * @date 2025/12/3 20:11:46
  */
 @Slf4j

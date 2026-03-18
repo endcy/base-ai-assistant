@@ -1,7 +1,7 @@
 package com.assistant.ai.repository.service;
 
 import com.assistant.ai.repository.domain.context.DocumentQueryContext;
-import com.assistant.ai.repository.domain.query.VectorDocumentQueryParam;
+import com.assistant.ai.repository.domain.request.VectorDocumentQueryParam;
 import com.assistant.ai.repository.domain.vector.VectorDocument;
 
 import java.util.List;

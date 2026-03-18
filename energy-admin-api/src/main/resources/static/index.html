@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧能源AI助手后台</title>
+    <title>智慧能源 AI 助手后台</title>
     <style>
         * {
             margin: 0;
@@ -46,7 +46,7 @@
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
             padding: 20px;
         }
@@ -137,8 +137,16 @@
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
+        .stats-card .card-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
         .api-card .card-header {
             background: linear-gradient(135deg, #43cbff 0%, #9708cc 100%);
+        }
+
+        .category-card .card-header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         }
 
         footer {
@@ -188,13 +196,13 @@
 <body>
 <div class="container">
     <header>
-        <h1>智慧能源AI助手后台</h1>
+        <h1>智慧能源 AI 助手后台</h1>
         <p class="subtitle">一站式管理您的知识文档和用户对话记录</p>
     </header>
 
     <div class="welcome-section">
-        <h2>欢迎使用智慧能源AI助手后台</h2>
-        <p>在这里您可以轻松管理知识文档和用户对话记录，以及测试AI服务接口，提升工作效率和数据管理能力。</p>
+        <h2>欢迎使用智慧能源 AI 助手后台</h2>
+        <p>在这里您可以轻松管理知识文档和用户对话记录，以及测试 AI 服务接口，提升工作效率和数据管理能力。</p>
     </div>
 
     <div class="menu-grid">
@@ -231,10 +239,30 @@
                     <li>启用/禁用记录状态</li>
                     <li>详细的用户信息展示</li>
                 </ul>
-                <p>跟踪和分析用户与AI的交互记录，优化服务体验。</p>
+                <p>跟踪和分析用户与 AI 的交互记录，优化服务体验。</p>
             </div>
             <div class="card-footer">
                 <button class="btn" onclick="navigateTo('context-user-record.html'); event.stopPropagation();">进入管理</button>
+            </div>
+        </div>
+
+        <div class="menu-card stats-card" onclick="navigateTo('token-usage.html')">
+            <div class="card-header">
+                <h2>Token 用量统计</h2>
+                <p>Token Usage Statistics</p>
+            </div>
+            <div class="card-content">
+                <ul class="features">
+                    <li>总览 Token 使用情况</li>
+                    <li>按日统计趋势</li>
+                    <li>按用户统计分析</li>
+                    <li>详细记录查询</li>
+                    <li>多维度筛选</li>
+                </ul>
+                <p>查看和分析 Token 使用情况，优化 AI 调用成本。</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn" onclick="navigateTo('token-usage.html'); event.stopPropagation();">查看统计</button>
             </div>
         </div>
 
@@ -248,19 +276,39 @@
                     <li>基础对话接口测试</li>
                     <li>检索增强接口测试</li>
                     <li>工具链接口测试</li>
-                    <li>DeepSeek搜索接口测试</li>
+                    <li>DeepSeek 搜索接口测试</li>
                     <li>……</li>
                 </ul>
-                <p>测试和验证AI服务的各种接口功能，确保系统正常运行。</p>
+                <p>测试和验证 AI 服务的各种接口功能，确保系统正常运行。</p>
             </div>
             <div class="card-footer">
                 <button class="btn" onclick="navigateTo('api.html'); event.stopPropagation();">开始测试</button>
             </div>
         </div>
+
+        <div class="menu-card category-card" onclick="navigateTo('knowledge-category.html')">
+            <div class="card-header">
+                <h2>知识分类配置</h2>
+                <p>Knowledge Category Configuration</p>
+            </div>
+            <div class="card-content">
+                <ul class="features">
+                    <li>管理知识领域分类</li>
+                    <li>管理业务领域分类</li>
+                    <li>支持分类启用/禁用</li>
+                    <li>分类排序管理</li>
+                    <li>动态维护分类配置</li>
+                </ul>
+                <p>动态管理知识分类配置，替代硬编码枚举，支持灵活扩展。</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn" onclick="navigateTo('knowledge-category.html'); event.stopPropagation();">进入管理</button>
+            </div>
+        </div>
     </div>
 
     <footer>
-        <p>智慧能源AI助手 © 2025 | 为您提供高效的智慧能源AI解决方案</p>
+        <p>智慧能源 AI 助手 © 2025 | 为您提供高效的智慧能源 AI 解决方案</p>
     </footer>
 </div>
 
@@ -271,17 +319,25 @@
 
     // 添加键盘导航支持
     document.addEventListener('keydown', function(event) {
-        // 按1键跳转到知识文档管理
+        // 按 1 键跳转到知识文档管理
         if (event.key === '1') {
             navigateTo('knowledge-document.html');
         }
-        // 按2键跳转到用户对话记录管理
+        // 按 2 键跳转到用户对话记录管理
         else if (event.key === '2') {
             navigateTo('context-user-record.html');
         }
-        // 按3键跳转到接口测试页面
+        // 按 3 键跳转到 Token 用量统计页面
         else if (event.key === '3') {
+            navigateTo('token-usage.html');
+        }
+        // 按 4 键跳转到接口测试页面
+        else if (event.key === '4') {
             navigateTo('api.html');
+        }
+        // 按 5 键跳转到知识分类配置页面
+        else if (event.key === '5') {
+            navigateTo('knowledge-category.html');
         }
     });
 </script>

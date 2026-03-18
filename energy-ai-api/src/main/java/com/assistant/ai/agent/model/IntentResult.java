@@ -1,8 +1,12 @@
 package com.assistant.ai.agent.model;
 
 import com.assistant.ai.domain.enums.PossibleSourceTypeEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +16,9 @@ import java.util.List;
  * @date 2025/10/31 20:46:15
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class IntentResult {
 
     /**
@@ -33,15 +40,45 @@ public class IntentResult {
      *
      * @see PossibleSourceTypeEnum
      */
-    List<PossibleSourceTypeEnum> dataScopeList;
+    private List<PossibleSourceTypeEnum> dataScopeList;
 
-    public IntentResult() {
-    }
+    /**
+     * 推荐使用的工具列表
+     */
+    private List<String> recommendedTools;
+
+    /**
+     * 置信度 (0-10)
+     */
+    private Integer confidence;
 
     public IntentResult(String scopeType, String businessType, Long chatId, String userMessage) {
         this.scopeType = scopeType;
         this.businessType = businessType;
         this.chatId = chatId;
         this.userMessage = userMessage;
+        this.dataScopeList = new ArrayList<>();
+        this.recommendedTools = new ArrayList<>();
+        this.confidence = 5;
+    }
+
+    /**
+     * 添加数据来源
+     */
+    public void addDataScope(PossibleSourceTypeEnum dataScope) {
+        if (this.dataScopeList == null) {
+            this.dataScopeList = new ArrayList<>();
+        }
+        this.dataScopeList.add(dataScope);
+    }
+
+    /**
+     * 添加推荐工具
+     */
+    public void addRecommendedTool(String tool) {
+        if (this.recommendedTools == null) {
+            this.recommendedTools = new ArrayList<>();
+        }
+        this.recommendedTools.add(tool);
     }
 }

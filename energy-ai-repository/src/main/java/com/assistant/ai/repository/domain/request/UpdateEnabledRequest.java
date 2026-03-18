@@ -1,4 +1,4 @@
-package com.assistant.ai.repository.domain.dto;
+package com.assistant.ai.repository.domain.request;
 
 import lombok.Data;
 

@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * 使用语义向量相似度检索获取关联文档
  *
- * @author cxx641
+ * @author endcy
  * @date 2025/12/4 14:16:44
  */
 @Slf4j

@@ -1,14 +1,16 @@
 package com.assistant.ai.repository.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.assistant.ai.repository.helper.DocumentImportHelper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
 import com.assistant.ai.repository.domain.entity.KnowledgeDocument;
-import com.assistant.ai.repository.domain.query.KnowledgeDocumentQueryParam;
+import com.assistant.ai.repository.domain.request.KnowledgeDocumentQueryParam;
 import com.assistant.ai.repository.service.KnowledgeDocumentService;
 import com.assistant.ai.repository.service.convert.KnowledgeDocumentConverter;
 import com.assistant.ai.repository.trans.mapper.KnowledgeDocumentMapper;
@@ -42,6 +44,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
     private final KnowledgeDocumentMapper knowledgeDocumentMapper;
     private final KnowledgeDocumentConverter knowledgeDocumentConverter;
     private final VectorStoreServiceImpl vectorStoreService;
+    private final DocumentImportHelper documentImportHelper;
 
     @Override
     public List<KnowledgeDocumentDTO> getUnloadedDocuments() {
@@ -111,6 +114,13 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
     @Transactional(rollbackFor = Exception.class)
     public int removeByIds(Set<Long> ids) {
         return knowledgeDocumentMapper.deleteByIds(ids);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public BatchImportResult batchImportFromDirectory(String directoryPath, Long groupId, String defaultScopeType) {
+        log.info("批量导入文档：directoryPath={}, groupId={}, defaultScopeType={}", directoryPath, groupId, defaultScopeType);
+        return documentImportHelper.importFromDirectory(directoryPath, groupId, defaultScopeType);
     }
 
 }

@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * 基础检索器抽象类
  *
- * @author cxx641
+ * @author endcy
  * @date 2025/12/4 14:21:58
  */
 @Slf4j

@@ -1,7 +1,9 @@
 package com.assistant.ai.controller;
 
+import com.assistant.ai.repository.domain.request.BatchImportRequest;
+import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
-import com.assistant.ai.repository.domain.query.KnowledgeDocumentQueryParam;
+import com.assistant.ai.repository.domain.request.KnowledgeDocumentQueryParam;
 import com.assistant.ai.repository.service.KnowledgeDocumentService;
 import com.assistant.service.common.annotation.LogRecord;
 import com.assistant.service.common.base.PageInfo;
@@ -50,6 +52,13 @@ public class KnowledgeDocumentController {
 //    @PreAuthorize("@el.check('knowledgeDocument:del')")
     public Integer delete(@RequestBody Set<Long> ids) {
         return knowledgeDocumentService.removeByIds(ids);
+    }
+
+    @PostMapping("/batch-import")
+    @LogRecord(value = "批量导入知识文档", type = LogActionType.ADD)
+//    @PreAuthorize("@el.check('knowledgeDocument:add')")
+    public BatchImportResult batchImport(@RequestBody BatchImportRequest request) {
+        return knowledgeDocumentService.batchImportFromDirectory(request.getDirectoryPath(), request.getGroupId(), request.getDefaultScopeType());
     }
 
 }

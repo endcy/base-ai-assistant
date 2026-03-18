@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * 包含了 本地向量化文档、pg 库表文档 bm25 关键词检索 + pg 库表语义向量相似检索 + 重排序的 Advisor
  * 原 CompositeDocumentRetriever 实现多路检索 需要额外重排序 且串行检索效率较低
  *
- * @author cxx641
+ * @author endcy
  * @date 2025/12/3 20:11:46
  */
 @Slf4j

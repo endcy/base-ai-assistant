@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token 用量统计管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+        }
+
+        .btn-warning:hover {
+            background: #d35400;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-info {
+            margin: 0 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            min-width: 40px;
+        }
+
+        .pagination .current-page {
+            background-color: #5a6fd8;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            display: none;
+        }
+
+        .notification.success {
+            background-color: #2ecc71;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Token 用量统计管理</h1>
+        <p>查看和分析 Token 使用情况</p>
+    </header>
+
+    <!-- 统计卡片 -->
+    <div class="stats-cards" id="statsCards">
+        <div class="stat-card">
+            <h3>总请求次数</h3>
+            <div class="value" id="totalRequests">-</div>
+        </div>
+        <div class="stat-card">
+            <h3>总输入 Token</h3>
+            <div class="value" id="totalInputTokens">-</div>
+        </div>
+        <div class="stat-card">
+            <h3>总输出 Token</h3>
+            <div class="value" id="totalOutputTokens">-</div>
+        </div>
+        <div class="stat-card">
+            <h3>总 Token 数</h3>
+            <div class="value" id="totalTokens">-</div>
+        </div>
+        <div class="stat-card">
+            <h3>平均请求耗时</h3>
+            <div class="value" id="avgCostMs">-</div>
+        </div>
+    </div>
+
+    <!-- 选项卡 -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('detail')">详细记录</div>
+        <div class="tab" onclick="switchTab('daily')">按日统计</div>
+        <div class="tab" onclick="switchTab('user')">按用户统计</div>
+    </div>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="chatIdInput" placeholder="对话 ID">
+            <input type="text" id="userIdInput" placeholder="用户 ID">
+            <input type="text" id="modelNameInput" placeholder="模型名称">
+            <input type="date" id="startDateInput">
+            <input type="date" id="endDateInput">
+            <button onclick="searchRecords()">搜索</button>
+            <button class="btn-success" onclick="loadStats()">刷新统计</button>
+        </div>
+    </div>
+
+    <!-- 详细记录表格 -->
+    <table id="detailTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>对话 ID</th>
+            <th>用户 ID</th>
+            <th>模型名称</th>
+            <th>输入 Token</th>
+            <th>输出 Token</th>
+            <th>总 Token</th>
+            <th>耗时 (ms)</th>
+            <th>请求日期</th>
+        </tr>
+        </thead>
+        <tbody id="detailTableBody">
+        <!-- 数据将通过 JS 动态填充 -->
+        </tbody>
+    </table>
+
+    <!-- 按日统计表格 -->
+    <table id="dailyTable" style="display: none;">
+        <thead>
+        <tr>
+            <th>日期</th>
+            <th>模型名称</th>
+            <th>范围类型</th>
+            <th>业务类型</th>
+            <th>请求次数</th>
+            <th>输入 Token</th>
+            <th>输出 Token</th>
+            <th>总 Token</th>
+            <th>平均耗时 (ms)</th>
+        </tr>
+        </thead>
+        <tbody id="dailyTableBody">
+        <!-- 数据将通过 JS 动态填充 -->
+        </tbody>
+    </table>
+
+    <!-- 按用户统计表格 -->
+    <table id="userTable" style="display: none;">
+        <thead>
+        <tr>
+            <th>用户 ID</th>
+            <th>用户类型</th>
+            <th>分组 ID</th>
+            <th>请求次数</th>
+            <th>总 Token</th>
+            <th>最后请求时间</th>
+        </tr>
+        </thead>
+        <tbody id="userTableBody">
+        <!-- 数据将通过 JS 动态填充 -->
+        </tbody>
+    </table>
+
+    <div class="pagination" id="pagination">
+        <!-- 分页控件将通过 JS 动态生成 -->
+    </div>
+</div>
+
+<!-- 通知 -->
+<div id="notification" class="notification"></div>
+
+<script>
+    // 全局变量
+    let currentPage = 0;
+    let pageSize = 10;
+    let totalElements = 0;
+    let totalPages = 0;
+    let currentTab = 'detail';
+
+    // 页面加载完成后获取数据
+    document.addEventListener('DOMContentLoaded', function () {
+        loadStats();
+        fetchRecords();
+    });
+
+    // 切换选项卡
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+
+        document.getElementById('detailTable').style.display = tab === 'detail' ? 'table' : 'none';
+        document.getElementById('dailyTable').style.display = tab === 'daily' ? 'table' : 'none';
+        document.getElementById('userTable').style.display = tab === 'user' ? 'table' : 'none';
+
+        if (tab === 'daily') {
+            loadDailyStats();
+        } else if (tab === 'user') {
+            loadUserStats();
+        } else {
+            fetchRecords();
+        }
+    }
+
+    // 加载统计数据
+    function loadStats() {
+        const params = buildQueryParams();
+        fetch(`/api/token-usage/stats?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalRequests').textContent = data.totalRequestCount || 0;
+                document.getElementById('totalInputTokens').textContent = formatNumber(data.totalInputTokens || 0);
+                document.getElementById('totalOutputTokens').textContent = formatNumber(data.totalOutputTokens || 0);
+                document.getElementById('totalTokens').textContent = formatNumber(data.totalTokens || 0);
+                document.getElementById('avgCostMs').textContent = (data.avgRequestCostMs || 0).toFixed(2) + ' ms';
+            })
+            .catch(error => {
+                console.error('加载统计数据失败:', error);
+                showNotification('加载统计数据失败：' + error.message, 'error');
+            });
+    }
+
+    // 获取记录列表
+    function fetchRecords(page = 0) {
+        currentPage = page;
+        const params = buildQueryParams(page, pageSize);
+        fetch(`/api/token-usage?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                const content = data.content || data.items || data.data || data;
+                totalElements = data.totalElements || data.total || content.length;
+                totalPages = data.totalPages || data.pageCount || Math.ceil(totalElements / pageSize);
+
+                renderDetailTable(content);
+                renderPagination();
+            })
+            .catch(error => {
+                console.error('获取数据失败:', error);
+                showNotification('获取数据失败：' + error.message, 'error');
+                renderDetailTable([]);
+                renderPagination();
+            });
+    }
+
+    // 加载按日统计数据
+    function loadDailyStats() {
+        const params = buildQueryParams();
+        fetch(`/api/token-usage/stats/daily?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                renderDailyTable(data);
+            })
+            .catch(error => {
+                console.error('加载按日统计数据失败:', error);
+                showNotification('加载按日统计数据失败：' + error.message, 'error');
+            });
+    }
+
+    // 加载按用户统计数据
+    function loadUserStats() {
+        const params = buildQueryParams();
+        fetch(`/api/token-usage/stats/user?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                renderUserTable(data);
+            })
+            .catch(error => {
+                console.error('加载按用户统计数据失败:', error);
+                showNotification('加载按用户统计数据失败：' + error.message, 'error');
+            });
+    }
+
+    // 构建查询参数
+    function buildQueryParams(page = 0, size = 10) {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('size', size);
+
+        const chatId = document.getElementById('chatIdInput').value.trim();
+        const userId = document.getElementById('userIdInput').value.trim();
+        const modelName = document.getElementById('modelNameInput').value.trim();
+        const startDate = document.getElementById('startDateInput').value;
+        const endDate = document.getElementById('endDateInput').value;
+
+        if (chatId) params.append('chatId', chatId);
+        if (userId) params.append('userId', userId);
+        if (modelName) params.append('modelName', modelName);
+        if (startDate) params.append('startTime', startDate + ' 00:00:00');
+        if (endDate) params.append('endTime', endDate + ' 23:59:59');
+
+        return params.toString();
+    }
+
+    // 搜索记录
+    function searchRecords() {
+        if (currentTab === 'daily') {
+            loadDailyStats();
+        } else if (currentTab === 'user') {
+            loadUserStats();
+        } else {
+            fetchRecords(0);
+        }
+        loadStats();
+    }
+
+    // 渲染详细记录表格
+    function renderDetailTable(records) {
+        const tbody = document.getElementById('detailTableBody');
+        tbody.innerHTML = '';
+
+        if (!records || records.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="9" style="text-align: center;">暂无数据</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        records.forEach(record => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${record.id || '-'}</td>
+                <td>${record.chatId || '-'}</td>
+                <td>${record.userId || '-'}</td>
+                <td>${record.modelName || '-'}</td>
+                <td>${formatNumber(record.inputTokens || 0)}</td>
+                <td>${formatNumber(record.outputTokens || 0)}</td>
+                <td>${formatNumber(record.totalTokens || 0)}</td>
+                <td>${(record.requestCostMs || 0).toFixed(2)}</td>
+                <td>${formatDate(record.requestDate) || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 渲染按日统计表格
+    function renderDailyTable(data) {
+        const tbody = document.getElementById('dailyTableBody');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="9" style="text-align: center;">暂无数据</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${formatDate(row.requestDate) || '-'}</td>
+                <td>${row.modelName || '-'}</td>
+                <td>${row.scopeType || '-'}</td>
+                <td>${row.businessType || '-'}</td>
+                <td>${formatNumber(row.requestCount || 0)}</td>
+                <td>${formatNumber(row.totalInputTokens || 0)}</td>
+                <td>${formatNumber(row.totalOutputTokens || 0)}</td>
+                <td>${formatNumber(row.totalTokens || 0)}</td>
+                <td>${(row.avgRequestCostMs || 0).toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 渲染按用户统计表格
+    function renderUserTable(data) {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="6" style="text-align: center;">暂无数据</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.userId || '-'}</td>
+                <td>${row.userType || '-'}</td>
+                <td>${row.groupId || '-'}</td>
+                <td>${formatNumber(row.requestCount || 0)}</td>
+                <td>${formatNumber(row.totalTokens || 0)}</td>
+                <td>${formatDate(row.lastRequestTime) || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 渲染分页控件
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        pagination.style.display = 'flex';
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'pagination-info';
+        infoDiv.textContent = `第 ${currentPage + 1} 页，共 ${totalPages} 页，总计 ${totalElements} 条记录`;
+        pagination.appendChild(infoDiv);
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '上一页';
+        if (currentPage === 0) {
+            prevButton.classList.add('btn-disabled');
+            prevButton.disabled = true;
+        } else {
+            prevButton.onclick = () => fetchRecords(currentPage - 1);
+        }
+        pagination.appendChild(prevButton);
+
+        for (let i = Math.max(0, currentPage - 2); i <= Math.min(totalPages - 1, currentPage + 2); i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i + 1;
+            if (i === currentPage) {
+                pageButton.classList.add('current-page');
+                pageButton.disabled = true;
+            } else {
+                pageButton.onclick = () => fetchRecords(i);
+            }
+            pagination.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '下一页';
+        if (currentPage === totalPages - 1) {
+            nextButton.classList.add('btn-disabled');
+            nextButton.disabled = true;
+        } else {
+            nextButton.onclick = () => fetchRecords(currentPage + 1);
+        }
+        pagination.appendChild(nextButton);
+    }
+
+    // 格式化数字（千分位）
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    // 显示通知
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'block';
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+</script>
+</body>
+</html>

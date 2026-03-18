@@ -1,15 +1,17 @@
-package com.assistant.ai.repository.service.impl;
+package com.assistant.ai.repository.helper;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import com.assistant.ai.repository.domain.dto.BatchImportResult;
 import com.assistant.ai.repository.domain.dto.KnowledgeCategoryConfigDTO;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
 import com.assistant.ai.repository.domain.entity.KnowledgeDocument;
+import com.assistant.ai.repository.domain.result.BatchImportResult;
 import com.assistant.ai.repository.service.KnowledgeCategoryConfigService;
 import com.assistant.ai.repository.service.convert.KnowledgeDocumentConverter;
 import com.assistant.ai.repository.trans.mapper.KnowledgeDocumentMapper;
 import com.assistant.service.domain.enums.DocSourceTypeEnum;
+import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
+import com.assistant.service.domain.enums.KnowledgeScopeTypeEnum;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -286,7 +288,7 @@ public class DocumentImportHelper {
         }
 
         // 默认返回"用户客服"
-        return "account_customer_service";
+        return KnowledgeScopeTypeEnum.ACCOUNT_CUSTOMER_SERVICE.getDesc();
     }
 
     /**
@@ -296,11 +298,11 @@ public class DocumentImportHelper {
         // 从路径各层级中推断
         for (String part : pathParts) {
             String businessType = matchBusinessType(part);
-            if (businessType != null && !"unknown".equals(businessType)) {
+            if (businessType != null && !KnowledgeBusinessTypeEnum.UNKNOWN.getType().equals(businessType)) {
                 return businessType;
             }
         }
-        return "unknown";
+        return KnowledgeBusinessTypeEnum.UNKNOWN.getType();
     }
 
     /**
@@ -330,7 +332,7 @@ public class DocumentImportHelper {
      */
     private String matchBusinessType(String text) {
         if (StrUtil.isBlank(text)) {
-            return "unknown";
+            return KnowledgeBusinessTypeEnum.UNKNOWN.getType();
         }
         // 尝试从 code 映射匹配（英文关键字）
         for (Map.Entry<String, String> entry : businessTypeCodeMap.entrySet()) {
@@ -344,7 +346,7 @@ public class DocumentImportHelper {
                 return entry.getValue();
             }
         }
-        return "unknown";
+        return KnowledgeBusinessTypeEnum.UNKNOWN.getType();
     }
 
     /**

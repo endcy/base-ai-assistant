@@ -1,8 +1,8 @@
 package com.assistant.ai.controller;
 
 import com.assistant.ai.repository.domain.dto.KnowledgeCategoryConfigDTO;
-import com.assistant.ai.repository.domain.dto.UpdateEnabledRequest;
-import com.assistant.ai.repository.domain.query.KnowledgeCategoryConfigQuery;
+import com.assistant.ai.repository.domain.request.UpdateEnabledRequest;
+import com.assistant.ai.repository.domain.request.KnowledgeCategoryQueryParam;
 import com.assistant.ai.repository.service.KnowledgeCategoryConfigService;
 import com.assistant.service.common.annotation.LogRecord;
 import com.assistant.service.common.base.PageInfo;
@@ -32,7 +32,7 @@ public class KnowledgeCategoryConfigController {
      */
     @GetMapping
     @LogRecord("查询知识分类配置")
-    public PageInfo<KnowledgeCategoryConfigDTO> query(KnowledgeCategoryConfigQuery query, Pageable pageable) {
+    public PageInfo<KnowledgeCategoryConfigDTO> query(KnowledgeCategoryQueryParam query, Pageable pageable) {
         return knowledgeCategoryConfigService.queryAll(query, pageable);
     }
 
@@ -50,7 +50,7 @@ public class KnowledgeCategoryConfigController {
      */
     @GetMapping("/all")
     @LogRecord("查询所有知识分类")
-    public List<KnowledgeCategoryConfigDTO> queryAll(KnowledgeCategoryConfigQuery query) {
+    public List<KnowledgeCategoryConfigDTO> queryAll(KnowledgeCategoryQueryParam query) {
         return knowledgeCategoryConfigService.queryAll(query);
     }
 

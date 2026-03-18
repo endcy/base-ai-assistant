@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * 检索器聚合工厂
  *
- * @author cxx641
+ * @author endcy
  * @date 2025/12/4 19:53:10
  */
 @Slf4j

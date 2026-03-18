@@ -8,6 +8,7 @@ import com.assistant.ai.repository.domain.vector.VectorDocument;
 import com.assistant.ai.repository.service.VectorStoreService;
 import com.assistant.ai.util.DocumentConvertUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
@@ -31,7 +32,7 @@ import java.util.Map;
  * BM25 关键词检索增强顾问
  * 支持元数据过滤条件
  *
- * @author cxx641
+ * @author endcy
  * @date 2025/12/2 17:54:57
  */
 @Slf4j
@@ -66,6 +67,7 @@ public class Bm25RetrievalAdvisor implements BaseAdvisor {
         return new Bm25RetrievalAdvisor.Builder();
     }
 
+    @NotNull
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, @Nullable AdvisorChain advisorChain) {
         Map<String, Object> context = new HashMap<>(chatClientRequest.context());
@@ -95,6 +97,7 @@ public class Bm25RetrievalAdvisor implements BaseAdvisor {
                                 .build();
     }
 
+    @NotNull
     @Override
     public ChatClientResponse after(ChatClientResponse chatClientResponse, @Nullable AdvisorChain advisorChain) {
         ChatResponse.Builder chatResponseBuilder;
@@ -110,6 +113,7 @@ public class Bm25RetrievalAdvisor implements BaseAdvisor {
                                  .build();
     }
 
+    @NotNull
     @Override
     public Scheduler getScheduler() {
         return BaseAdvisor.DEFAULT_SCHEDULER;

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.domain.entity.ContextUserRecord;
-import com.assistant.ai.repository.domain.query.ContextUserRecordQueryParam;
+import com.assistant.ai.repository.domain.request.ContextUserRecordQueryParam;
 import com.assistant.ai.repository.service.ContextUserRecordService;
 import com.assistant.ai.repository.service.convert.ContextUserRecordConverter;
 import com.assistant.ai.repository.trans.mapper.ContextUserRecordMapper;

@@ -35,7 +35,7 @@ public enum KnowledgeBusinessTypeEnum {
     REPORTER("分析报告", "针对平台管理商户、开发运维人员或需求管理人员的数据统计需求，进行数据统计、分析，并给出相应的报告"),
     POWER_PREDICT("用电功率预测", "结合平台历史数据对未来时段的设备、站点的用电功率进行预测"),
 
-    UNKNOWN("其他意图", "其他内容咨询"),
+    UNKNOWN("其他", "其他内容咨询"),
     ;
 
     @EnumValue
