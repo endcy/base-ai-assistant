@@ -156,6 +156,34 @@ status:0-下架  1-上架  2-待向量化  3-向量化完成
 - ✅ 租户隔离：按 `group_id` 实现多租户数据隔离
 - ✅ 多级分类：`scope_type`（领域）+ `business_type`（业务）
 
+#### 知识分类配置管理
+
+**痛点**：硬编码的分类枚举无法灵活扩展，新增分类需要修改代码。
+
+**解决方案**：数据库配置化 + 后台管理界面
+
+```sql
+-- 知识分类配置表
+CREATE TABLE ai_knowledge_category_config (
+    id          BIGINT PRIMARY KEY,
+    type        VARCHAR(32)  COMMENT '分类类型 (scope-知识领域，business-业务领域)',
+    code        VARCHAR(64)  COMMENT '分类编码 (英文标识)',
+    name        VARCHAR(128) COMMENT '分类名称 (中文显示)',
+    parent_code VARCHAR(64)  COMMENT '父级分类编码',
+    description VARCHAR(512) COMMENT '分类描述',
+    sort_order  INT          COMMENT '排序序号',
+    enabled     TINYINT(1)   COMMENT '是否启用'
+);
+```
+
+**功能特性**：
+
+- ✅ 动态维护分类配置：支持新增、编辑、删除分类
+- ✅ 分类启用/禁用：控制分类是否参与匹配
+- ✅ 排序管理：自定义分类展示顺序
+- ✅ 批量导入文档：从文件系统批量导入，自动匹配分类
+- ✅ 后台管理界面：可视化操作，无需修改代码
+
 ### 5. 🔌 MCP 工具链扩展
 
 **什么是 MCP？**
@@ -218,7 +246,53 @@ public class OrderMcpTools {
 - ✅ 工具功能单一，避免"万能工具"
 - ✅ 返回值格式明确，便于大模型理解
 
-### 6. 🌐 多模型支持
+### 7. 📁 批量文档导入工具
+
+**痛点**：手动逐个上传文档效率低，大量历史文档需要快速入库。
+
+**解决方案**：`DocumentImportHelper` 批量导入工具
+
+**功能特性**：
+
+- ✅ 递归扫描目录：自动获取目录下所有文件
+- ✅ 智能分类匹配：根据路径层级自动推断知识领域和业务类型
+- ✅ 支持多种格式：Markdown (.md/.markdown)、文本 (.txt)
+- ✅ 去重检测：基于文件路径避免重复导入
+- ✅ 编码兼容：自动识别 UTF-8/GBK 编码
+- ✅ 批量导入结果反馈：成功/失败/跳过统计
+
+**导入示例**：
+
+```java
+// 从指定目录批量导入文档
+BatchImportResult result = documentImportHelper.importFromDirectory(
+    "E:/knowledge-base/products",  // 目录路径
+    1001L,                          // 租户 ID
+    "developer_reference"           // 默认知识领域
+);
+
+// 导入结果
+result.getSuccessCount();  // 成功数量
+result.getFailCount();     // 失败数量
+result.getSkipCount();     // 跳过数量（已存在）
+```
+
+**智能分类匹配逻辑**：
+
+```
+文件路径：/知识文档/用户客服/充电订单/操作手册.md
+
+匹配过程:
+1. "用户客服" → 匹配 scopeTypeNameMap → "account_customer_service"
+2. "充电订单" → 匹配 businessTypeNameMap → "charge_order"
+3. 结果：scopeType="account_customer_service", businessType="charge_order"
+```
+
+> 💡 **提示**：分类匹配基于数据库配置表 `ai_knowledge_category_config`，支持运行时调整匹配规则。
+
+---
+
+## 🌐 多模型支持
 
 #### 云端模型（DashScope）
 
@@ -809,7 +883,6 @@ spring.ai.dashscope.rerank.api-key=YOUR_RERANK_API_KEY
 - [ ] 业务数据 MCP 工具（订单查询、用户信息等数据库联动）
 - [ ] 动态 SQL 生成 MCP（自然语言→SQL 查询）
 - [ ] 完整的工作流编排
-- [ ] 前端管理界面完善
 - [ ] 对话历史持久化（Redis/数据库）
 - [ ] Token 用量监控和统计
 
