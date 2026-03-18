@@ -12,7 +12,6 @@ import com.assistant.ai.rag.QueryRewriter;
 import com.assistant.ai.repository.domain.context.DocumentQueryContext;
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.service.ContextUserRecordService;
-import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,13 +109,11 @@ public class EnergyAiApp {
         // 意图识别，根据意图查询知识库、或者根据意图调用工具
         IntentResult intentResult = intentAnalysisAgent.analyzeIntent(chatId, scopeType, message);
 
-        KnowledgeBusinessTypeEnum businessType = KnowledgeBusinessTypeEnum.create(intentResult.getBusinessType());
-
         // 构建文档查询上下文
         DocumentQueryContext documentQueryContext = new DocumentQueryContext();
         documentQueryContext.setScopeType(scopeType);
         documentQueryContext.setGroupId(groupId);
-        documentQueryContext.setBusinessType(businessType.getType());
+        documentQueryContext.setBusinessType(intentResult.getBusinessType());
         documentQueryContext.setOriginalQuestion(message);
         documentQueryContext.setReReadingQuestion(rewrittenMessage);
 
@@ -129,7 +126,7 @@ public class EnergyAiApp {
                                                               .chatId(chatId)
                                                               .groupId(groupId)
                                                               .scopeType(scopeType)
-                                                              .businessType(businessType.getType())
+                                                              .businessType(intentResult.getBusinessType())
                                                               .question(message)
                                                               .build();
         userRecordService.insert(userRecord);

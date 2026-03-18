@@ -37,6 +37,7 @@ public class IntentResult {
 
     /**
      * 意图分离数据来源判断
+     * TODO
      *
      * @see PossibleSourceTypeEnum
      */
@@ -44,6 +45,7 @@ public class IntentResult {
 
     /**
      * 推荐使用的工具列表
+     * TODO
      */
     private List<String> recommendedTools;
 

@@ -160,7 +160,9 @@ public class ChatClientAdvisorFactory {
      * @param requestRagContext 请求 RAG 上下文
      * @return 混合检索增强顾问
      */
-    public HybridRetrievalAdvisor createHybridRetrievalAdvisor(DocumentQueryContext documentParams, IntentResult intentResult, RequestRagContext requestRagContext) {
+    public HybridRetrievalAdvisor createHybridRetrievalAdvisor(DocumentQueryContext documentParams,
+                                                               IntentResult intentResult,
+                                                               RequestRagContext requestRagContext) {
         List<BaseDocumentRetriever> documentRetrievers = advisorRetrieverFactory.dynamicCreateRetrievers(documentParams, intentResult);
         return new HybridRetrievalAdvisor(rerankModel, chatRagProperties, documentRetrievers, multiQueryExpander, requestRagContext);
     }

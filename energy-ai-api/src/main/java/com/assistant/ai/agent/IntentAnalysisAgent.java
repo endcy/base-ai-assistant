@@ -1,11 +1,15 @@
 package com.assistant.ai.agent;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.assistant.ai.agent.model.IntentResult;
 import com.assistant.ai.domain.enums.PossibleSourceTypeEnum;
+import com.assistant.ai.repository.domain.dto.KnowledgeCategoryConfigDTO;
+import com.assistant.ai.repository.service.KnowledgeCategoryConfigService;
 import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -29,6 +33,13 @@ public class IntentAnalysisAgent {
     // 理论上使用微调模型效果最佳
     private final ChatClient intentChatClient;
 
+    private final KnowledgeCategoryConfigService categoryConfigService;
+
+    // "其他"类型的兜底配置
+    private static final String OTHER_CATEGORY_CODE = KnowledgeBusinessTypeEnum.UNKNOWN.name();
+    private static final String OTHER_CATEGORY_NAME = KnowledgeBusinessTypeEnum.UNKNOWN.getType();
+    private static final String OTHER_CATEGORY_DESC = KnowledgeBusinessTypeEnum.UNKNOWN.getDesc();
+
     /**
      * 分析用户意图
      *
@@ -38,14 +49,58 @@ public class IntentAnalysisAgent {
      * @return 意图分析结果
      */
     public IntentResult analyzeIntent(Long chatId, String scopeType, String userMessage) {
-        // 构建一个清晰的 Prompt 引导 LLM 分析意图
+        // 从数据库获取业务分类配置
+        List<KnowledgeCategoryConfigDTO> categoryConfigs = categoryConfigService.getByType("business");
+
+        // 构建业务类型提示文本
         StringBuilder typeTips = new StringBuilder();
-        // 最佳实践是 从配置中获取意图分类，维护一个意图配置表；最好使用微调模型
-        KnowledgeBusinessTypeEnum[] types = KnowledgeBusinessTypeEnum.values();
-        for (KnowledgeBusinessTypeEnum type : types) {
-            typeTips.append("- ").append(type.name()).append(": ").append(type.getDesc()).append("。 \n");
+        for (KnowledgeCategoryConfigDTO config : categoryConfigs) {
+            typeTips.append("- ").append(config.getCode())
+                    .append("(").append(config.getName()).append("): ")
+                    .append(StrUtil.isNotBlank(config.getDescription()) ? config.getDescription() : config.getName())
+                    .append(". \n");
+        }
+        // 添加"其他"类型作为兜底
+        if (categoryConfigs.stream().noneMatch(c -> c.getCode().equals(OTHER_CATEGORY_CODE))) {
+            typeTips.append("- ").append(OTHER_CATEGORY_CODE)
+                    .append("(").append(OTHER_CATEGORY_NAME).append("): ")
+                    .append(OTHER_CATEGORY_DESC)
+                    .append(". \n");
+        }
+        String promptTemplate = simpleIntentPromptTemplate(typeTips);
+
+        String prompt = String.format(promptTemplate, userMessage);
+
+        try {
+            ChatResponse chatResponse = intentChatClient.prompt().user(prompt).call().chatResponse();
+            if (chatResponse != null) {
+                chatResponse.getResult();
+                String responseText = chatResponse.getResult().getOutput().getText();
+                log.info("chatId: {} raw intent analysis result: {}", chatId, responseText);
+
+                // 尝试解析 响应
+                IntentResult intentResult = parseIntentResponse(responseText, scopeType, chatId, userMessage);
+                log.info("chatId: {} parsed intent result - businessType: {}, dataScopes: {}, tools: {}, confidence: {}",
+                        chatId, intentResult.getBusinessType(), intentResult.getDataScopeList(),
+                        intentResult.getRecommendedTools(), intentResult.getConfidence());
+                return intentResult;
+            }
+        } catch (Exception e) {
+            log.error("chatId: {} intent analysis error: {}", chatId, e.getMessage(), e);
         }
 
+        // 返回默认结果
+        return createDefaultIntentResult(scopeType, chatId, userMessage);
+    }
+
+    /**
+     * 复杂意图，包含了业务分类、数据来源、工具推荐、置信度 按需拓展
+     *
+     * @param typeTips .
+     * @return .
+     */
+    @NotNull
+    private static String complexIntentPromptTemplate(StringBuilder typeTips) {
         // 数据来源类型说明
         String dataSourceTips = """
                 - LOCAL: 本地文档，包含了特殊运维配置说明、代码、平台底层操作记录等文档
@@ -65,8 +120,8 @@ public class IntentAnalysisAgent {
                 - webSearch: 网络搜索
                 """;
 
-        String promptTemplate = """
-                你是智慧能源 AI 中的一个意图分析专家。请分析用户问题的以下四个方面：
+        return """
+                你是智慧能源 AI 中的一个意图分析专家。请分析用户问题的意图类别。
                 
                 1. **业务类型** (从以下类别中选择最匹配的一个):
                 """ + typeTips + """
@@ -89,31 +144,17 @@ public class IntentAnalysisAgent {
                     "confidence": 8
                 }
                 """;
+    }
 
-        String prompt = String.format(promptTemplate, userMessage);
-
-        try {
-            ChatResponse chatResponse = intentChatClient.prompt().user(prompt).call().chatResponse();
-            if (chatResponse != null && chatResponse.getResult() != null) {
-                String responseText = chatResponse.getResult().getOutput().getText();
-                log.info("chatId: {} raw intent analysis result: {}", chatId, responseText);
-
-                // 尝试解析 JSON 响应
-                IntentResult intentResult = parseIntentResponse(responseText, scopeType, chatId, userMessage);
-                log.info("chatId: {} parsed intent result - businessType: {}, dataScopes: {}, tools: {}, confidence: {}",
-                        chatId,
-                        intentResult.getBusinessType(),
-                        intentResult.getDataScopeList(),
-                        intentResult.getRecommendedTools(),
-                        intentResult.getConfidence());
-                return intentResult;
-            }
-        } catch (Exception e) {
-            log.error("chatId: {} intent analysis error: {}", chatId, e.getMessage(), e);
-        }
-
-        // 返回默认结果
-        return createDefaultIntentResult(scopeType, chatId, userMessage);
+    @NotNull
+    private static String simpleIntentPromptTemplate(StringBuilder typeTips) {
+        return """
+                你是智慧能源AI中的一个意图分析助手。请分析用户问题的意图类别。
+                可选类别包括：
+                """ + typeTips + """
+                用户问题: %s
+                请仅输出意图类别，不要输出其他内容。
+                """;
     }
 
     /**
@@ -132,15 +173,27 @@ public class IntentAnalysisAgent {
         String jsonStr = extractJsonFromResponse(responseText);
         if (StrUtil.isBlank(jsonStr)) {
             // 如果无法解析 JSON，则使用默认逻辑
-            return createDefaultIntentResult(scopeType, chatId, userMessage);
+            result.setBusinessType(OTHER_CATEGORY_CODE);
+            return result;
+        }
+        // 简单的意图识别
+        if (!JSONUtil.isTypeJSON(jsonStr)) {
+            String intentCategory = jsonStr;
+            intentCategory = StrUtil.isBlank(intentCategory) ? OTHER_CATEGORY_CODE : intentCategory.trim();
+            result.setBusinessType(intentCategory);
+            //加入平台默认的DB知识库
+            result.addDataScope(PossibleSourceTypeEnum.VECTOR);
+            return result;
         }
 
+        // 复杂的意图识别解析，待按需拓展
         try {
             JSONObject json = new JSONObject(jsonStr);
 
             // 解析业务类型
             String businessType = json.optString("businessType", "");
-            result.setBusinessType(StrUtil.isNotBlank(businessType) ? businessType : KnowledgeBusinessTypeEnum.UNKNOWN.name());
+            // 如果未指定业务类型，使用"其他"作为默认值
+            result.setBusinessType(StrUtil.isNotBlank(businessType) ? businessType : OTHER_CATEGORY_CODE);
 
             // 解析数据来源
             List<String> dataScopes = json.optJSONArray("dataScopes") != null ?
@@ -217,7 +270,7 @@ public class IntentAnalysisAgent {
     private IntentResult createDefaultIntentResult(String scopeType, Long chatId, String userMessage) {
         IntentResult result = new IntentResult();
         result.setScopeType(scopeType);
-        result.setBusinessType(KnowledgeBusinessTypeEnum.UNKNOWN.name());
+        result.setBusinessType(OTHER_CATEGORY_CODE);
         result.setChatId(chatId);
         result.setUserMessage(userMessage);
         result.setDataScopeList(List.of(PossibleSourceTypeEnum.VECTOR));
