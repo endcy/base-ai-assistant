@@ -43,10 +43,10 @@ public class DocumentImportHelper {
     private static final Set<String> SUPPORTED_EXTENSIONS = new HashSet<>(Arrays.asList("md", "markdown", "txt", "text"));
 
     // 从数据库加载的分类映射（运行时缓存）
-    private Map<String, String> scopeTypeCodeMap = new HashMap<>();  // keyword -> code
-    private Map<String, String> scopeTypeNameMap = new HashMap<>();  // keyword -> name
-    private Map<String, String> businessTypeCodeMap = new HashMap<>(); // keyword -> code
-    private Map<String, String> businessTypeNameMap = new HashMap<>(); // keyword -> name
+    private final Map<String, String> scopeTypeCodeMap = new HashMap<>();  // keyword -> code
+    private final Map<String, String> scopeTypeNameMap = new HashMap<>();  // keyword -> name
+    private final Map<String, String> businessTypeCodeMap = new HashMap<>(); // keyword -> code
+    private final Map<String, String> businessTypeNameMap = new HashMap<>(); // keyword -> name
 
     /**
      * 初始化时加载分类配置
@@ -100,37 +100,12 @@ public class DocumentImportHelper {
      */
     private void loadDefaultMappings() {
         // 知识领域默认映射
-        scopeTypeCodeMap.put("market", "market_customer_service");
-        scopeTypeCodeMap.put("market_customer_service", "market_customer_service");
-        scopeTypeCodeMap.put("account", "account_customer_service");
-        scopeTypeCodeMap.put("account_customer_service", "account_customer_service");
-        scopeTypeCodeMap.put("operator", "operator_customer_service");
-        scopeTypeCodeMap.put("operator_customer_service", "operator_customer_service");
-        scopeTypeCodeMap.put("operations", "operations_reference");
-        scopeTypeCodeMap.put("operations_reference", "operations_reference");
-        scopeTypeCodeMap.put("developer", "developer_reference");
-        scopeTypeCodeMap.put("developer_reference", "developer_reference");
         scopeTypeNameMap.put("市场客服", "market_customer_service");
         scopeTypeNameMap.put("用户客服", "account_customer_service");
         scopeTypeNameMap.put("商户客服", "operator_customer_service");
         scopeTypeNameMap.put("运营参考", "operations_reference");
         scopeTypeNameMap.put("开发参考", "developer_reference");
-
         // 业务领域默认映射
-        businessTypeCodeMap.put("station", "station");
-        businessTypeCodeMap.put("equipment", "equipment");
-        businessTypeCodeMap.put("account", "account");
-        businessTypeCodeMap.put("charge_order", "charge_order");
-        businessTypeCodeMap.put("discharge_order", "discharge_order");
-        businessTypeCodeMap.put("alarm", "alarm");
-        businessTypeCodeMap.put("norms", "norms");
-        businessTypeCodeMap.put("api", "api");
-        businessTypeCodeMap.put("production", "production");
-        businessTypeCodeMap.put("client_operate", "client_operate");
-        businessTypeCodeMap.put("admin_operate", "admin_operate");
-        businessTypeCodeMap.put("maintenance", "maintenance");
-        businessTypeCodeMap.put("reporter", "reporter");
-        businessTypeCodeMap.put("power_predict", "power_predict");
         businessTypeNameMap.put("站点", "station");
         businessTypeNameMap.put("设备", "equipment");
         businessTypeNameMap.put("用户", "account");
