@@ -37,6 +37,7 @@ public class DocumentQueryContext implements Serializable {
 
     /**
      * 内容分组 id，如租户 id
+     * 支持为空，表示查询全平台任何分组的知识
      */
     private Long groupId;
 

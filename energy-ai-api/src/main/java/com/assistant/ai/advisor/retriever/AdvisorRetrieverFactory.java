@@ -1,6 +1,5 @@
 package com.assistant.ai.advisor.retriever;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeConnectionProperties;
 import com.assistant.ai.agent.model.IntentResult;
@@ -8,7 +7,6 @@ import com.assistant.ai.config.ChatRagProperties;
 import com.assistant.ai.domain.enums.PossibleSourceTypeEnum;
 import com.assistant.ai.repository.domain.context.DocumentQueryContext;
 import com.assistant.ai.repository.service.VectorStoreService;
-import com.assistant.service.common.constant.BusinessConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
@@ -45,12 +43,6 @@ public class AdvisorRetrieverFactory {
                 case UNKNOWN -> log.debug("无参考数据");
                 case LOCAL -> documentRetrievers.add(new LocalDocumentRetriever(localVectorStore, chatRagProperties, documentParams));
                 case VECTOR -> {
-                    // 在租户知识以外 针对平台级知识是共享的
-                    if (documentParams.getGroupId() != null && !documentParams.getGroupId().equals(BusinessConstant.PLATFORM_GROUP_ID)) {
-                        DocumentQueryContext documentParamsCp = BeanUtil.copyProperties(documentParams, DocumentQueryContext.class);
-                        documentParamsCp.setGroupId(BusinessConstant.PLATFORM_GROUP_ID);
-                        documentRetrievers.add(new VectorDocumentRetriever(pgVectorVectorStore, chatRagProperties, documentParamsCp));
-                    }
                     documentRetrievers.add(new VectorDocumentRetriever(pgVectorVectorStore, chatRagProperties, documentParams));
                     documentRetrievers.add(new Bm25DocumentRetriever(vectorStoreService, chatRagProperties, documentParams));
                 }
