@@ -1,16 +1,17 @@
 package com.assistant.ai.app;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.assistant.ai.advisor.ChatClientAdvisorFactory;
+import com.assistant.ai.advisor.HybridRetrievalAdvisor;
 import com.assistant.ai.agent.IntentAnalysisAgent;
 import com.assistant.ai.agent.model.IntentResult;
 import com.assistant.ai.config.ChatRagProperties;
+import com.assistant.ai.domain.context.RequestRagContext;
 import com.assistant.ai.mcp.config.McpConfig;
 import com.assistant.ai.rag.QueryRewriter;
+import com.assistant.ai.repository.domain.context.DocumentQueryContext;
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.service.ContextUserRecordService;
-import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,11 +29,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * 能源 AI 应用主服务类
+ *
+ * @author endcy
+ * @date 2025/10/31
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -91,31 +96,37 @@ public class EnergyAiApp {
     }
 
     /**
-     * 和 RAG 知识库进行对话
-     * scopeType对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
+     * 和 RAG 知识库进行对话（使用混合检索增强）
+     * scopeType 对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
      */
     public String doChatWithRag(String scopeType, Long groupId, String message, @NonNull Long chatId) {
         // 查询重写
         String rewrittenMessage = queryRewriter.doQueryRewrite(message);
-        Map<String, Object> expressionMap = new HashMap<>();
+
         // 默认文档范围
         scopeType = StrUtil.blankToDefault(scopeType, "用户客服");
-        expressionMap.put("scopeType", scopeType);
-        if (groupId != null) {
-            expressionMap.put("groupId", groupId);
-        }
+
         // 意图识别，根据意图查询知识库、或者根据意图调用工具
         IntentResult intentResult = intentAnalysisAgent.analyzeIntent(chatId, scopeType, message);
 
-        KnowledgeBusinessTypeEnum businessType = KnowledgeBusinessTypeEnum.create(intentResult.getBusinessType());
-        if (!KnowledgeBusinessTypeEnum.UNKNOWN.equals(businessType) && BooleanUtil.isTrue(chatRagProperties.getEnableIntentAnalysis())) {
-            expressionMap.put("businessType", businessType.getType());
-        }
+        // 构建文档查询上下文
+        DocumentQueryContext documentQueryContext = new DocumentQueryContext();
+        documentQueryContext.setScopeType(scopeType);
+        documentQueryContext.setGroupId(groupId);
+        documentQueryContext.setBusinessType(intentResult.getBusinessType());
+        documentQueryContext.setOriginalQuestion(message);
+        documentQueryContext.setReReadingQuestion(rewrittenMessage);
+
+        // 创建 RAG 请求上下文
+        RequestRagContext requestRagContext = new RequestRagContext();
+        requestRagContext.setChatId(chatId);
+
+        // 记录用户对话
         ContextUserRecordDTO userRecord = ContextUserRecordDTO.builder()
                                                               .chatId(chatId)
                                                               .groupId(groupId)
                                                               .scopeType(scopeType)
-                                                              .businessType(businessType.getType())
+                                                              .businessType(intentResult.getBusinessType())
                                                               .question(message)
                                                               .build();
         userRecordService.insert(userRecord);
@@ -123,20 +134,17 @@ public class EnergyAiApp {
         List<Message> existingMessages = messageWindowChatMemory.get(chatId.toString());
         log.info("###### Chat memory for {}: {} messages size", chatId, existingMessages.size());
 
+        // 使用混合检索增强顾问
+        HybridRetrievalAdvisor hybridAdvisor = chatClientAdvisorFactory.createHybridRetrievalAdvisor(
+                documentQueryContext, intentResult, requestRagContext);
+
         ChatResponse chatResponse = commonChatClient
                 .prompt()
                 .user(rewrittenMessage)
                 .toolCallbacks(mcpToolCallbacks.getToolCallbacks())
                 .toolCallbacks(ragTools)
                 .advisors(getAdvisorSpecConsumer(chatId))
-                // Rag文档检索增强 简单问答可关闭以减少token消耗
-                .advisors(chatClientAdvisorFactory.getDocumentSimilarityAdvisor())
-                // 文档向量元数据检索
-                .advisors(chatClientAdvisorFactory.createAiRagFilterAdvisor(expressionMap, pgVectorVectorStore))
-                // db或云文档文档检索
-                .advisors(chatClientAdvisorFactory.getStoreDocumentAdvisor())
-                // 本地文档检索
-                .advisors(chatClientAdvisorFactory.getLocalDocumentAdvisor())
+                .advisors(hybridAdvisor)
                 .call()
                 .chatResponse();
 
@@ -146,7 +154,7 @@ public class EnergyAiApp {
             userRecordService.updateAnswerById(userRecord.getId(), content);
         }
         if (log.isDebugEnabled()) {
-            //频度最高的调用 使用debug级别
+            // 频度最高的调用 使用 debug 级别
             log.debug("content: {}", content);
         }
         return content;

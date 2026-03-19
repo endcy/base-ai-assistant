@@ -1,18 +1,18 @@
 package com.assistant.ai.repository.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.domain.entity.ContextUserRecord;
-import com.assistant.ai.repository.domain.query.ContextUserRecordQueryParam;
+import com.assistant.ai.repository.domain.request.ContextUserRecordQueryParam;
 import com.assistant.ai.repository.service.ContextUserRecordService;
 import com.assistant.ai.repository.service.convert.ContextUserRecordConverter;
 import com.assistant.ai.repository.trans.mapper.ContextUserRecordMapper;
 import com.assistant.service.common.base.PageInfo;
 import com.assistant.service.common.utils.PageUtil;
 import com.assistant.service.common.utils.QueryHelpMybatisPlus;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
@@ -106,7 +106,7 @@ public class ContextUserRecordServiceImpl implements ContextUserRecordService {
     public void updateAnswerById(Long id, String content) {
         LambdaUpdateWrapper<ContextUserRecord> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.eq(ContextUserRecord::getId, id)
-                .set(ContextUserRecord::getContent, content);
+                     .set(ContextUserRecord::getContent, content);
         contextUserRecordMapper.update(null, updateWrapper);
     }
 }

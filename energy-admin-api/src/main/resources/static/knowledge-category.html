@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识分类配置管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+        }
+
+        .btn-warning:hover {
+            background: #d35400;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-info {
+            margin: 0 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            min-width: 40px;
+        }
+
+        .pagination .current-page {
+            background-color: #5a6fd8;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #ff6b6b;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            display: none;
+        }
+
+        .notification.success {
+            background-color: #2ecc71;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-scope {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-business {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-enabled {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .badge-disabled {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>知识分类配置管理</h1>
+        <p>管理知识领域和业务领域分类配置</p>
+    </header>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('all')">全部分类</div>
+        <div class="tab" onclick="switchTab('scope')">知识领域</div>
+        <div class="tab" onclick="switchTab('business')">业务领域</div>
+    </div>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="codeInput" placeholder="分类编码">
+            <input type="text" id="nameInput" placeholder="分类名称">
+            <select id="enabledSelect">
+                <option value="">全部状态</option>
+                <option value="true">启用</option>
+                <option value="false">禁用</option>
+            </select>
+            <button onclick="searchRecords()">搜索</button>
+        </div>
+        <button class="btn-success" onclick="openCreateModal()">新增分类</button>
+    </div>
+
+    <table id="categoryTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>类型</th>
+            <th>编码</th>
+            <th>名称</th>
+            <th>父级编码</th>
+            <th>描述</th>
+            <th>排序</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="categoryTableBody">
+        <!-- 数据将通过 JS 动态填充 -->
+        </tbody>
+    </table>
+
+    <div class="pagination" id="pagination">
+        <!-- 分页控件将通过 JS 动态生成 -->
+    </div>
+</div>
+
+<!-- 创建/编辑模态框 -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">新增分类</h2>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="categoryId">
+            <div class="form-group">
+                <label for="type">分类类型 *</label>
+                <select id="type" required>
+                    <option value="">请选择</option>
+                    <option value="scope">知识领域</option>
+                    <option value="business">业务领域</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="code">分类编码 *</label>
+                <input type="text" id="code" required placeholder="英文标识，如 MARKET_CUSTOMER_SERVICE">
+            </div>
+            <div class="form-group">
+                <label for="name">分类名称 *</label>
+                <input type="text" id="name" required placeholder="中文名称，如 市场客服">
+            </div>
+            <div class="form-group">
+                <label for="parentCode">父级编码</label>
+                <input type="text" id="parentCode" placeholder="可选，业务类型可关联到知识领域">
+            </div>
+            <div class="form-group">
+                <label for="description">分类描述</label>
+                <textarea id="description" placeholder="分类的详细描述"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="sortOrder">排序序号</label>
+                <input type="number" id="sortOrder" value="0">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enabled" checked> 启用
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeModal()">取消</button>
+            <button class="btn-success" onclick="saveCategory()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 通知 -->
+<div id="notification" class="notification"></div>
+
+<script>
+    let currentPage = 0;
+    let pageSize = 10;
+    let totalElements = 0;
+    let totalPages = 0;
+    let currentType = 'all';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchRecords();
+    });
+
+    function switchTab(type) {
+        currentType = type;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        fetchRecords(0);
+    }
+
+    function fetchRecords(page = 0) {
+        currentPage = page;
+        let url = `/api/knowledge-category?page=${page}&size=${pageSize}`;
+
+        const code = document.getElementById('codeInput').value.trim();
+        const name = document.getElementById('nameInput').value.trim();
+        const enabled = document.getElementById('enabledSelect').value;
+
+        if (code) url += `&code=${encodeURIComponent(code)}`;
+        if (name) url += `&name=${encodeURIComponent(name)}`;
+        if (enabled !== '') url += `&enabled=${enabled}`;
+        if (currentType !== 'all') url += `&type=${currentType}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const content = data.content || data.items || data.data || data;
+                totalElements = data.totalElements || data.total || content.length;
+                totalPages = data.totalPages || data.pageCount || Math.ceil(totalElements / pageSize);
+
+                renderTable(content);
+                renderPagination();
+            })
+            .catch(error => {
+                console.error('获取数据失败:', error);
+                showNotification('获取数据失败：' + error.message, 'error');
+                renderTable([]);
+                renderPagination();
+            });
+    }
+
+    function searchRecords() {
+        fetchRecords(0);
+    }
+
+    function renderTable(records) {
+        const tbody = document.getElementById('categoryTableBody');
+        tbody.innerHTML = '';
+
+        if (!records || records.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="9" style="text-align: center;">暂无数据</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        records.forEach(record => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${record.id || '-'}</td>
+                <td><span class="badge ${record.type === 'scope' ? 'badge-scope' : 'badge-business'}">${record.type === 'scope' ? '知识领域' : '业务领域'}</span></td>
+                <td>${record.code || '-'}</td>
+                <td>${record.name || '-'}</td>
+                <td>${record.parentCode || '-'}</td>
+                <td>${record.description || '-'}</td>
+                <td>${record.sortOrder || 0}</td>
+                <td><span class="badge ${record.enabled ? 'badge-enabled' : 'badge-disabled'}">${record.enabled ? '启用' : '禁用'}</span></td>
+                <td class="actions">
+                    <button class="btn-warning" onclick='openEditModal(${JSON.stringify(record).replace(/'/g, "\\'")})'>编辑</button>
+                    <button class="btn-danger" onclick="toggleEnabled(${record.id}, ${!record.enabled})">${record.enabled ? '禁用' : '启用'}</button>
+                    <button class="btn-danger" onclick="deleteCategory(${record.id})">删除</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        pagination.style.display = 'flex';
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'pagination-info';
+        infoDiv.textContent = `第 ${currentPage + 1} 页，共 ${totalPages} 页，总计 ${totalElements} 条记录`;
+        pagination.appendChild(infoDiv);
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '上一页';
+        if (currentPage === 0) {
+            prevButton.classList.add('btn-disabled');
+            prevButton.disabled = true;
+        } else {
+            prevButton.onclick = () => fetchRecords(currentPage - 1);
+        }
+        pagination.appendChild(prevButton);
+
+        for (let i = Math.max(0, currentPage - 2); i <= Math.min(totalPages - 1, currentPage + 2); i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i + 1;
+            if (i === currentPage) {
+                pageButton.classList.add('current-page');
+                pageButton.disabled = true;
+            } else {
+                pageButton.onclick = () => fetchRecords(i);
+            }
+            pagination.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '下一页';
+        if (currentPage === totalPages - 1) {
+            nextButton.classList.add('btn-disabled');
+            nextButton.disabled = true;
+        } else {
+            nextButton.onclick = () => fetchRecords(currentPage + 1);
+        }
+        pagination.appendChild(nextButton);
+    }
+
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = '新增分类';
+        document.getElementById('categoryId').value = '';
+        document.getElementById('type').value = '';
+        document.getElementById('code').value = '';
+        document.getElementById('name').value = '';
+        document.getElementById('parentCode').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('sortOrder').value = '0';
+        document.getElementById('enabled').checked = true;
+        document.getElementById('categoryModal').style.display = 'flex';
+    }
+
+    function openEditModal(record) {
+        document.getElementById('modalTitle').textContent = '编辑分类';
+        document.getElementById('categoryId').value = record.id || '';
+        document.getElementById('type').value = record.type || '';
+        document.getElementById('code').value = record.code || '';
+        document.getElementById('name').value = record.name || '';
+        document.getElementById('parentCode').value = record.parentCode || '';
+        document.getElementById('description').value = record.description || '';
+        document.getElementById('sortOrder').value = record.sortOrder || 0;
+        document.getElementById('enabled').checked = record.enabled !== undefined ? record.enabled : true;
+        document.getElementById('categoryModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('categoryModal').style.display = 'none';
+    }
+
+    function saveCategory() {
+        const id = document.getElementById('categoryId').value;
+        const categoryData = {
+            type: document.getElementById('type').value,
+            code: document.getElementById('code').value,
+            name: document.getElementById('name').value,
+            parentCode: document.getElementById('parentCode').value,
+            description: document.getElementById('description').value,
+            sortOrder: parseInt(document.getElementById('sortOrder').value),
+            enabled: document.getElementById('enabled').checked
+        };
+
+        if (!categoryData.type || !categoryData.code || !categoryData.name) {
+            showNotification('请填写必填字段', 'error');
+            return;
+        }
+
+        const isUpdate = !!id;
+        const url = isUpdate ? `/api/knowledge-category` : '/api/knowledge-category';
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        if (isUpdate) {
+            categoryData.id = parseInt(id);
+        }
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(categoryData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('保存失败');
+            })
+            .then(() => {
+                closeModal();
+                fetchRecords(currentPage);
+                showNotification(isUpdate ? '更新成功' : '创建成功', 'success');
+            })
+            .catch(error => {
+                showNotification('保存失败：' + error.message, 'error');
+            });
+    }
+
+    function toggleEnabled(id, enabled) {
+        fetch(`/api/knowledge-category/enabled`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ids: [id],
+                enabled: enabled
+            })
+        })
+            .then(response => {
+                if (response.ok) {
+                    fetchRecords(currentPage);
+                    showNotification(enabled ? '已启用' : '已禁用', 'success');
+                } else {
+                    throw new Error('操作失败');
+                }
+            })
+            .catch(error => {
+                showNotification('操作失败：' + error.message, 'error');
+            });
+    }
+
+    function deleteCategory(id) {
+        if (!confirm('确定要删除这个分类吗？')) {
+            return;
+        }
+
+        fetch(`/api/knowledge-category`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify([id])
+        })
+            .then(response => {
+                if (response.ok) {
+                    if (document.getElementById('categoryTableBody').children.length === 1 && currentPage > 0) {
+                        fetchRecords(currentPage - 1);
+                    } else {
+                        fetchRecords(currentPage);
+                    }
+                    showNotification('删除成功', 'success');
+                } else {
+                    throw new Error('删除失败');
+                }
+            })
+            .catch(error => {
+                showNotification('删除失败：' + error.message, 'error');
+            });
+    }
+
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'block';
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('categoryModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+</body>
+</html>

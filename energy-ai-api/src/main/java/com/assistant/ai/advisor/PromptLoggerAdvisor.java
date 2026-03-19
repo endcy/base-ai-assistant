@@ -1,5 +1,6 @@
 package com.assistant.ai.advisor;
 
+import com.assistant.ai.constant.EnergyAiConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -32,7 +33,7 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 
     @Override
     public int getOrder() {
-        return 0;
+        return EnergyAiConstant.LOGGER_ADVISOR_ORDER;
     }
 
     @NotNull
@@ -59,7 +60,9 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
         List<UserMessage> messages = request.prompt().getUserMessages();
 
         for (UserMessage message : messages) {
-            log.info(">>>>>> User Message: {}", message);
+            if (log.isDebugEnabled()) {
+                log.info(">>>>>> User Message and Rag Context: {}", message);
+            }
         }
 
         // 从消息列表中找到最新的用户消息

@@ -1,5 +1,6 @@
 package com.assistant.ai.advisor;
 
+import com.assistant.ai.constant.EnergyAiConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -50,7 +51,7 @@ public class ReReadingAdvisor implements CallAdvisor, StreamAdvisor {
 
     @Override
     public int getOrder() {
-        return HIGHEST_PRECEDENCE + 1;
+        return EnergyAiConstant.REREADING_ADVISOR_ORDER;
     }
 
     @NotNull

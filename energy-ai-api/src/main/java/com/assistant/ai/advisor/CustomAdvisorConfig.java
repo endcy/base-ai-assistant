@@ -11,15 +11,13 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
-import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
-import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * ...
+ * 自定义 Advisor 配置
  *
  * @author endcy
  * @date 2025/11/8 19:23:40
@@ -31,30 +29,15 @@ public class CustomAdvisorConfig {
     private final ChatRagProperties chatRagProperties;
     //AI 阿里云知识库 和向量库 二选一
     private final RetrievalAugmentationAdvisor aiRagCloudAdvisor;
-    //AI pg向量知识库
+    //AI pg 向量知识库
     private final PgVectorStore pgVectorVectorStore;
     private final MessageWindowChatMemory messageWindowChatMemory;
 
-    @Bean("documentSimilarityAdvisor")
-    public RetrievalAugmentationAdvisor documentSimilarityAdvisor() {
-        //pg向量检索 相似度和召回量
-        DocumentRetriever retriever = VectorStoreDocumentRetriever.builder()
-                                                                  .vectorStore(pgVectorVectorStore)
-                                                                  .similarityThreshold(chatRagProperties.getSimilarityThreshold())
-                                                                  .topK(chatRagProperties.getSimilarityTopK())
-                                                                  .build();
-        // 检索增强顾问 允许空上下文，避免NPE
-        return RetrievalAugmentationAdvisor.builder()
-                                           .queryAugmenter(ContextualQueryAugmenter.builder()
-                                                                                   .allowEmptyContext(true)
-                                                                                   .build())
-                                           .documentRetriever(retriever)
-                                           .build();
-    }
-
     @Bean("localDocumentAdvisor")
     public QuestionAnswerAdvisor localDocumentAdvisor(SimpleVectorStore localVectorStore) {
-        return QuestionAnswerAdvisor.builder(localVectorStore).build();
+        return QuestionAnswerAdvisor.builder(localVectorStore)
+                                    .promptTemplate(EnergyAiConstant.DEFAULT_PROMPT_TEMPLATE)
+                                    .build();
     }
 
     /**
@@ -68,7 +51,7 @@ public class CustomAdvisorConfig {
         if (BooleanUtil.isTrue(chatRagProperties.getEnableAliDashScopeIndex())) {
             return aiRagCloudAdvisor;
         } else {
-            //自定义pg向量库
+            //自定义 pg 向量库
             return QuestionAnswerAdvisor.builder(pgVectorVectorStore).build();
         }
     }

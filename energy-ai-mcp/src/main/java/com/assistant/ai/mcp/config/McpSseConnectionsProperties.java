@@ -10,10 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @see McpSseClientProperties
- *
  * @author endcy
  * @date 2025/10/27
+ * @see McpSseClientProperties
  */
 @Getter
 @Data

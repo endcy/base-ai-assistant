@@ -326,7 +326,10 @@
             <input type="text" id="searchInput" placeholder="搜索标题...">
             <button onclick="searchDocuments()">搜索</button>
         </div>
-        <button class="btn-success" onclick="openCreateModal()">新增文档</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-warning" onclick="window.location.href='batch-import.html'">批量导入</button>
+            <button class="btn-success" onclick="openCreateModal()">新增文档</button>
+        </div>
     </div>
 
     <table id="documentsTable">

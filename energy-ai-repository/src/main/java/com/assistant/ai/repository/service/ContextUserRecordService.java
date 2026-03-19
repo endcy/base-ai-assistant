@@ -1,7 +1,7 @@
 package com.assistant.ai.repository.service;
 
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
-import com.assistant.ai.repository.domain.query.ContextUserRecordQueryParam;
+import com.assistant.ai.repository.domain.request.ContextUserRecordQueryParam;
 import com.assistant.service.common.base.PageInfo;
 import org.springframework.data.domain.Pageable;
 

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量导入文档</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-back {
+            background: #95a5a6;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-back:hover {
+            background: #7f8c8d;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .stat-box.fail {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stat-box.skip {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .stat-box.total {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        .stat-box .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .file-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item.success {
+            color: #28a745;
+        }
+
+        .file-item.fail {
+            color: #dc3545;
+        }
+
+        .file-item.skip {
+            color: #ffc107;
+        }
+
+        .file-item .error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            display: none;
+        }
+
+        .notification.success {
+            background-color: #2ecc71;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>批量导入文档</h1>
+        <p>从目录自动导入知识文档到数据库</p>
+    </header>
+
+    <div class="form-card">
+        <form id="importForm">
+            <div class="form-group">
+                <label for="directoryPath">目录路径 *</label>
+                <input type="text" id="directoryPath" required placeholder="例如：E:\projects\mgmt-api-cp\.ai-doc\.knowledge">
+                <div class="form-help">支持的文件类型：.md, .markdown, .txt, .text</div>
+            </div>
+
+            <div class="form-group">
+                <label for="groupId">用户分组 ID（租户 ID） *</label>
+                <input type="number" id="groupId" required placeholder="例如：1">
+            </div>
+
+            <div class="form-group">
+                <label for="defaultScopeType">默认知识领域类型</label>
+                <select id="defaultScopeType">
+                    <option value="">自动推断（根据目录名）</option>
+                    <option value="市场客服">市场客服</option>
+                    <option value="用户客服">用户客服</option>
+                    <option value="商户客服">商户客服</option>
+                    <option value="运营资料">运营资料</option>
+                    <option value="开发运维资料">开发运维资料</option>
+                </select>
+                <div class="form-help">如果无法从目录路径推断，则使用此默认值</div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-back" onclick="goBack()">返回</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">开始导入</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <h3 style="margin-bottom: 20px;">导入结果</h3>
+
+        <div class="stats-grid">
+            <div class="stat-box total">
+                <div class="value" id="totalCount">0</div>
+                <div class="label">总数</div>
+            </div>
+            <div class="stat-box success">
+                <div class="value" id="successCount">0</div>
+                <div class="label">成功</div>
+            </div>
+            <div class="stat-box fail">
+                <div class="value" id="failCount">0</div>
+                <div class="label">失败</div>
+            </div>
+            <div class="stat-box skip">
+                <div class="value" id="skipCount">0</div>
+                <div class="label">跳过</div>
+            </div>
+        </div>
+
+        <div id="resultDetails">
+            <h4 style="margin-bottom: 10px;">成功导入的文件</h4>
+            <div class="file-list" id="successFiles"></div>
+
+            <h4 style="margin: 20px 0 10px;">跳过的文件（已存在）</h4>
+            <div class="file-list" id="skippedFiles"></div>
+
+            <h4 style="margin: 20px 0 10px;">失败的文件</h4>
+            <div class="file-list" id="failedFiles"></div>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script>
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const directoryPath = document.getElementById('directoryPath').value.trim();
+        const groupId = document.getElementById('groupId').value.trim();
+        const defaultScopeType = document.getElementById('defaultScopeType').value;
+
+        if (!directoryPath || !groupId) {
+            showNotification('请填写必填字段', 'error');
+            return;
+        }
+
+        const requestData = {
+            directoryPath: directoryPath,
+            groupId: parseInt(groupId),
+            defaultScopeType: defaultScopeType || null
+        };
+
+        startImport(requestData);
+    });
+
+    function startImport(data) {
+        const submitBtn = document.getElementById('submitBtn');
+        const resultCard = document.getElementById('resultCard');
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '导入中...';
+        resultCard.classList.remove('show');
+
+        fetch('/api/knowledge-document/batch-import', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('导入失败：' + response.status);
+            }
+            return response.json();
+        })
+        .then(result => {
+            displayResult(result);
+            showNotification('导入完成！', 'success');
+        })
+        .catch(error => {
+            console.error('导入错误:', error);
+            showNotification('导入失败：' + error.message, 'error');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '开始导入';
+        });
+    }
+
+    function displayResult(result) {
+        const resultCard = document.getElementById('resultCard');
+
+        // 更新统计
+        document.getElementById('totalCount').textContent = result.totalCount || 0;
+        document.getElementById('successCount').textContent = result.successCount || 0;
+        document.getElementById('failCount').textContent = result.failCount || 0;
+        document.getElementById('skipCount').textContent = result.skipCount || 0;
+
+        // 显示成功文件
+        const successContainer = document.getElementById('successFiles');
+        successContainer.innerHTML = '';
+        if (result.successFiles && result.successFiles.length > 0) {
+            result.successFiles.forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'file-item success';
+                div.textContent = file;
+                successContainer.appendChild(div);
+            });
+        } else {
+            successContainer.innerHTML = '<div style="color: #999; padding: 10px;">暂无数据</div>';
+        }
+
+        // 显示跳过文件
+        const skipContainer = document.getElementById('skippedFiles');
+        skipContainer.innerHTML = '';
+        if (result.skippedFiles && result.skippedFiles.length > 0) {
+            result.skippedFiles.forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'file-item skip';
+                div.textContent = file;
+                skipContainer.appendChild(div);
+            });
+        } else {
+            skipContainer.innerHTML = '<div style="color: #999; padding: 10px;">暂无数据</div>';
+        }
+
+        // 显示失败文件
+        const failContainer = document.getElementById('failedFiles');
+        failContainer.innerHTML = '';
+        if (result.failedFiles && result.failedFiles.length > 0) {
+            result.failedFiles.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'file-item fail';
+                div.innerHTML = `
+                    <div>${item.filePath || item}</div>
+                    ${item.errorMessage ? '<div class="error">' + item.errorMessage + '</div>' : ''}
+                `;
+                failContainer.appendChild(div);
+            });
+        } else {
+            failContainer.innerHTML = '<div style="color: #999; padding: 10px;">暂无数据</div>';
+        }
+
+        resultCard.classList.add('show');
+    }
+
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'block';
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+
+    function goBack() {
+        window.location.href = 'index.html';
+    }
+</script>
+</body>
+</html>

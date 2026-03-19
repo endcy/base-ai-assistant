@@ -2,4 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.assistant.ai.repository.pgsql.mapper.VectorDocumentMapper">
 
+    <select id="retrieveWithTsQuery" resultType="com.assistant.ai.repository.domain.vector.VectorDocument">
+        select *
+        from (
+        SELECT id,
+        content,
+        metadata,
+        ts_rank(content_tsvector, websearch_to_tsquery('jiebacfg', #{params.originalQuestion})) as score
+        FROM vector_store
+        WHERE content_tsvector @@ websearch_to_tsquery('jiebacfg', #{params.originalQuestion})
+        <if test="params.groupId != null">
+            AND (metadata ->> 'groupId') = #{params.groupId}::text
+        </if>
+        <if test="params.scopeType != null and params.scopeType != ''">
+            AND (metadata ->> 'scopeType') = #{params.scopeType}
+        </if>
+        <if test="params.businessType != null and params.businessType != ''">
+            AND (metadata ->> 'businessType') = #{params.businessType}
+        </if>
+        <if test="params.sourceType != null and params.sourceType != ''">
+            AND (metadata ->> 'sourceType') = #{params.sourceType}
+        </if>
+        <if test="params.enablePublic != null">
+            AND (metadata ->> 'enablePublic') = #{params.enablePublic}::text
+        </if>
+        ) t
+        where score > #{similarityThreshold}
+        ORDER BY score DESC
+        LIMIT #{topK}
+    </select>
+
 </mapper>

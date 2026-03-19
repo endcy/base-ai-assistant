@@ -1,4 +1,4 @@
-package com.assistant.ai.repository.domain.query;
+package com.assistant.ai.repository.domain.request;
 
 import com.assistant.service.common.annotation.Query;
 import com.assistant.service.common.base.BaseQueryParam;
