@@ -28,6 +28,8 @@
 - ❌ **数据孤岛问题** → ✅ MCP 协议打通业务系统，实时获取业务数据
 - ❌ **通用模型不专业** → ✅ 意图分析 + 领域知识库，打造垂直领域专家
 - ❌ **工具调用困难** → ✅ 标准化工具链，让 AI 能执行实际业务操作
+- ❌ **能力扩展不灵活** → ✅ Skill/Command 技能系统，Markdown 文件驱动，零代码新增能力
+- ❌ **复杂任务上下文污染** → ✅ SubAgent 子代理，独立记忆隔离，复杂任务独立处理
 
 以此为底座，您可以快速构建自己的企业级智能客服、智能运维、智能助手、简单工作流/垂直领域智能体的基础应用架构程序，可按需拓展。
 
@@ -174,15 +176,16 @@ status:0-下架  1-上架  2-待向量化  3-向量化完成
 
 ```sql
 -- 知识分类配置表
-CREATE TABLE ai_knowledge_category_config (
+CREATE TABLE ai_knowledge_category_config
+(
     id          BIGINT PRIMARY KEY,
-    type        VARCHAR(32)  COMMENT '分类类型 (scope-知识领域，business-业务领域)',
-    code        VARCHAR(64)  COMMENT '分类编码 (英文标识)',
+    type        VARCHAR(32) COMMENT '分类类型 (scope-知识领域，business-业务领域)',
+    code        VARCHAR(64) COMMENT '分类编码 (英文标识)',
     name        VARCHAR(128) COMMENT '分类名称 (中文显示)',
-    parent_code VARCHAR(64)  COMMENT '父级分类编码',
+    parent_code VARCHAR(64) COMMENT '父级分类编码',
     description VARCHAR(512) COMMENT '分类描述',
-    sort_order  INT          COMMENT '排序序号',
-    enabled     TINYINT(1)   COMMENT '是否启用'
+    sort_order  INT COMMENT '排序序号',
+    enabled     TINYINT(1) COMMENT '是否启用'
 );
 ```
 
@@ -224,6 +227,7 @@ MCP（Model Context Protocol）是 AI 与外部系统的标准化通信协议，
 #### MCP 工具开发示例
 
 ```java
+
 @Component
 public class OrderMcpTools {
 
@@ -231,14 +235,14 @@ public class OrderMcpTools {
             title = "查询用户订单信息",
             description = """
                     【关键工具】当用户需要查询任何与充电订单相关的信息时，【必须】调用此工具。
-
+                    
                     **调用场景**：
                     - 根据订单号查询订单
                     - 查询最新订单
                     - 根据用户信息查询订单
                     - 查询订单状态（充电中、已完成）
                     - 查询订单金额等
-
+                    
                     **触发关键词**：订单、我的订单、最新订单、订单详情
                     """,
             returnDirect = true)
@@ -259,6 +263,9 @@ public class OrderMcpTools {
 - ✅ 参数描述清晰，说明必填/选填
 - ✅ 工具功能单一，避免"万能工具"
 - ✅ 返回值格式明确，便于大模型理解
+
+> 💡 **扩展阅读**：除了 MCP 工具，框架还支持 **InnerTool 可插拔工具注册**（实现接口即可自动发现）、**Skill 技能系统**（Markdown 驱动，LLM 自主调用）和 **SubAgent 子代理**
+> （独立记忆隔离），详见下方 [核心特性 8-12](#-智能对话记忆三层压缩)。
 
 ### 6. 🌐 多模型支持
 
@@ -310,15 +317,21 @@ spring.ai.ollama.chat.model=qwen3:8b
 ```java
 // 从指定目录批量导入文档
 BatchImportResult result = documentImportHelper.importFromDirectory(
-    "E:/knowledge-base/products",  // 目录路径
-    1001L,                          // 租户 ID
-    "developer_reference"           // 默认知识领域
-);
+                "E:/knowledge-base/products",  // 目录路径
+                1001L,                          // 租户 ID
+                "developer_reference"           // 默认知识领域
+        );
 
 // 导入结果
-result.getSuccessCount();  // 成功数量
-result.getFailCount();     // 失败数量
-result.getSkipCount();     // 跳过数量（已存在）
+result.
+
+getSuccessCount();  // 成功数量
+result.
+
+getFailCount();     // 失败数量
+result.
+
+getSkipCount();     // 跳过数量（已存在）
 ```
 
 **智能分类匹配逻辑**：
@@ -755,12 +768,141 @@ spring.ai.dashscope.rerank.api-key=YOUR_RERANK_API_KEY
 
 ---
 
+### 8. 🧠 智能对话记忆（三层压缩）
+
+**痛点**：长对话导致 token 消耗巨大，上下文窗口溢出。
+
+**解决方案**：`SmartChatMemory` 三层递进上下文压缩策略
+
+| 层级  | 策略           | 原理                            | 效果        |
+|-----|--------------|-------------------------------|-----------|
+| 第一层 | 摘要压缩         | 历史 > 16 条时，自动将早期消息压缩为 300 字摘要 | 保留关键信息    |
+| 第二层 | Assistant 裁剪 | 只保留最近 3 条 Assistant 回复        | 精准省 token |
+| 第三层 | 滑动窗口         | 消息 > 40 条时丢弃最早消息              | 硬性保护      |
+
+**核心设计**：
+
+- 内聚透明：压缩逻辑完全封装在 `get()` 内部，调用方无感知
+- 增量压缩：新压缩会将旧摘要与新对话合并，避免信息丢失
+- TOOL 消息保护：截断时自动避开 TOOL 消息，不破坏工具调用上下文
+
+```java
+
+@Bean("smartChatMemory")
+public SmartChatMemory smartChatMemory() {
+    ChatClient summaryChatClient = ChatClient.builder(dashscopeChatModel).build();
+    return new SmartChatMemory(summaryChatClient);
+}
+```
+
+### 9. 🔌 可插拔工具注册（InnerTool）
+
+**痛点**：新增工具需要修改注册代码，违反开闭原则。
+
+**解决方案**：`InnerTool` 接口 + 自动发现机制
+
+```java
+// 实现 InnerTool 接口，启动时自动注册
+@Component
+public class MyCustomTool implements InnerTool {
+    @Override
+    public List<ToolCallback> loadToolCallbacks() {
+        return List.of(
+                FunctionToolCallback.builder("my_tool", this::myMethod)
+                                    .description("我的工具描述")
+                                    .build()
+        );
+    }
+}
+```
+
+### 10. 🎭 Skill 技能系统（LLM 自主调用）
+
+**痛点**：新增 Prompt 模板能力需要修改代码重新部署。
+
+**解决方案**：Markdown 文件驱动的技能系统，LLM 自主判断是否调用
+
+**Skill 文件格式**（`resources/skill/xxx.md`）：
+
+```markdown
+---
+name: summarize
+description: 对用户提供的文本内容进行摘要总结
+---
+
+请对以下文本进行摘要总结，提取核心要点：
+
+{{input}}
+```
+
+启动时自动扫描 `classpath:skill/*.md`，注册为 `ToolCallback`。LLM 根据 `description` 自主判断是否需要调用。
+
+### 11. ⌨️ Command 命令系统（用户主动调用）
+
+**痛点**：用户需要快捷指令入口，明确指定要执行的操作。
+
+**解决方案**：纯 Prompt 模板文件，用户通过 REST API 指定命令名执行
+
+**Command 文件格式**（`resources/command/xxx.md`）：
+
+```markdown
+请对以下代码进行 Code Review，从代码质量、潜在 Bug、性能等维度给出改进建议：
+
+{{input}}
+```
+
+**API 调用**：
+
+```bash
+curl -X POST http://localhost:9051/api/command/execute \
+  -H "Content-Type: application/json" \
+  -d '{"command": "code_review", "input": "public void foo() {...}"}'
+```
+
+**Skill vs Command 核心区别**：
+
+| 维度      | Command     | Skill                 |
+|---------|-------------|-----------------------|
+| 文件格式    | 纯 Prompt 模板 | Front Matter + Prompt |
+| 调用方     | 用户主动指定      | LLM 自主决策              |
+| 是否注册为工具 | ❌ 不注册       | ✅ 注册为 ToolCallback    |
+| 适用场景    | 用户明确知道需要什么  | LLM 理解上下文后智能判断        |
+
+### 12. 🤖 SubAgent 子代理（独立记忆）
+
+**痛点**：复杂任务需要独立上下文，不应污染主对话记忆。
+
+**解决方案**：拥有独立 ChatMemory 的子代理系统
+
+```
+主 Agent 对话 ──┐
+                ├── 完全隔离 ── 主对话历史
+SubAgent-1 ────┤
+                ├── 完全隔离 ── SubAgent-1 独立历史
+SubAgent-2 ────┘
+                ├── 完全隔离 ── SubAgent-2 独立历史
+```
+
+通过 3 个工具暴露给主 Agent，由 LLM 自主决策：
+
+- `create_sub_agent`：创建 SubAgent 并执行首个任务
+- `chat_with_sub_agent`：与已有 SubAgent 继续对话
+- `destroy_sub_agent`：销毁 SubAgent，释放资源
+
+---
+
 ## 📝 待完善功能
 
 - [√] 意图分析 Agent 完整实现（用户问题→业务分类→工具选择）
 - [√] 完整的工作流编排
 - [√] 对话历史持久化（Redis/数据库）
 - [√] Token 用量监控和统计
+- [√] 智能对话记忆（三层压缩：摘要 + Assistant 裁剪 + 滑动窗口）
+- [√] 可插拔工具注册（InnerTool 接口 + 自动发现）
+- [√] Skill 技能系统（Markdown 驱动，LLM 自主调用）
+- [√] Command 命令系统（Markdown 驱动，用户主动调用）
+- [√] SubAgent 子代理（独立记忆隔离）
+- [√] 查询改写检索器（LLM 改写多路召回 + RRF 融合）
 - [ ] 业务数据 MCP 工具（按需拓展订单查询、用户信息等数据库联动）
 - [ ] 动态 SQL 生成 MCP（自然语言→SQL 查询）
 
@@ -791,6 +933,7 @@ Apache License 2.0
 - [阿里云百炼](https://bailian.console.aliyun.com/)
 - [Ollama](https://ollama.ai/)
 - [MyBatis Plus](https://baomidou.com/)
+
 ---
 
 <div align="center">

@@ -8,21 +8,32 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 集中的工具注册类
+ * 支持两种注册方式：
+ * 1. 手动注册：通过 @Tool 注解的类，用 ToolCallbacks.from() 注册
+ * 2. 自动注册：实现 InnerTool 接口，由 ToolRegistry 自动扫描发现
+ *
+ * @author endcy
+ * @date 2025/10/31
  */
 @Configuration
 @RequiredArgsConstructor
 public class ToolRegistration {
 
     private final AiWebSearchApiProperties aiWebSearchApiProperties;
+    private final ToolRegistry toolRegistry;
 
 
     /**
-     * 通用工具
+     * 通用工具（手动注册 + InnerTool 自动注册）
      */
     @Bean("commonWebTools")
     public ToolCallback[] commonWebTools() {
+        // 手动注册的工具
         FileOperationTool fileOperationTool = new FileOperationTool();
         SimpleWebSearchTool simpleWebSearchTool = new SimpleWebSearchTool(aiWebSearchApiProperties.getSimpleKey());
         WebScrapingTool webScrapingTool = new WebScrapingTool();
@@ -30,7 +41,7 @@ public class ToolRegistration {
         TerminalOperationTool terminalOperationTool = new TerminalOperationTool();
         PDFGenerationTool pdfGenerationTool = new PDFGenerationTool();
         TerminateTool terminateTool = new TerminateTool();
-        return ToolCallbacks.from(
+        ToolCallback[] manualTools = ToolCallbacks.from(
                 fileOperationTool,
                 simpleWebSearchTool,
                 webScrapingTool,
@@ -39,6 +50,8 @@ public class ToolRegistration {
                 pdfGenerationTool,
                 terminateTool
         );
+        // 合并 InnerTool 自动注册的工具
+        return mergeToolCallbacks(manualTools, toolRegistry.getAllToolCallbacks());
     }
 
 
@@ -51,7 +64,7 @@ public class ToolRegistration {
         TerminalOperationTool terminalOperationTool = new TerminalOperationTool();
         PDFGenerationTool pdfGenerationTool = new PDFGenerationTool();
         TerminateTool terminateTool = new TerminateTool();
-        return ToolCallbacks.from(
+        ToolCallback[] manualTools = ToolCallbacks.from(
                 fileOperationTool,
                 simpleWebSearchTool,
                 webScrapingTool,
@@ -60,6 +73,7 @@ public class ToolRegistration {
                 pdfGenerationTool,
                 terminateTool
         );
+        return mergeToolCallbacks(manualTools, toolRegistry.getAllToolCallbacks());
     }
 
 
@@ -75,5 +89,16 @@ public class ToolRegistration {
                 webScrapingTool,
                 electricityPriceSearchTool
         );
+    }
+
+    /**
+     * 合并两组 ToolCallback
+     */
+    private ToolCallback[] mergeToolCallbacks(ToolCallback[] existing, ToolCallback[] additional) {
+        List<ToolCallback> all = new ArrayList<>(List.of(existing));
+        for (ToolCallback cb : additional) {
+            all.add(cb);
+        }
+        return all.toArray(new ToolCallback[0]);
     }
 }
