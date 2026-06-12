@@ -1,3 +1,9 @@
+<div align="right">
+
+🌐 **中文** | [English](./README_EN.md)
+
+</div>
+
 # 基础 AI 助手应用框架
 
 <div align="center">
