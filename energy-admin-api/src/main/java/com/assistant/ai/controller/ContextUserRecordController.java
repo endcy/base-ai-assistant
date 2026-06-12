@@ -14,8 +14,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
 /**
- * 用户对话记录管理
- * admin-api示例
+ * 用户对话记录管理控制器
+ * <p>
+ * 提供用户与 AI 对话历史的查询、评分和管理功能。
+ * 支持按对话 ID 检索问答记录，支持对相关度进行 0~10 分反馈评分。
+ * </p>
+ * <p>前端界面：{@code context-user-record.html} 调用此控制器</p>
+ *
+ * @author endcy
+ * @since 2026/03/18
  */
 @RestController
 @RequiredArgsConstructor

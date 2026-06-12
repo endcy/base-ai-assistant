@@ -1,5 +1,10 @@
 package com.assistant.service.common.constant;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+
+import java.util.Date;
+
 /**
  * 常用静态常量
  *
@@ -24,4 +29,16 @@ public interface GlobalConstant {
      */
     String THREAD_BEAN_SCOPE = "thread";
 
+    /**
+     * 默认的文档过期时间（远未来时间）
+     */
+    Date DEFAULT_EXPIRED_DATE = DateUtil.parse("2099-12-31 23:59:59.999", DatePattern.NORM_DATETIME_MS_PATTERN);
+
+    /**
+     * 文档外部id标识 文档元数据
+     */
+    String DOC_ID_MARK = "id";
+    String DOC_TITLE_MARK = "title";
+    String DOC_SCOPE_MARK = "sourceType";
+    String DOC_BUSINESS_MARK = "businessType";
 }

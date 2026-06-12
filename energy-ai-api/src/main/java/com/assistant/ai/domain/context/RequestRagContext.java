@@ -20,4 +20,8 @@ public class RequestRagContext {
     private Long chatId;
 
     private List<Document> relatedDocuments;
+
+    private int promptTokens;
+
+    private int completionTokens;
 }

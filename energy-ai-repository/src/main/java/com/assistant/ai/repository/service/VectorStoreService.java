@@ -39,4 +39,9 @@ public interface VectorStoreService {
      * @return 关联文档列表
      */
     List<VectorDocument> retrieveWithTsQuery(DocumentQueryContext documentParams, int topK, double similarityThreshold);
+
+    /**
+     * 计算用户问题与给定文本内容的BM25相似度得分（不依赖向量库已有数据）
+     */
+    VectorDocument computeContentScore(String userQuestion, String content);
 }

@@ -16,8 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
 /**
- * 知识库文档管理
- * admin-api示例
+ * 知识库文档管理控制器
+ * <p>
+ * 知识文档全生命周期管理：创建、编辑、查询、删除、状态流转（上架/下架/向量化）、
+ * 启停控制、向量化刷新、批量导入等。停用文档时自动级联清理向量数据。
+ * </p>
+ * <p>前端界面：{@code knowledge-document.html}、{@code batch-import.html} 调用此控制器</p>
+ *
+ * @author endcy
+ * @since 2026/03/18
  */
 @RestController
 @RequiredArgsConstructor

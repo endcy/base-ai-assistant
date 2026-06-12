@@ -1,5 +1,8 @@
 package com.assistant.ai.repository.domain.context;
 
+import com.assistant.service.domain.enums.DocSourceTypeEnum;
+import com.assistant.service.domain.enums.KnowledgeBusinessTypeEnum;
+import com.assistant.service.domain.enums.KnowledgeScopeTypeEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,11 +30,15 @@ public class DocumentQueryContext implements Serializable {
 
     /**
      * 知识领域类型
+     *
+     * @see KnowledgeScopeTypeEnum
      */
     private String scopeType;
 
     /**
      * 知识业务模块
+     *
+     * @see KnowledgeBusinessTypeEnum
      */
     private String businessType;
 
@@ -43,6 +50,8 @@ public class DocumentQueryContext implements Serializable {
 
     /**
      * 内容来源
+     *
+     * @see DocSourceTypeEnum
      */
     private String sourceType;
 

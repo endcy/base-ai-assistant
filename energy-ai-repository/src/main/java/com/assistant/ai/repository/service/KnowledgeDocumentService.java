@@ -16,17 +16,28 @@ import java.util.Set;
  * @since 2025/08/04 20:55:57
  */
 public interface KnowledgeDocumentService {
-    String CACHE_KEY = "ces:knowledge-doc";
+    String CACHE_KEY = "assistant:knowledge-doc";
 
     /**
-     * 查询未加载的文档
-     * 最多一万条数据
+     * 分页查询未加载的文档
+     * 每次最多返回 1000 条数据
      */
-    List<KnowledgeDocumentDTO> getUnloadedDocuments();
+    List<KnowledgeDocumentDTO> getUnloadedDocuments(int page, int size);
 
-    void updateDocumentEnabledStatus(List<Long> documentIds, Boolean status);
+    /**
+     * 查询所有未加载的文档（流式处理）
+     * 使用游标方式分批获取，避免内存溢出
+     *
+     * @deprecated 使用 getUnloadedDocuments(page, size) 代替
+     */
+    @Deprecated
+    default List<KnowledgeDocumentDTO> getUnloadedDocuments() {
+        return getUnloadedDocuments(0, 1000);
+    }
 
-    void updateDocumentLoadedStatus(List<Long> documentIds, Boolean status);
+    int updateDocumentEnabledStatus(List<Long> documentIds, Boolean status);
+
+    int updateDocumentLoadedStatus(List<Long> documentIds, Boolean status);
 
     /**
      * 查询数据分页

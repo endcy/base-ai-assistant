@@ -1,6 +1,8 @@
 package com.assistant.ai.config;
 
 import cn.hutool.core.util.BooleanUtil;
+import com.assistant.ai.interceptor.SimpleAuthInterceptor;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +10,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Collections;
@@ -21,6 +24,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${api.cors.allowOrigin:false}")
     private Boolean allowOrigin;
+
+    @Resource
+    private SimpleAuthInterceptor authInterceptor;
 
     @Bean
     public CorsFilter corsFilter() {
@@ -39,6 +45,14 @@ public class WebConfig implements WebMvcConfigurer {
             source.registerCorsConfiguration("/upload/**", config);
         }
         return new CorsFilter(source);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(this.authInterceptor)
+                .addPathPatterns("/api/**")
+                .addPathPatterns("/energy-ai/**")
+                .excludePathPatterns("/api/test/**");
     }
 
 }

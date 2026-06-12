@@ -1,6 +1,6 @@
 package com.assistant.ai.agent.model;
 
-import com.assistant.ai.domain.enums.PossibleSourceTypeEnum;
+import com.assistant.service.domain.enums.PossibleSourceTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

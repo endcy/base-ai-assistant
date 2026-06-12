@@ -33,7 +33,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@CacheConfig(cacheNames = "knowledgeCategoryConfigCache")
+@CacheConfig(cacheNames = KnowledgeCategoryConfigService.CACHE_KEY)
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
 public class KnowledgeCategoryConfigServiceImpl implements KnowledgeCategoryConfigService {
 

@@ -30,7 +30,7 @@ public class EnergyManus extends ToolCallAgent {
         this.setMaxSteps(20);
         // 初始化 AI 对话客户端
         ChatClient chatClient = ChatClient.builder(dashscopeChatModel)
-                                          .defaultAdvisors(chatClientAdvisorFactory.getPromptLoggerAdvisor())
+                                          .defaultAdvisors(chatClientAdvisorFactory.createPromptLoggerAdvisor(null))
                                           .build();
         this.setChatClient(chatClient);
     }

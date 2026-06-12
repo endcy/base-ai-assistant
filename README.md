@@ -1,3 +1,9 @@
+<div align="right">
+
+🌐 **中文** | [English](./README_EN.md)
+
+</div>
+
 # 基础 AI 助手应用框架
 
 <div align="center">
@@ -6,11 +12,19 @@
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Spring AI](https://img.shields.io/badge/Spring%20AI-1.0.0--M7-orange.svg)](https://docs.spring.io/spring-ai/reference/)
-[![Spring AI Alibaba](https://img.shields.io/badge/Spring%20AI%20Alibaba-1.0.0.4-red.svg)](https://sca.aliyun.com/docs/ai/overview/)
+[![Spring AI](https://img.shields.io/badge/Spring%20AI-1.1.7-orange.svg)](https://docs.spring.io/spring-ai/reference/)
+[![Spring AI Alibaba](https://img.shields.io/badge/Spring%20AI%20Alibaba-1.1.2.3-red.svg)](https://sca.aliyun.com/docs/ai/overview/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-[项目简介](#-项目简介) | [快速开始](#-快速开始) | [核心特性](#-核心特性) | [架构设计](#-架构设计) | [部署指南](#-部署指南)
+[项目简介](#-项目简介) | [快速开始](#-快速开始) | [核心特性](#-核心特性) | [架构设计](#-架构设计) | [更新日志](#-更新日志) | [部署指南](#-部署指南)
+
+</div>
+
+---
+
+<div align="center">
+
+### 🌟 如果这个项目对你有帮助，请 Star ⭐ 支持一下！您的支持是我持续更新的动力！thx！
 
 </div>
 
@@ -273,10 +287,16 @@ public class OrderMcpTools {
 
 ```properties
 spring.ai.dashscope.api-key=YOUR_DASHSCOPE_API_KEY
-spring.ai.dashscope.chat.options.model=qwen3-max
+spring.ai.dashscope.chat.options.model=qwen3.7-max
+# 多模态支持（图文混合对话）
+spring.ai.dashscope.chat.options.multi-model=true
+# Rerank 模型配置
+spring.ai.dashscope.rerank.options.model=qwen3-rerank
 ```
 
-- ✅ 支持阿里百炼所有模型（qwen3-max、qwen-plus 等）
+- ✅ 支持阿里百炼所有模型（qwen3.7-max、qwen-plus 等）
+- ✅ 支持多模态大模型（图文混合输入）
+- ✅ 支持 Rerank 重排序模型升级（qwen3-rerank）
 - ✅ 支持自定义 API 版本和端点
 - ✅ Token 用量可由运维跟踪监控
 
@@ -284,7 +304,7 @@ spring.ai.dashscope.chat.options.model=qwen3-max
 
 ```properties
 spring.ai.ollama.base-url=http://localhost:11434
-spring.ai.ollama.chat.model=qwen3:8b
+spring.ai.ollama.chat.model=qwen3.6:9b
 ```
 
 - ✅ 支持本地部署的开源模型
@@ -510,10 +530,13 @@ cd base-ai-assistant
 #### MySQL 初始化
 
 ```bash
+# 基础建表
 mysql -u root -p < .sql/mysql/init/ddl_init_energy_ai.sql
+# 增量迁移（已有环境升级时执行）
+mysql -u root -p < .sql/mysql/20260611/ddl_alter_knowledge_document.sql
 ```
 
-创建业务表：知识文档表、对话记录表等。
+创建业务表：知识文档表、对话记录表等。已有环境需额外执行迁移脚本。
 
 #### PGVector 初始化
 
@@ -521,11 +544,24 @@ mysql -u root -p < .sql/mysql/init/ddl_init_energy_ai.sql
 # 先安装 pgvector 扩展
 psql -U postgres -d energy_ai -c "CREATE EXTENSION IF NOT EXISTS vector;"
 psql -U postgres -d energy_ai < .sql/pgsql/init/ddl_init_energy_ai.sql
+# （可选）安装 pg_jieba 中文分词扩展，用于 BM25 全文检索评分
+psql -U postgres -d energy_ai < .sql/pgsql/init/ddl_init_energy_ai_jieba.sql
 ```
 
 创建向量表及 HNSW 索引、BM25 全文索引。
 
 ### 3. 配置修改
+
+工程提供两份配置文件：
+
+| 文件                          | 用途              | 提交到仓库              |
+|-----------------------------|-----------------|--------------------|
+| `application.properties`    | 本地运行配置，填入真实连接数据 | ❌ 否（已在 .gitignore） |
+| `application-脱敏.properties` | 脱敏后的完整配置模板，作为参考 | ✅ 是                |
+
+> 💡 首次使用时，复制 `application-脱敏.properties` 为 `application.properties`，然后替换其中的占位符为真实值。
+
+#### 3.1 必填配置
 
 编辑 `energy-ai-api/src/main/resources/application.properties`：
 
@@ -534,7 +570,11 @@ psql -U postgres -d energy_ai < .sql/pgsql/init/ddl_init_energy_ai.sql
 # 大模型配置（必须）
 # ========================================
 spring.ai.dashscope.api-key=YOUR_DASHSCOPE_API_KEY
-spring.ai.dashscope.chat.options.model=qwen3-max
+spring.ai.dashscope.chat.options.model=qwen3.7-plus
+# 多模态支持（图文混合对话场景开启）
+spring.ai.dashscope.chat.options.multi-model=true
+# Rerank 重排序模型
+spring.ai.dashscope.rerank.options.model=qwen3-rerank
 # ========================================
 # 数据库配置（必须）
 # ========================================
@@ -548,6 +588,7 @@ spring.datasource.pgsql.host=localhost
 spring.datasource.pgsql.port=5432
 spring.datasource.pgsql.username=postgres
 spring.datasource.pgsql.password=YOUR_PASSWORD
+
 # ========================================
 # RAG 配置（推荐）
 # ========================================
@@ -555,12 +596,37 @@ ai.rag.similarity-threshold=0.6
 ai.rag.top-k=3
 ai.rag.rerank-api-key=YOUR_RERANK_API_KEY
 ai.rag.enable-intent-analysis=true
+
 # ========================================
 # MCP 配置（可选）
 # ========================================
 spring.ai.mcp.server.enabled=true
 spring.ai.mcp.client.enabled=true
 ```
+
+#### 3.2 运行模式选择
+
+工程支持 **单机模式** 和 **微服务模式** 两种部署方式，通过一个开关控制：
+
+```properties
+# ========================================
+# 运行模式（二选一）
+# ========================================
+# 单机模式（默认）—— 不需要 Dubbo/Nacos/Feign，本地直接运行
+ai.rpc.enabled=false
+# 微服务模式 —— 启用 Dubbo + Nacos 注册中心 + Feign 远程调用
+# ai.rpc.enabled=true
+# 启用后需额外配置：
+# dubbo.registry.address=nacos://your-nacos-ip:8848
+# spring.cloud.nacos.discovery.server-addr=your-nacos-ip:8848
+```
+
+| 配置项        | `ai.rpc.enabled=false` | `ai.rpc.enabled=true` |
+|------------|------------------------|-----------------------|
+| Dubbo 服务注册 | ❌ 不注册                  | ✅ 注册到 Nacos           |
+| Feign 远程调用 | ❌ 不启用                  | ✅ 启用                  |
+| Nacos 注册发现 | ❌ 不连接                  | ✅ 连接注册                |
+| 适用场景       | 本地开发、单机部署、开源体验         | 生产环境、微服务集群            |
 
 ### 4. 编译打包
 
@@ -588,18 +654,42 @@ mvn clean package -DskipTests
 
 ### 5. 启动服务
 
+#### 方式一：IDE 直接启动（推荐开发调试）
+
+1. 确保 JDK 21 已配置
+2. 在 IDE 中运行 `AiApiApplication.main()` 启动核心 AI 服务（端口 9051）
+3. 在 IDE 中运行 `AdminApiApplication.main()` 启动管理后台（端口 9050）
+
+#### 方式二：命令行启动
+
 ```bash
-# 启动 AI 助手服务
+# 先编译打包
+mvn clean package -DskipTests
+
+# 启动核心 AI 服务（必须）
 java -jar energy-ai-api/target/energy-ai-api-1.0.0.jar
 
 # 启动管理后台（可选）
 java -jar energy-admin-api/target/energy-admin-api-1.0.0.jar
 ```
 
+#### 方式三：指定配置文件启动
+
+```bash
+# 使用指定 profile 启动（如 application-dev.properties）
+java -jar energy-ai-api/target/energy-ai-api-1.0.0.jar --spring.profiles.active=dev
+```
+
+> ⚠️ **启动顺序**：先启动 `energy-ai-api`（核心服务），再启动 `energy-admin-api`（管理后台依赖核心服务）
+
 ### 6. 访问验证
 
-- 管理后台：http://localhost:9050/index.html
-- API 接口：http://localhost:9051/api/chat
+| 服务        | 地址                                        | 说明                  |
+|-----------|-------------------------------------------|---------------------|
+| 管理后台      | http://localhost:9050/index.html          | 知识库管理、分类配置、Token 统计 |
+| AI 服务 API | http://localhost:9051/energy-ai/chat/sync | 同步问答接口              |
+| AI 服务 SSE | http://localhost:9051/energy-ai/chat/sse  | 流式问答接口              |
+| MCP 端点    | http://localhost:9051/mcp                 | MCP 工具服务端点          |
 
 ---
 
@@ -609,11 +699,11 @@ java -jar energy-admin-api/target/energy-admin-api-1.0.0.jar
 
 #### 1. 大模型选择
 
-| 场景     | 推荐模型                     | 说明       |
-|--------|--------------------------|----------|
-| 在线 RAG | qwen3-max / qwen3.5-plus | 效果好，成本高  |
-| 意图分析   | qwen3.5-plus 9b（微调）      | 精准分类，成本低 |
-| 本地部署   | qwen3:32b+               | 需 GPU 资源 |
+| 场景     | 推荐模型                       | 说明       |
+|--------|----------------------------|----------|
+| 在线 RAG | qwen3.7-max / qwen3.7-plus | 效果好，成本高  |
+| 意图分析   | qwen3.6 9b（微调）             | 精准分类，成本低 |
+| 本地部署   | qwen3.6:35b+               | 需 GPU 资源 |
 
 #### 2. 向量数据库配置
 
@@ -638,6 +728,10 @@ ai.rag.bm25-top-k=5     # BM25 检索 Top-K
 # Rerank 配置
 ai.rag.rerank-min-score=0.1  # Rerank 最低得分
 ai.rag.rerank-model-name=ai-rerank
+# Rerank 模型（推荐使用 qwen3-rerank）
+spring.ai.dashscope.rerank.options.model=qwen3-rerank
+# 多模态支持（图文混合对话场景）
+spring.ai.dashscope.chat.options.multi-model=true
 ```
 
 ### 配置中心集成
@@ -650,7 +744,9 @@ ai.rag.rerank-model-name=ai-rerank
 # ========================================
 # 大模型配置
 spring.ai.dashscope.api-key=${DASHSCOPE_API_KEY}
-spring.ai.dashscope.chat.options.model=qwen3-max
+spring.ai.dashscope.chat.options.model=qwen3.7-max
+spring.ai.dashscope.chat.options.multi-model=true
+spring.ai.dashscope.rerank.options.model=qwen3-rerank
 # RAG 配置
 ai.rag.similarity-threshold=0.6
 ai.rag.top-k=3
@@ -765,6 +861,23 @@ spring.ai.dashscope.rerank.api-key=YOUR_RERANK_API_KEY
 - [ ] 使用 Streamable 模式（支持断线重连）
 - [ ] 配置连接健康检查
 - [ ] 防火墙是否放行端口
+
+### Q5: 启动时出现大量 Dubbo 日志 / 没有 Nacos 也想启动
+
+**原因**：工程依赖了 Dubbo/Spring Cloud 组件，classpath 上存在相关 jar 会触发自动初始化。
+
+**解决**：确保 `application.properties` 中 `ai.rpc.enabled=false`（默认已关闭）。
+
+此时 Dubbo 框架仍会静默初始化（打印 Banner），但不会注册任何服务、不连接注册中心、不暴露端口，对运行无任何影响。
+
+### Q6: `application.properties` 和 `application-脱敏.properties` 是什么关系？
+
+| 文件                          | 说明                      | 提交仓库 |
+|-----------------------------|-------------------------|------|
+| `application.properties`    | 本地运行配置，填入真实连接数据         | ❌ 否  |
+| `application-脱敏.properties` | 脱敏后的完整配置模板，结构相同、值用占位符替代 | ✅ 是  |
+
+首次使用时复制 `application-脱敏.properties` 为 `application.properties`，替换占位符即可。开源贡献者只需修改 `application-脱敏.properties` 并同步到 `application.properties` 中。
 
 ---
 
@@ -903,8 +1016,70 @@ SubAgent-2 ────┘
 - [√] Command 命令系统（Markdown 驱动，用户主动调用）
 - [√] SubAgent 子代理（独立记忆隔离）
 - [√] 查询改写检索器（LLM 改写多路召回 + RRF 融合）
+- [√] 多模态大模型支持（图文混合对话）
+- [√] Rerank 模型升级（qwen3-rerank）
+- [√] 流式问答支持（SSE + Token 用量追踪）
+- [√] API 认证拦截器
+- [√] 文档向量匹配推荐
 - [ ] 业务数据 MCP 工具（按需拓展订单查询、用户信息等数据库联动）
 - [ ] 动态 SQL 生成 MCP（自然语言→SQL 查询）
+
+---
+
+## 📋 更新日志
+
+### v1.1.0 (2026-06-11) — 功能拓展与架构增强
+
+#### 🚀 新功能
+
+- **流式问答与 Token 追踪**：新增 `EnergyAiDocumentApp` 支持 SSE 流式输出，`PromptLoggerAdvisor` 重写为按请求创建并自动追踪 promptTokens/completionTokens
+- **统一请求管理**：新增 `AiRequestManager` 统一管理同步/流式 Q&A、RAG 文档匹配、简单对话等请求入口
+- **文档匹配推荐**：新增 `KnowledgeDocumentManager` 基于向量相似度匹配相关文档，支持置信度评分
+- **API 认证拦截器**：新增 `SimpleAuthInterceptor` 对 `/api/**` 路径做 Token 验证，可配置白名单
+- **全局异常处理**：新增 `GlobalExceptionHandler` 统一处理认证异常、业务异常、连接中断等
+- **BM25 全文检索**：新增 `computeContentScore` SQL 支持 pg_jieba 中文分词评分
+- **simpleChatClient**：新增精简版 ChatClient Bean，仅含 Memory Advisor，适用于简单场景
+- **multiQueryExpander**：新增多查询扩展 Bean，支持查询扩展提升召回率
+
+#### ⚡ 功能增强
+
+- **依赖全面升级**：Spring AI 1.1.0-M4 → **1.1.7**、Spring AI Alibaba 1.0.0.4 → **1.1.2.3**、DashScope SDK 2.19.1 → **2.22.20**、LangChain4J 1.0.0-beta2 → **1.16.0-beta26**、OpenAI Java SDK 3.7.1 → *
+  *4.39.1**
+- **多模态支持**：新增 `spring.ai.dashscope.chat.options.multi-model=true` 配置，支持图文混合对话
+- **Rerank 模型升级**：新增 `spring.ai.dashscope.rerank.options.model=qwen3-rerank` 配置，支持新一代重排序模型
+- **VectorStoreManager 增强**：文档加载改为分页模式（防 OOM）、新增增量更新单文档向量、新增删除文档向量、文档内容自动拼接标题提升检索质量
+- **EnergyAiConstant 提示词增强**：新增 6 套意图分析/RAG 推荐提示词模板，支持结构化输出
+- **ChatClientAdvisorFactory 重构**：PromptLoggerAdvisor 从单例改为工厂方法按请求创建，修复并发安全问题
+- **Repository 层增强**：KnowledgeDocumentService 新增分页加载、状态更新返回 int、级联向量操作；VectorStoreService 新增 BM25 评分方法
+- **RPC DTO 补充**：新增 18 个请求/响应 DTO 类（AIStreamResponse、KnowledgeAIQueryParam 等），支持流式问答接口
+
+#### 🐛 Bug 修复
+
+- **RAG 多轮对话丢失历史**：修复 `EnergyAiApp.doChatWithRag()` 未传递 `existingMessages` 导致多轮对话无上下文
+- **EnergyManus 引用失效**：更新 `getPromptLoggerAdvisor()` 为 `createPromptLoggerAdvisor(null)` 匹配重构后的工厂方法
+
+#### 📦 SQL 变更
+
+- 新增 `.sql/mysql/20260611/ddl_alter_knowledge_document.sql`：`ai_knowledge_document` 新增 `doc_id` 字段和索引
+- 新增 `.sql/pgsql/init/ddl_init_energy_ai_jieba.sql`：pg_jieba 中文分词扩展（tsvector 列 + GIN 索引 + 自动更新触发器）
+- 新增 `.sql/mysql/20260318/dml_knowledge_category_config.sql`：知识分类初始数据
+
+#### 🏗️ 架构优化
+
+- `PossibleSourceTypeEnum` 迁移至 `service-domain` 模块，与其他领域枚举统一管理
+- MQ 消费者队列名改用 `MQConstant` 常量引用，替代硬编码字符串
+- `KnowledgeCategoryConfigService` 缓存键统一为 `CACHE_KEY` 常量
+- `GlobalConstant` 新增文档元数据键常量（`DOC_ID_MARK`、`DOC_TITLE_MARK` 等）
+
+### v1.0.0 (2025-11-11) — 初始发布
+
+- 混合 RAG 检索增强（向量 + BM25 + 云知识库 + 重排序）
+- 意图分析 Agent + 智能数据源路由
+- MCP 协议支持（本地/远程 SSE/Streamable）
+- Skill/Command 技能系统 + SubAgent 子代理
+- 智能对话记忆三层压缩
+- Token 用量监控统计
+- 管理后台（知识文档管理、分类配置、Token 统计）
 
 ---
 
@@ -938,6 +1113,6 @@ Apache License 2.0
 
 <div align="center">
 
-**如果这个项目对你有帮助，请 Star ⭐ 支持一下！thx！**
+**Made with ❤️ for Enterprise AI**
 
 </div>

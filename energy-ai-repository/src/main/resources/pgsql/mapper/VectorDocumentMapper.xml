@@ -32,4 +32,12 @@
         LIMIT #{topK}
     </select>
 
+    <select id="computeContentScore" resultType="com.assistant.ai.repository.domain.vector.VectorDocument">
+        SELECT COALESCE(
+                       ts_rank(to_tsvector('jiebacfg', #{content}),
+                               websearch_to_tsquery('jiebacfg', #{userQuestion})),
+                       0.0
+               ) as score
+    </select>
+
 </mapper>

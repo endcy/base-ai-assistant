@@ -12,7 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Token 用量统计管理
+ * Token 用量统计管理控制器
+ * <p>
+ * 提供 AI 大模型 Token 消耗的查询与统计功能。
+ * 支持按请求明细查询、按日汇总统计、按用户汇总统计等多维度分析。
+ * </p>
+ * <p>前端界面：{@code token-usage.html} 调用此控制器</p>
  *
  * @author endcy
  * @since 2026/03/18

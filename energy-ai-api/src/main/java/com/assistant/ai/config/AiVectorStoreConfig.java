@@ -1,12 +1,12 @@
 package com.assistant.ai.config;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,12 +25,20 @@ import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexT
  */
 @Configuration
 @Slf4j
-@RequiredArgsConstructor
 public class AiVectorStoreConfig {
 
     private final JdbcTemplate pgSqlTemplate;
     private final EmbeddingModel dashscopeEmbeddingModel;
     private final ChatModel dashscopeChatModel;
+
+    public AiVectorStoreConfig(
+            JdbcTemplate pgSqlTemplate,
+            EmbeddingModel dashscopeEmbeddingModel,
+            @Qualifier("dashScopeChatModel") ChatModel dashscopeChatModel) {
+        this.pgSqlTemplate = pgSqlTemplate;
+        this.dashscopeEmbeddingModel = dashscopeEmbeddingModel;
+        this.dashscopeChatModel = dashscopeChatModel;
+    }
 
     @Value("${spring.ai.vectorstore.pgvector.dimensions:1204}")
     private Integer dimensions;
@@ -40,6 +48,15 @@ public class AiVectorStoreConfig {
 
     @Value("${ai.rag.rerank-api-key:}")
     private String rerankApiKey;
+
+    /**
+     * 标记 DashScope ChatModel 为默认首选，避免多个 ChatModel Bean 歧义
+     */
+    @Bean("chatModel")
+    @Primary
+    public ChatModel primaryChatModel(@Qualifier("dashScopeChatModel") ChatModel dashScopeChatModel) {
+        return dashScopeChatModel;
+    }
 
     @Bean("localVectorStore")
     public SimpleVectorStore localVectorStore() {

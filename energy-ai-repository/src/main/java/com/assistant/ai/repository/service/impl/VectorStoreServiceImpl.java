@@ -74,4 +74,9 @@ public class VectorStoreServiceImpl implements VectorStoreService {
     public List<VectorDocument> retrieveWithTsQuery(DocumentQueryContext documentParams, int topK, double similarityThreshold) {
         return vectorDocumentMapper.retrieveWithTsQuery(documentParams, topK, similarityThreshold);
     }
+
+    @Override
+    public VectorDocument computeContentScore(String userQuestion, String content) {
+        return vectorDocumentMapper.computeContentScore(userQuestion, content);
+    }
 }

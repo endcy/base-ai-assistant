@@ -45,8 +45,16 @@ public class ChatClientConfig {
                          .defaultSystem(EnergyAiConstant.SYSTEM_PROMPT)
                          .defaultAdvisors(
                                  chatClientAdvisorFactory.getMessageChatMemoryAdvisor(),
-                                 chatClientAdvisorFactory.getPromptLoggerAdvisor(),
                                  chatClientAdvisorFactory.getReReadingAdvisor()
+                         )
+                         .build();
+    }
+
+    @Bean("simpleChatClient")
+    public ChatClient simpleChatClient() {
+        return ChatClient.builder(dashscopeChatModel)
+                         .defaultAdvisors(
+                                 chatClientAdvisorFactory.getMessageChatMemoryAdvisor()
                          )
                          .build();
     }

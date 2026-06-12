@@ -36,6 +36,7 @@ public class SkillTool implements InnerTool {
                                                                 "skill_" + skill.getName(),
                                                                 (String input) -> executeSkill(skill, input))
                                                         .description(skill.getDescription())
+                                                        .inputType(String.class)
                                                         .build();
             callbacks.add(callback);
         }

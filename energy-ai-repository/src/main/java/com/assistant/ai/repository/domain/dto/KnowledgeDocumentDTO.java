@@ -28,7 +28,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KnowledgeDocumentDTO implements Serializable {
 
-    public static final String[] RAG_META_IGNORE_FIELDS = new String[]{"docVersion", "content", "loaded", "enabled",
+    public static final String[] RAG_META_IGNORE_FIELDS = new String[]{"id", "docVersion", "content", "loaded", "enabled",
 //            "enablePublic", "expiredTime",
             "createUser", "updateUser", "createTime", "updateTime"};
 

@@ -3,6 +3,7 @@ package com.assistant.ai.listener;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.assistant.ai.listener.strategy.IAiMsgConsumerStrategy;
+import com.assistant.service.common.constant.MQConstant;
 import com.assistant.service.domain.bo.BaseMqMsgRequest;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@RabbitListener(queues = "energy_ai_topic")
+@RabbitListener(queues = MQConstant.MQ_ADMIN_REPORT_PROCESS)
 @RequiredArgsConstructor
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class AiMessageConsumer {

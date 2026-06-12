@@ -1,4 +1,4 @@
-package com.assistant.ai.domain.enums;
+package com.assistant.service.domain.enums;
 
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.annotation.JsonCreator;

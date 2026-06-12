@@ -141,6 +141,7 @@ public class EnergyAiApp {
         ChatResponse chatResponse = commonChatClient
                 .prompt()
                 .user(rewrittenMessage)
+                .messages(existingMessages)
                 .toolCallbacks(mcpToolCallbacks.getToolCallbacks())
                 .toolCallbacks(ragTools)
                 .advisors(getAdvisorSpecConsumer(chatId))

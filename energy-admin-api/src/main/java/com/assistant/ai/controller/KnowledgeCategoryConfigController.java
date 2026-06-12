@@ -15,7 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 知识分类配置管理
+ * 知识分类配置管理控制器
+ * <p>
+ * 管理知识领域（scope）和业务领域（business）两级分类的配置。
+ * 支持分类的增删改查、启用/禁用控制、排序管理，分类数据带缓存。
+ * </p>
+ * <p>前端界面：{@code knowledge-category.html} 调用此控制器</p>
  *
  * @author endcy
  * @since 2026/03/18

@@ -4,11 +4,8 @@ package com.assistant.ai;
 
 import com.assistant.service.common.config.CommonServiceBeanConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -23,9 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableTransactionManagement
 //非主包路径下的配置类@ComponentScan扫描bean，需要用@Import引入；要么就在Application类上@ComponentScan各bean路径
 @Import(CommonServiceBeanConfig.class)
-@EnableDubbo(scanBasePackages = {"com.assistant.ai.rpc"})
-@EnableDiscoveryClient
-@EnableFeignClients
+// Dubbo/Feign/Nacos 注册发现由 RpcComponentConfig 条件化启用（ai.rpc.enabled=true 时生效）
 public class AiApiApplication {
 
     public static void main(String[] args) {
