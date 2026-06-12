@@ -34,7 +34,7 @@ public class DocumentTokenTextSplitter implements InitializingBean {
             this.splitter = new ChineseEnhancedTextSplitter(false);
         } catch (Exception e) {
             log.error(">>>>>> SentenceSplitter init failed, use TokenTextSplitter splitter", e);
-            this.splitter = new TokenTextSplitter(200, 100, 10, 2048, true);
+            this.splitter = new TokenTextSplitter(true);
         }
     }
 }

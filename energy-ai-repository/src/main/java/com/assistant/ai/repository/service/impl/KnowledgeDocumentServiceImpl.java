@@ -1,6 +1,7 @@
 package com.assistant.ai.repository.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.BooleanUtil;
 import com.assistant.ai.repository.domain.dto.KnowledgeDocumentDTO;
 import com.assistant.ai.repository.domain.entity.KnowledgeDocument;
 import com.assistant.ai.repository.domain.request.KnowledgeDocumentQueryParam;
@@ -47,31 +48,37 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
     private final DocumentImportHelper documentImportHelper;
 
     @Override
-    public List<KnowledgeDocumentDTO> getUnloadedDocuments() {
+    public List<KnowledgeDocumentDTO> getUnloadedDocuments(int page, int size) {
         KnowledgeDocumentQueryParam query = new KnowledgeDocumentQueryParam();
         query.setEnabled(true);
         query.setLoaded(false);
         QueryWrapper<KnowledgeDocument> queryWrapper = QueryHelpMybatisPlus.getPredicateSimple(query);
-        LambdaQueryWrapper<KnowledgeDocument> lambdaQueryWrapper = queryWrapper.lambda().last("limit 10000");
+        LambdaQueryWrapper<KnowledgeDocument> lambdaQueryWrapper = queryWrapper.lambda()
+                                                                               .orderByAsc(KnowledgeDocument::getId)
+                                                                               .last(" LIMIT " + (page * size) + ", " + size);
         return knowledgeDocumentConverter.toDto(knowledgeDocumentMapper.selectList(lambdaQueryWrapper));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateDocumentEnabledStatus(List<Long> documentIds, Boolean status) {
+    public int updateDocumentEnabledStatus(List<Long> documentIds, Boolean status) {
+        if (BooleanUtil.isFalse(status)) {
+            vectorStoreService.removeByDocIds(CollUtil.newHashSet(documentIds));
+        }
         LambdaUpdateWrapper<KnowledgeDocument> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(KnowledgeDocument::getEnabled, status)
+                     .set(!status, KnowledgeDocument::getLoaded, false)
                      .in(KnowledgeDocument::getId, documentIds);
-        knowledgeDocumentMapper.update(null, updateWrapper);
+        return knowledgeDocumentMapper.update(null, updateWrapper);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateDocumentLoadedStatus(List<Long> documentIds, Boolean status) {
+    public int updateDocumentLoadedStatus(List<Long> documentIds, Boolean status) {
         LambdaUpdateWrapper<KnowledgeDocument> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(KnowledgeDocument::getLoaded, status)
                      .in(KnowledgeDocument::getId, documentIds);
-        knowledgeDocumentMapper.update(null, updateWrapper);
+        return knowledgeDocumentMapper.update(null, updateWrapper);
     }
 
     @Override

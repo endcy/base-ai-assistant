@@ -11,6 +11,7 @@ import lombok.Getter;
  * 仅作为规范参考 不作为强制引用分类 因为可能随时新增类型
  * 每个知识领域下有N个业务模块
  *
+ * @implNote 本枚举仅作为示例，请使用ai_knowledge_category_config的分类
  * @see KnowledgeScopeTypeEnum
  */
 @Getter
@@ -35,7 +36,7 @@ public enum KnowledgeBusinessTypeEnum {
     REPORTER("分析报告", "针对平台管理商户、开发运维人员或需求管理人员的数据统计需求，进行数据统计、分析，并给出相应的报告"),
     POWER_PREDICT("用电功率预测", "结合平台历史数据对未来时段的设备、站点的用电功率进行预测"),
 
-    UNKNOWN("其他", "未分类或其他业务"),
+    UNKNOWN("其他", "未分类或其他业务内容咨询"),
     ;
 
     @EnumValue

@@ -40,6 +40,14 @@ public class CommonResMsgDTO<T> extends BaseResMsgDTO {
         return commonResMsgDTO;
     }
 
+    public static <T> CommonResMsgDTO<T> failureDeviceRes(T data, String msg) {
+        CommonResMsgDTO<T> commonResMsgDTO = new CommonResMsgDTO<>();
+        commonResMsgDTO.setStatus(ApiResStatus.FAILURE);
+        commonResMsgDTO.setMsg(msg);
+        commonResMsgDTO.setData(data);
+        return commonResMsgDTO;
+    }
+
     /**
      * 一般不处理错误，由RCP异常捕获处理，暴露异常也方便重传
      *

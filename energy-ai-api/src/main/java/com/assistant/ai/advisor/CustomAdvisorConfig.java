@@ -4,13 +4,16 @@ import cn.hutool.core.util.BooleanUtil;
 import com.assistant.ai.config.ChatRagProperties;
 import com.assistant.ai.constant.EnergyAiConstant;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.context.annotation.Bean;
@@ -71,6 +74,15 @@ public class CustomAdvisorConfig {
     @Bean("messageChatMemoryAdvisor")
     public MessageChatMemoryAdvisor messageChatMemoryAdvisor() {
         return MessageChatMemoryAdvisor.builder(messageWindowChatMemory).build();
+    }
+
+    @Bean("multiQueryExpander")
+    public MultiQueryExpander multiQueryExpander(ChatModel chatModel) {
+        ChatClient.Builder chatClientBuilder = ChatClient.builder(chatModel);
+        return MultiQueryExpander.builder()
+                                 .chatClientBuilder(chatClientBuilder)
+                                 .numberOfQueries(3)
+                                 .build();
     }
 
 }

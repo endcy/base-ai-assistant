@@ -14,8 +14,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
 /**
- * 日志管理
- * admin-api示例
+ * 系统操作日志控制器
+ * <p>
+ * 提供系统接口调用日志的查询功能，支持按时间范围、日志类型、方法名等条件检索。
+ * 日志由 AOP 切面自动记录（参见 LogAspect）。
+ * </p>
+ * <p>无前端界面，仅 REST API 调用</p>
+ *
+ * @author endcy
+ * @since 2026/03/18
  */
 @RestController
 @RequiredArgsConstructor

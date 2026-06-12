@@ -8,4 +8,5 @@ package com.assistant.ai.rpc.constant;
  */
 public interface RpcConfigConstant {
 
+    String AUTH_TOKEN = "Authorization";
 }

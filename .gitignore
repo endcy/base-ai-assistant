@@ -34,3 +34,7 @@ build/
 ### Mac OS ###
 .DS_Store
 .claude/*
+.omc
+
+### Dev profile with real credentials ###
+**/application-dev.properties

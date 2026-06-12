@@ -54,6 +54,7 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+            <version>1.1.2.3</version>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.ai</groupId>-->
@@ -78,7 +79,6 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
-            <version>1.0.0-M7</version>
         </dependency>
         <!-- Spring AI MCP Client -->
         <dependency>
@@ -93,7 +93,6 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
-            <version>1.0.0-beta2</version>
         </dependency>
         <!-- 支持结构化输出 -->
         <dependency>
@@ -132,7 +131,6 @@
         <dependency>
             <groupId>com.openai</groupId>
             <artifactId>openai-java</artifactId>
-            <version>3.7.1</version>
         </dependency>
 
         <dependency>

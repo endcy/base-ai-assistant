@@ -112,6 +112,7 @@ public class SubAgentManager implements InnerTool {
                                                       return createAndExecute(name, StrUtil.blankToDefault(systemPrompt, "你是一个专业的 AI 助手"), task);
                                                   })
                                           .description("创建一个拥有独立记忆的子代理，并执行首个任务。参数：name(名称), system_prompt(系统提示词), task(首个任务)")
+                                          .inputType(String.class)
                                           .build());
 
         // 与子代理对话工具
@@ -126,6 +127,7 @@ public class SubAgentManager implements InnerTool {
                                                       return chatWithSubAgent(agentId, message);
                                                   })
                                           .description("与已有子代理继续对话。参数：agent_id(子代理 ID), message(消息内容)")
+                                          .inputType(String.class)
                                           .build());
 
         // 销毁子代理工具
@@ -137,6 +139,7 @@ public class SubAgentManager implements InnerTool {
                                                       return destroySubAgent(agentId);
                                                   })
                                           .description("销毁子代理，释放资源。参数：agent_id(子代理 ID)")
+                                          .inputType(String.class)
                                           .build());
 
         log.info("Registered {} SubAgent tools", callbacks.size());

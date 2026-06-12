@@ -15,6 +15,8 @@ import java.util.List;
  */
 public interface KnowledgeCategoryConfigService {
 
+    String CACHE_KEY = "assistant:knowledge-category";
+
     /**
      * 分页查询
      */

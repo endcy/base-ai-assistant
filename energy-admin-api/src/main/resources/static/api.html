@@ -124,6 +124,16 @@
             resize: vertical;
         }
 
+        .form-group input[type="text"], .form-group textarea {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-group input.auth-input {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
         .btn {
             display: inline-block;
             padding: 12px 25px;
@@ -245,6 +255,10 @@
                     <label for="refreshDocsUrl">API URL:</label>
                     <input type="text" id="refreshDocsUrl" value="http://192.168.23.145:9051/energy-ai/document/refresh" placeholder="请输入API URL">
                 </div>
+                <div class="form-group">
+                    <label for="refreshDocsAuth">Authorization:</label>
+                    <input type="text" id="refreshDocsAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
+                </div>
                 <button class="btn btn-block" onclick="refreshDocsApi()">调用接口</button>
                 <div class="loading" id="refreshDocsLoading">
                     <div class="spinner"></div>
@@ -267,6 +281,10 @@
                 <div class="form-group">
                     <label for="syncUrl">API URL:</label>
                     <input type="text" id="syncUrl" value="http://192.168.23.145:9051/energy-ai/chat/sync" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="syncAuth">Authorization:</label>
+                    <input type="text" id="syncAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="syncMessage">消息内容 (message):</label>
@@ -300,6 +318,10 @@
                     <input type="text" id="sseUrl" value="http://192.168.23.145:9051/energy-ai/chat/sse" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
+                    <label for="sseAuth">Authorization:</label>
+                    <input type="text" id="sseAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
+                </div>
+                <div class="form-group">
                     <label for="sseMessage">消息内容 (message):</label>
                     <textarea id="sseMessage" placeholder="请输入消息内容"></textarea>
                 </div>
@@ -329,6 +351,10 @@
                 <div class="form-group">
                     <label for="ragUrl">API URL:</label>
                     <input type="text" id="ragUrl" value="http://192.168.23.145:9051/energy-ai/chat/rag" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="ragAuth">Authorization:</label>
+                    <input type="text" id="ragAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="ragMessage">消息内容 (message):</label>
@@ -362,6 +388,10 @@
                     <input type="text" id="mcpToolUrl" value="http://192.168.23.145:9051/energy-ai/chat/mcp" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
+                    <label for="mcpToolAuth">Authorization:</label>
+                    <input type="text" id="mcpToolAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
+                </div>
+                <div class="form-group">
                     <label for="toolsMessage">消息内容 (message):</label>
                     <textarea id="mcpToolMessage" placeholder="请输入消息内容"></textarea>
                 </div>
@@ -391,6 +421,10 @@
                 <div class="form-group">
                     <label for="toolsUrl">API URL:</label>
                     <input type="text" id="toolsUrl" value="http://192.168.23.145:9051/energy-ai/chat/tools" placeholder="请输入API URL">
+                </div>
+                <div class="form-group">
+                    <label for="toolsAuth">Authorization:</label>
+                    <input type="text" id="toolsAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="toolsMessage">消息内容 (message):</label>
@@ -424,6 +458,10 @@
                     <input type="text" id="deepseekUrl" value="http://192.168.23.145:9051/energy-ai/tool/deepseek/sync" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
+                    <label for="deepseekAuth">Authorization:</label>
+                    <input type="text" id="deepseekAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
+                </div>
+                <div class="form-group">
                     <label for="deepseekAnswerFormat">答案格式 (answerFormat):</label>
                     <input type="text" id="deepseekAnswerFormat" placeholder="请输入答案格式" value='{"targetData": 答案}'>
                 </div>
@@ -450,11 +488,21 @@
 </div>
 
 <script>
+    // 辅助函数：获取 Authorization headers
+    function getAuthHeaders(authValue) {
+        const headers = {};
+        if (authValue && authValue.trim()) {
+            headers['Authorization'] = authValue.trim();
+        }
+        return headers;
+    }
+
     // 基础对话调用
     function callSyncApi() {
         const url = document.getElementById('syncUrl').value;
         const message = document.getElementById('syncMessage').value;
         const chatId = document.getElementById('syncChatId').value;
+        const auth = document.getElementById('syncAuth').value;
 
         if (!message || !chatId) {
             alert('请填写必填参数');
@@ -465,7 +513,10 @@
 
         showLoading('sync');
 
-        fetch(fullUrl)
+        fetch(fullUrl, {
+            method: 'GET',
+            headers: getAuthHeaders(auth)
+        })
             .then(response => response.text())
             .then(data => {
                 hideLoading('sync');
@@ -480,12 +531,16 @@
     // 刷新RAG文档向量
     function refreshDocsApi() {
         const url = document.getElementById('refreshDocsUrl').value;
+        const auth = document.getElementById('refreshDocsAuth').value;
 
         const fullUrl = `${url}`;
 
         showLoading('refreshDocs');
 
-        fetch(fullUrl)
+        fetch(fullUrl, {
+            method: 'GET',
+            headers: getAuthHeaders(auth)
+        })
             .then(response => response.text())
             .then(data => {
                 hideLoading('refreshDocs');
@@ -502,6 +557,7 @@
         const url = document.getElementById('sseUrl').value;
         const message = document.getElementById('sseMessage').value;
         const chatId = document.getElementById('sseChatId').value;
+        const auth = document.getElementById('sseAuth').value;
 
         if (!message || !chatId) {
             alert('请填写必填参数');
@@ -514,7 +570,10 @@
         showLoading('sse');
         showResult('sse', '', true);
 
-        const eventSource = new EventSource(fullUrl);
+        // 如果有 Authorization，通过 URL 参数传递（EventSource 不支持自定义 headers）
+        const sseUrl = auth && auth.trim() ? `${fullUrl}&Authorization=${encodeURIComponent(auth.trim())}` : fullUrl;
+
+        const eventSource = new EventSource(sseUrl);
         let resultContent = '';
 
         eventSource.onmessage = function(event) {
@@ -539,6 +598,7 @@
         const url = document.getElementById('ragUrl').value;
         const message = document.getElementById('ragMessage').value;
         const chatId = document.getElementById('ragChatId').value;
+        const auth = document.getElementById('ragAuth').value;
 
         if (!message || !chatId) {
             alert('请填写必填参数');
@@ -549,7 +609,10 @@
 
         showLoading('rag');
 
-        fetch(fullUrl)
+        fetch(fullUrl, {
+            method: 'GET',
+            headers: getAuthHeaders(auth)
+        })
             .then(response => response.text())
             .then(data => {
                 hideLoading('rag');
@@ -566,6 +629,7 @@
         const url = document.getElementById('toolsUrl').value;
         const message = document.getElementById('toolsMessage').value;
         const chatId = document.getElementById('toolsChatId').value;
+        const auth = document.getElementById('toolsAuth').value;
 
         if (!message || !chatId) {
             alert('请填写必填参数');
@@ -576,7 +640,10 @@
 
         showLoading('tools');
 
-        fetch(fullUrl)
+        fetch(fullUrl, {
+            method: 'GET',
+            headers: getAuthHeaders(auth)
+        })
             .then(response => response.text())
             .then(data => {
                 hideLoading('tools');
@@ -594,6 +661,7 @@
         const url = document.getElementById('mcpToolUrl').value;
         const message = document.getElementById('mcpToolMessage').value;
         const chatId = document.getElementById('mcpToolChatId').value;
+        const auth = document.getElementById('mcpToolAuth').value;
 
         if (!message || !chatId) {
             alert('请填写必填参数');
@@ -604,7 +672,10 @@
 
         showLoading('mcpTool');
 
-        fetch(fullUrl)
+        fetch(fullUrl, {
+            method: 'GET',
+            headers: getAuthHeaders(auth)
+        })
             .then(response => response.text())
             .then(data => {
                 hideLoading('mcpTool');
@@ -621,6 +692,7 @@
         const url = document.getElementById('deepseekUrl').value;
         const answerFormat = document.getElementById('deepseekAnswerFormat').value;
         const question = document.getElementById('deepseekQuestion').value;
+        const auth = document.getElementById('deepseekAuth').value;
 
         if (!answerFormat || !question) {
             alert('请填写必填参数');
@@ -633,7 +705,8 @@
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(auth)
             },
             body: JSON.stringify({
                 answerFormat: answerFormat,

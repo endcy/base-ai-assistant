@@ -40,9 +40,6 @@ import java.util.Map;
 @Component
 public class ChatClientAdvisorFactory {
 
-    //日志顾问
-    @Getter
-    private final PromptLoggerAdvisor promptLoggerAdvisor;
     //查询重写顾问
     @Getter
     private final ReReadingAdvisor reReadingAdvisor;
@@ -63,6 +60,13 @@ public class ChatClientAdvisorFactory {
     private final MultiQueryExpander multiQueryExpander;
 
     private final AdvisorRetrieverFactory advisorRetrieverFactory;
+
+    /**
+     * 创建日志顾问（每次请求创建新实例，避免并发问题）
+     */
+    public PromptLoggerAdvisor createPromptLoggerAdvisor(RequestRagContext requestRagContext) {
+        return new PromptLoggerAdvisor(requestRagContext);
+    }
 
     /**
      * 创建自定义的 RAG 检索增强顾问
