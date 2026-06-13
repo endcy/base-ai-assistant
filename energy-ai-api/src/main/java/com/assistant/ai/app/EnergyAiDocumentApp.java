@@ -5,10 +5,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.assistant.ai.advisor.ChatClientAdvisorFactory;
 import com.assistant.ai.advisor.PromptLoggerAdvisor;
-import com.assistant.ai.agent.IntentAnalysisAgent;
 import com.assistant.ai.agent.model.IntentResult;
-import com.assistant.ai.config.ChatRagProperties;
+import com.assistant.ai.domain.context.ChatConfigResult;
 import com.assistant.ai.domain.context.RequestRagContext;
+import com.assistant.ai.manager.ChatHistoryService;
 import com.assistant.ai.mcp.config.McpConfig;
 import com.assistant.ai.rag.QueryRewriter;
 import com.assistant.ai.repository.domain.context.DocumentQueryContext;
@@ -32,8 +32,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
-import org.springframework.ai.tool.ToolCallback;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
@@ -65,62 +64,10 @@ public class EnergyAiDocumentApp {
     private final ContextUserRecordService userRecordService;
     private final MessageWindowChatMemory messageWindowChatMemory;
     private final DeepSeekWebSearchTool deepSeekWebSearchTool;
+    private final ChatHistoryService chatHistoryService;
 
-    private final SyncMcpToolCallbackProvider mcpToolCallbacks;
-    private final ToolCallback[] ragTools;
-    private final IntentAnalysisAgent intentAnalysisAgent;
-    private final ChatRagProperties chatRagProperties;
-
-    private record ChatConfigResult(String rewrittenMessage,
-                                    ContextUserRecordDTO userRecord,
-                                    List<Message> existingMessages,
-                                    List<Advisor> dataResourceAdvisors) {
-    }
-
-
-    /**
-     * AI 简单进行问答
-     */
-    public String simpleChat(KnowledgeAIQueryParam query, RequestRagContext requestRagContext) {
-        DocumentQueryContext documentParams = new DocumentQueryContext();
-        documentParams.setOriginalQuestion(query.getQuestion());
-        documentParams.setReReadingQuestion(query.getQuestion());
-        // 默认文档范围
-        String scopeType = query.getScopeType();
-        documentParams.setScopeType(scopeType);
-        ContextUserRecordDTO userRecord = ContextUserRecordDTO.builder()
-                                                              .chatId(query.getChatId())
-                                                              .scopeType(query.getScopeType())
-                                                              .businessType(documentParams.getBusinessType())
-                                                              .question(query.getQuestion())
-                                                              .build();
-        userRecordService.insert(userRecord);
-        // 使用日志 Advisor
-        PromptLoggerAdvisor promptLogger = chatClientAdvisorFactory.createPromptLoggerAdvisor(null);
-        List<Advisor> dataResourceAdvisors = CollUtil.newArrayList(promptLogger);
-
-        List<Message> existingMessages = messageWindowChatMemory.get(query.getChatId().toString());
-        ChatConfigResult chatConfig = new ChatConfigResult(query.getQuestion(), userRecord, existingMessages, dataResourceAdvisors);
-
-        ChatResponse chatResponse = commonChatClient
-                .prompt()
-                .user(query.getQuestion())
-                .advisors(dataResourceAdvisors)
-                .advisors(getAdvisorSpecConsumer(query.getChatId()))
-                .call()
-                .chatResponse();
-
-        String content = null;
-        if (chatResponse != null) {
-            content = chatResponse.getResult().getOutput().getText();
-            userRecordService.updateAnswerById(chatConfig.userRecord().getId(), content);
-        }
-        if (log.isDebugEnabled()) {
-            //频度最高的调用 使用debug级别
-            log.debug("content: {}", content);
-        }
-        return content;
-    }
+    @Value("${ai.chat.history-max-rounds:10}")
+    private int historyMaxRounds;
 
     /**
      * AI RAG 知识库进行对话
@@ -131,17 +78,17 @@ public class EnergyAiDocumentApp {
 
         ChatResponse chatResponse = commonChatClient
                 .prompt()
-                .user(chatConfig.rewrittenMessage())
-                .messages(chatConfig.existingMessages())
+                .user(chatConfig.getRewrittenMessage())
+                .messages(chatConfig.getExistingMessages())
                 .advisors(getAdvisorSpecConsumer(query.getChatId()))
-                .advisors(chatConfig.dataResourceAdvisors())
+                .advisors(chatConfig.getDataResourceAdvisors())
                 .call()
                 .chatResponse();
 
         String content = null;
         if (chatResponse != null) {
             content = chatResponse.getResult().getOutput().getText();
-            userRecordService.updateAnswerById(chatConfig.userRecord().getId(), content);
+            userRecordService.updateAnswerById(chatConfig.getUserRecord().getId(), content);
         }
         if (log.isDebugEnabled()) {
             //频度最高的调用 使用debug级别
@@ -205,6 +152,9 @@ public class EnergyAiDocumentApp {
         userRecordService.insert(userRecord);
 
         List<Message> existingMessages = messageWindowChatMemory.get(query.getChatId().toString());
+        if (CollUtil.isEmpty(existingMessages)) {
+            existingMessages = chatHistoryService.loadHistoryFromDb(query.getChatId());
+        }
         log.info("###### Chat memory for {}: {} messages size", query.getChatId(), existingMessages.size());
 
         // 使用日志 Advisor
@@ -233,10 +183,10 @@ public class EnergyAiDocumentApp {
 
         Flux<AIStreamResponse> textStream = commonChatClient
                 .prompt()
-                .user(chatConfig.rewrittenMessage())
-                .messages(chatConfig.existingMessages())
+                .user(chatConfig.getRewrittenMessage())
+                .messages(chatConfig.getExistingMessages())
                 .advisors(getAdvisorSpecConsumer(query.getChatId()))
-                .advisors(chatConfig.dataResourceAdvisors())
+                .advisors(chatConfig.getDataResourceAdvisors())
                 .stream()
                 .chatResponse()
                 .map(chatResponse -> {

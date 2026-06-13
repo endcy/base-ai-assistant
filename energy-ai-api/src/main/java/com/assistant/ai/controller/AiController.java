@@ -5,7 +5,10 @@ import com.assistant.ai.agent.EnergyManus;
 import com.assistant.ai.app.EnergyAiAliDashScopeApp;
 import com.assistant.ai.app.EnergyAiApp;
 import com.assistant.ai.app.EnergyAiToolsApp;
+import com.assistant.ai.domain.context.RequestRagContext;
 import com.assistant.ai.domain.vo.EnergyReport;
+import com.assistant.ai.rpc.domain.request.KnowledgeAIQueryParam;
+import com.assistant.ai.rpc.enums.ApiQaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -52,7 +55,15 @@ public class AiController {
      */
     @GetMapping("/chat/sync")
     public String doChatWithAiSync(String message, String chatId) {
-        return energyAiApp.doChat(message, chatId);
+        KnowledgeAIQueryParam query = new KnowledgeAIQueryParam();
+        query.setChatId(Long.valueOf(chatId));
+        query.setScopeType("Test");
+        query.setBusinessType("Test");
+        query.setQueryType(ApiQaType.DOMAIN.getCode());
+        query.setQuestion(message);
+        RequestRagContext requestRagContext = new RequestRagContext();
+        requestRagContext.setChatId(query.getChatId());
+        return energyAiApp.simpleChat(query, requestRagContext);
     }
 
     /**

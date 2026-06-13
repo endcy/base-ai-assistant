@@ -1,6 +1,7 @@
 package com.assistant.ai.manager;
 
 import cn.hutool.core.util.StrUtil;
+import com.assistant.ai.app.EnergyAiApp;
 import com.assistant.ai.app.EnergyAiDocumentApp;
 import com.assistant.ai.config.ChatRagProperties;
 import com.assistant.ai.constant.EnergyAiConstant;
@@ -34,6 +35,7 @@ import reactor.core.scheduler.Schedulers;
 @RequiredArgsConstructor
 public class AiRequestManager {
     private final EnergyAiDocumentApp energyAiDocumentApp;
+    private final EnergyAiApp energyAiApp;
     private final VectorStoreService vectorStoreService;
     private final ChatRagProperties chatRagProperties;
 
@@ -117,7 +119,7 @@ public class AiRequestManager {
             query.setQuestion(prompt);
             RequestRagContext requestRagContext = new RequestRagContext();
             requestRagContext.setChatId(query.getChatId());
-            String answer = energyAiDocumentApp.simpleChat(query, requestRagContext);
+            String answer = energyAiApp.simpleChat(query, requestRagContext);
             return StrUtil.isNotBlank(answer) ? answer : "";
         } catch (Exception e) {
             log.error("generate recommended questions error", e);
@@ -158,7 +160,7 @@ public class AiRequestManager {
         query.setQuestion(prompt);
         RequestRagContext requestRagContext = new RequestRagContext();
         requestRagContext.setChatId(query.getChatId());
-        String answer = energyAiDocumentApp.simpleChat(query, requestRagContext);
+        String answer = energyAiApp.simpleChat(query, requestRagContext);
         ret.setQuestionAnswer(answer);
         return ret;
     }
