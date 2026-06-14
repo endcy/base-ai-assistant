@@ -2,6 +2,7 @@ package com.assistant.ai.app;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.assistant.ai.advisor.ChatClientAdvisorFactory;
 import com.assistant.ai.advisor.HybridRetrievalAdvisor;
 import com.assistant.ai.advisor.PromptLoggerAdvisor;
@@ -17,6 +18,8 @@ import com.assistant.ai.repository.domain.context.DocumentQueryContext;
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.service.ContextUserRecordService;
 import com.assistant.ai.rpc.domain.request.KnowledgeAIQueryParam;
+import com.assistant.ai.rpc.domain.request.MediaAttachment;
+import com.assistant.ai.util.UserChatPromptUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +78,7 @@ public class EnergyAiApp {
 
 
     /**
-     * AI 简单进行问答
+     * AI 简单进行问答（支持多模态）
      */
     public String simpleChat(KnowledgeAIQueryParam query, RequestRagContext requestRagContext) {
         DocumentQueryContext documentParams = new DocumentQueryContext();
@@ -89,6 +92,7 @@ public class EnergyAiApp {
                                                               .scopeType(query.getScopeType())
                                                               .businessType(documentParams.getBusinessType())
                                                               .question(query.getQuestion())
+                                                              .mediaInfo(CollUtil.isNotEmpty(query.getMediaList()) ? JSONUtil.toJsonStr(query.getMediaList()) : null)
                                                               .build();
         userRecordService.insert(userRecord);
         // 使用日志 Advisor
@@ -103,7 +107,7 @@ public class EnergyAiApp {
 
         ChatResponse chatResponse = commonChatClient
                 .prompt()
-                .user(query.getQuestion())
+                .user(UserChatPromptUtils.generatePromptUserSpecConsumer(query))
                 .messages(chatConfig.getExistingMessages())
                 .advisors(dataResourceAdvisors)
                 .advisors(getAdvisorSpecConsumer(query.getChatId()))
@@ -157,6 +161,15 @@ public class EnergyAiApp {
      * scopeType 对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
      */
     public String doChatWithRag(String scopeType, Long groupId, String message, @NonNull Long chatId) {
+        return doChatWithRag(scopeType, groupId, message, chatId, null);
+    }
+
+    /**
+     * 和 RAG 知识库进行对话（支持多模态）
+     *
+     * @param mediaList 多媒体附件列表，可为null
+     */
+    public String doChatWithRag(String scopeType, Long groupId, String message, @NonNull Long chatId, List<MediaAttachment> mediaList) {
         // 查询重写
         String rewrittenMessage = queryRewriter.doQueryRewrite(message);
 
@@ -185,6 +198,7 @@ public class EnergyAiApp {
                                                               .scopeType(scopeType)
                                                               .businessType(intentResult.getBusinessType())
                                                               .question(message)
+                                                              .mediaInfo(CollUtil.isNotEmpty(mediaList) ? JSONUtil.toJsonStr(mediaList) : null)
                                                               .build();
         userRecordService.insert(userRecord);
 
@@ -198,9 +212,14 @@ public class EnergyAiApp {
         HybridRetrievalAdvisor hybridAdvisor = chatClientAdvisorFactory.createHybridRetrievalAdvisor(
                 documentQueryContext, intentResult, requestRagContext);
 
+        // 构建多模态user prompt
+        Consumer<ChatClient.PromptUserSpec> userSpecConsumer = UserChatPromptUtils.generatePromptUserSpecConsumer(
+                buildKnowledgeParam(message, chatId, mediaList)
+        );
+
         ChatResponse chatResponse = commonChatClient
                 .prompt()
-                .user(rewrittenMessage)
+                .user(userSpecConsumer)
                 .messages(existingMessages)
                 .toolCallbacks(mcpToolCallbacks.getToolCallbacks())
                 .toolCallbacks(ragTools)
@@ -219,6 +238,14 @@ public class EnergyAiApp {
             log.debug("content: {}", content);
         }
         return content;
+    }
+
+    private KnowledgeAIQueryParam buildKnowledgeParam(String message, Long chatId, List<MediaAttachment> mediaList) {
+        KnowledgeAIQueryParam param = new KnowledgeAIQueryParam();
+        param.setChatId(chatId);
+        param.setQuestion(message);
+        param.setMediaList(mediaList);
+        return param;
     }
 
     @NotNull

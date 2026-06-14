@@ -44,18 +44,21 @@
 - ❌ **工具调用困难** → ✅ 标准化工具链，让 AI 能执行实际业务操作
 - ❌ **能力扩展不灵活** → ✅ Skill/Command 技能系统，Markdown 文件驱动，零代码新增能力
 - ❌ **复杂任务上下文污染** → ✅ SubAgent 子代理，独立记忆隔离，复杂任务独立处理
+- ❌ **只能文字交互** → ✅ 多模态媒体识别，支持图片/音频/视频/文档等多媒体输入
+- ❌ **多模态请求超时卡死** → ✅ 自定义 HTTP 超时 + 指数退避重试，彻底治理超时问题
 
 以此为底座，您可以快速构建自己的企业级智能客服、智能运维、智能助手、简单工作流/垂直领域智能体的基础应用架构程序，可按需拓展。
 
 ### 🎯 适用场景
 
-| 场景         | 典型用例                  | 核心价值             |
-|------------|-----------------------|------------------|
-| **智能客服**   | 产品咨询、售后支持、FAQ 自动问答    | 7×24 小时在线，降低人工成本 |
-| **智能运维**   | 运维知识库检索、故障排查指导、操作手册查询 | 快速定位问题，减少 MTTR   |
-| **企业知识助手** | 内部文档检索、制度查询、培训资料检索    | 知识高效利用，减少重复咨询    |
-| **垂直领域专家** | 能源管理、充电运营、电力行业等专业领域问答 | 领域专业化，提升回答质量     |
-| **工作流自动化** | 多工具串联的任务执行、数据查询与决策    | 减少人工操作，提升效率      |
+| 场景         | 典型用例                     | 核心价值               |
+|------------|--------------------------|--------------------|
+| **智能客服**   | 产品咨询、售后支持、FAQ 自动问答       | 7×24 小时在线，降低人工成本   |
+| **智能运维**   | 运维知识库检索、故障排查指导、操作手册查询    | 快速定位问题，减少 MTTR     |
+| **企业知识助手** | 内部文档检索、制度查询、培训资料检索       | 知识高效利用，减少重复咨询      |
+| **垂直领域专家** | 能源管理、充电运营、电力行业等专业领域问答    | 领域专业化，提升回答质量       |
+| **多模态助手**  | 截图识别、语音问答、视频内容理解、PDF文档分析 | 支持图片/音频/视频/文档多媒体输入 |
+| **工作流自动化** | 多工具串联的任务执行、数据查询与决策       | 减少人工操作，提升效率        |
 
 > 💡 **说明**：本工程以"智慧能源 AI 应用"为业务背景，但框架设计完全通用。业务领域定义、工程包名、数据模型等内容均可按需更改，快速适配不同行业场景。
 
@@ -290,8 +293,16 @@ spring.ai.dashscope.api-key=YOUR_DASHSCOPE_API_KEY
 spring.ai.dashscope.chat.options.model=qwen3.7-max
 # 多模态支持（图文混合对话）
 spring.ai.dashscope.chat.options.multi-model=true
+# 请求超时时间（秒）—— 多模态请求耗时较长，建议适当放大
+spring.ai.dashscope.api.timeout=120
+spring.ai.dashscope.chat.options.timeout=120000
 # Rerank 模型配置
 spring.ai.dashscope.rerank.options.model=qwen3-rerank
+# 重试策略 —— 避免多模态请求失败后无限重试导致接口卡死
+spring.ai.retry.max-attempts=3
+spring.ai.retry.backoff.initial-interval=1000
+spring.ai.retry.backoff.multiplier=2
+spring.ai.retry.backoff.max-interval=10000
 ```
 
 - ✅ 支持阿里百炼所有模型（qwen3.7-max、qwen-plus 等）
@@ -299,6 +310,8 @@ spring.ai.dashscope.rerank.options.model=qwen3-rerank
 - ✅ 支持 Rerank 重排序模型升级（qwen3-rerank）
 - ✅ 支持自定义 API 版本和端点
 - ✅ Token 用量可由运维跟踪监控
+- ✅ HTTP 客户端超时定制（connect=60s, read=180s），解决多模态请求默认 10s 超时问题
+- ✅ 可控重试策略（指数退避 + 最大次数限制），防止框架超时后无限重试卡死接口
 
 #### 本地模型（Ollama）
 
@@ -317,7 +330,63 @@ spring.ai.ollama.chat.model=qwen3.6:9b
 
 **语料数据集是关键！！！语料数据集是关键！！！语料数据集是关键！！！**
 
-### 7. 📁 批量文档导入工具
+### 7. 🖼️ 多模态媒体识别（图片 / 音频 / 视频 / 文档）
+
+**痛点**：用户提问不只是文字——截图、语音、视频片段、PDF 文件等多媒体内容无法被大模型理解。
+
+**解决方案**：全链路多模态支持，从 API 入口到大模型调用再到历史消息重建，完整覆盖图片、音频、视频、文档等多媒体类型。
+
+```
+用户请求（文字 + 多媒体附件）
+       │
+       ▼
+ AiController 解析 mediaList JSON
+       │
+       ▼
+ KnowledgeAIQueryParam.mediaList (List<MediaAttachment>)
+       │
+       ▼
+ UserChatPromptUtils 构建多模态 PromptUserSpec
+  ├── text(用户文字)
+  └── media(Media[] 附件) → 自动识别 MIME 类型
+       │
+       ▼
+ DashScope 多模态大模型识别理解
+       │
+       ▼
+ ChatHistoryService 从DB重建多模态历史消息
+  └── UserMessage.Builder.text().media().build()
+```
+
+**支持的媒体类型**：
+
+| 类型         | MIME 示例                   | 典型场景             |
+|------------|---------------------------|------------------|
+| `IMAGE`    | `image/png`, `image/jpeg` | 截图识别、图表分析、故障照片识别 |
+| `AUDIO`    | `audio/mpeg`              | 语音转写、音频内容分析      |
+| `VIDEO`    | `video/mp4`               | 视频内容理解、操作录像分析    |
+| `DOCUMENT` | `application/pdf`         | PDF 文档理解、合同审查    |
+
+**核心组件**：
+
+- `MediaAttachment`：多媒体附件 DTO，支持 `type`、`url`、`mimeType`、`description` 字段，可显式指定 MIME 或按类型自动推断
+- `UserChatPromptUtils`：将文字 + 多媒体附件统一构建为 Spring AI 的 `PromptUserSpec`，透明适配纯文本和多模态场景
+- `ChatHistoryService`：从数据库加载历史对话时，自动解析 `mediaInfo` JSON 重建带 `Media` 附件的 `UserMessage`，保证多轮多模态对话上下文完整
+- 数据层 `ContextUserRecord` / `ContextUserRecordDTO` 新增 `mediaInfo` 字段，以 JSON 格式持久化多媒体附件信息
+
+**接口调用示例**：
+
+```bash
+# 同步问答 + 图片识别
+GET /energy-ai/chat/sync?message=这张图片里有什么&chatId=1001&mediaList=[{"type":"IMAGE","url":"https://oss.example.com/img.png","mimeType":"image/png"}]
+
+# RAG 知识库问答 + 多模态
+GET /energy-ai/chat/rag?message=分析这段语音的内容&chatId=1001&scopeType=support&mediaList=[{"type":"AUDIO","url":"https://oss.example.com/voice.mp3"}]
+```
+
+> 💡 **说明**：`mediaList` 参数为 JSON 字符串，支持传入多个附件。URL 需为公网可访问的 OSS 链接或带签名的临时 URL。
+
+### 8. 📁 批量文档导入工具
 
 **痛点**：手动逐个上传文档效率低，大量历史文档需要快速入库。
 
@@ -573,8 +642,16 @@ spring.ai.dashscope.api-key=YOUR_DASHSCOPE_API_KEY
 spring.ai.dashscope.chat.options.model=qwen3.7-plus
 # 多模态支持（图文混合对话场景开启）
 spring.ai.dashscope.chat.options.multi-model=true
+# 请求超时（多模态请求耗时较长，建议保持或适当放大）
+spring.ai.dashscope.api.timeout=120
+spring.ai.dashscope.chat.options.timeout=120000
 # Rerank 重排序模型
 spring.ai.dashscope.rerank.options.model=qwen3-rerank
+# 重试策略（防止多模态失败后无限重试卡死接口）
+spring.ai.retry.max-attempts=3
+spring.ai.retry.backoff.initial-interval=1000
+spring.ai.retry.backoff.multiplier=2
+spring.ai.retry.backoff.max-interval=10000
 # ========================================
 # 数据库配置（必须）
 # ========================================
@@ -879,9 +956,69 @@ spring.ai.dashscope.rerank.api-key=YOUR_RERANK_API_KEY
 
 首次使用时复制 `application-脱敏.properties` 为 `application.properties`，替换占位符即可。开源贡献者只需修改 `application-脱敏.properties` 并同步到 `application.properties` 中。
 
+### Q7: 多模态请求超时 / 接口卡死 / 无限重试怎么办？
+
+**现象**：发送图片/音频/视频等多模态请求后，接口长时间无响应或最终报错；框架不断重试导致线程池耗尽。
+
+**根因分析**：
+
+- Spring AI 默认 `RestClient` 超时为 10 秒，多模态请求（尤其大图片或长音频）上传+大模型推理耗时远超此值
+- `spring.ai.retry` 默认重试策略可能无限重试，叠加超时导致接口彻底卡死
+
+**解决方案（框架已内置）**：
+
+1. **自定义 HTTP 超时**：`RestClientTimeoutConfig` 注册自定义 `RestClient.Builder`，设置 connect=60s、read=180s
+2. **配置 API 超时**：`spring.ai.dashscope.api.timeout=120` 和 `spring.ai.dashscope.chat.options.timeout=120000`
+3. **可控重试策略**：
+
+```properties
+# 最多重试3次，指数退避（1s → 2s → 4s...），最大间隔10s
+spring.ai.retry.max-attempts=3
+spring.ai.retry.backoff.initial-interval=1000
+spring.ai.retry.backoff.multiplier=2
+spring.ai.retry.backoff.max-interval=10000
+```
+
+> 💡 若仍有超时问题，可进一步调大 `RestClientTimeoutConfig` 中的 `readTimeout` 值，或检查 OSS 资源的网络连通性。
+
+### Q8: 多模态媒体附件如何传入？支持哪些格式？
+
+**调用方式**：在 `/chat/sync` 或 `/chat/rag` 接口中追加 `mediaList` 参数，值为 JSON 数组字符串：
+
+```json
+[
+  {
+    "type": "IMAGE",
+    "url": "https://oss.example.com/photo.png",
+    "mimeType": "image/png"
+  },
+  {
+    "type": "AUDIO",
+    "url": "https://oss.example.com/voice.mp3"
+  },
+  {
+    "type": "VIDEO",
+    "url": "https://oss.example.com/demo.mp4"
+  },
+  {
+    "type": "DOCUMENT",
+    "url": "https://oss.example.com/contract.pdf"
+  }
+]
+```
+
+**字段说明**：
+
+| 字段            | 必填 | 说明                                       |
+|---------------|----|------------------------------------------|
+| `type`        | 是  | `IMAGE` / `AUDIO` / `VIDEO` / `DOCUMENT` |
+| `url`         | 是  | 公网可访问的 OSS URL 或带签名的临时 URL               |
+| `mimeType`    | 否  | 显式指定 MIME 类型，不传则根据 `type` 自动推断           |
+| `description` | 否  | 附件描述，辅助大模型理解                             |
+
 ---
 
-### 8. 🧠 智能对话记忆（三层压缩）
+### 9. 🧠 智能对话记忆（三层压缩）
 
 **痛点**：长对话导致 token 消耗巨大，上下文窗口溢出。
 
@@ -908,7 +1045,7 @@ public SmartChatMemory smartChatMemory() {
 }
 ```
 
-### 9. 🔌 可插拔工具注册（InnerTool）
+### 10. 🔌 可插拔工具注册（InnerTool）
 
 **痛点**：新增工具需要修改注册代码，违反开闭原则。
 
@@ -929,7 +1066,7 @@ public class MyCustomTool implements InnerTool {
 }
 ```
 
-### 10. 🎭 Skill 技能系统（LLM 自主调用）
+### 11. 🎭 Skill 技能系统（LLM 自主调用）
 
 **痛点**：新增 Prompt 模板能力需要修改代码重新部署。
 
@@ -950,7 +1087,7 @@ description: 对用户提供的文本内容进行摘要总结
 
 启动时自动扫描 `classpath:skill/*.md`，注册为 `ToolCallback`。LLM 根据 `description` 自主判断是否需要调用。
 
-### 11. ⌨️ Command 命令系统（用户主动调用）
+### 12. ⌨️ Command 命令系统（用户主动调用）
 
 **痛点**：用户需要快捷指令入口，明确指定要执行的操作。
 
@@ -981,7 +1118,7 @@ curl -X POST http://localhost:9051/api/command/execute \
 | 是否注册为工具 | ❌ 不注册       | ✅ 注册为 ToolCallback    |
 | 适用场景    | 用户明确知道需要什么  | LLM 理解上下文后智能判断        |
 
-### 12. 🤖 SubAgent 子代理（独立记忆）
+### 13. 🤖 SubAgent 子代理（独立记忆）
 
 **痛点**：复杂任务需要独立上下文，不应污染主对话记忆。
 
@@ -1017,16 +1154,45 @@ SubAgent-2 ────┘
 - [√] SubAgent 子代理（独立记忆隔离）
 - [√] 查询改写检索器（LLM 改写多路召回 + RRF 融合）
 - [√] 多模态大模型支持（图文混合对话）
+- [√] 多模态媒体识别（图片 / 音频 / 视频 / 文档全链路支持 + 历史消息重建）
 - [√] Rerank 模型升级（qwen3-rerank）
 - [√] 流式问答支持（SSE + Token 用量追踪）
 - [√] API 认证拦截器
 - [√] 文档向量匹配推荐
+- [√] 超时治理与重试策略（自定义 HTTP 超时 + 指数退避重试，防止接口卡死）
 - [ ] 业务数据 MCP 工具（按需拓展订单查询、用户信息等数据库联动）
 - [ ] 动态 SQL 生成 MCP（自然语言→SQL 查询）
 
 ---
 
 ## 📋 更新日志
+
+### v1.2.0 (2026-06-14) — 多模态媒体识别与超时治理
+
+#### 🚀 新功能
+
+- **多模态媒体识别支持**：新增图片（IMAGE）、音频（AUDIO）、视频（VIDEO）、文档（DOCUMENT）等多模态附件输入能力，全链路打通从 API 入口 → Prompt 构建 → 大模型调用 → 历史消息重建
+- **`MediaAttachment` DTO**：多媒体附件数据模型，支持 `type`、`url`、`mimeType`、`description` 字段，MIME 类型可按 type 自动推断或显式指定
+- **`UserChatPromptUtils` 工具类**：统一构建 `PromptUserSpec`，透明适配纯文本与多模态场景，自动将 `MediaAttachment` 列表转为 Spring AI `Media[]` 数组
+- **多模态历史消息重建**：`ChatHistoryService` 从数据库加载对话历史时，自动解析 `mediaInfo` JSON 并重建带 `Media` 附件的 `UserMessage`，保证多轮多模态对话上下文完整
+
+#### ⚡ 功能增强
+
+- **API 接口多模态扩展**：`/chat/sync` 和 `/chat/rag` 接口新增 `mediaList` 请求参数（JSON 字符串），`KnowledgeAIQueryParam` 新增 `List<MediaAttachment> mediaList` 字段
+- **数据层持久化**：`ContextUserRecord` 与 `ContextUserRecordDTO` 新增 `mediaInfo` 字段，以 JSON 格式持久化多媒体附件信息
+- **`EnergyAiApp` / `EnergyAiDocumentApp` 多模态适配**：`simpleChat`、`doChatWithRag`（同步/流式）均支持多模态输入，`doChatWithRag` 新增接受 `mediaList` 参数的重载方法
+- **`PromptLoggerAdvisor` 增强**：日志记录包含多模态附件信息，便于排查多模态请求问题
+
+#### 🐛 Bug 修复
+
+- **DashScope 多模态请求默认 10 秒超时**：新增 `RestClientTimeoutConfig`，自定义 `RestClient.Builder` 设置 connect=60s、read=180s，彻底解决多模态大请求超时问题
+- **框架超时后无限重试导致接口卡死**：新增 `spring.ai.retry.*` 配置项，控制最大重试次数（max-attempts=3）和指数退避策略（initial=1s, multiplier=2, max=10s），避免多模态请求失败后线程池耗尽
+
+#### 🏗️ 架构优化
+
+- `ChatClientConfig` 移除已注释的 Ollama 相关代码，保持配置类整洁
+- `EnergyAiDocumentApp` 移除冗余 `@Value` 注入（`historyMaxRounds`），统一由配置管理
+- 多模态逻辑统一收敛至 `UserChatPromptUtils` 工具类，避免 `EnergyAiApp` / `EnergyAiDocumentApp` / `ChatHistoryService` 重复实现
 
 ### v1.1.0 (2026-06-11) — 功能拓展与架构增强
 

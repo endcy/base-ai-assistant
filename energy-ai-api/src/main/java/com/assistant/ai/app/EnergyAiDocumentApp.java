@@ -16,11 +16,13 @@ import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.service.ContextUserRecordService;
 import com.assistant.ai.rpc.domain.base.AIStreamResponse;
 import com.assistant.ai.rpc.domain.request.KnowledgeAIQueryParam;
+import com.assistant.ai.rpc.domain.request.MediaAttachment;
 import com.assistant.ai.rpc.domain.response.KnowledgeDocumentMatchItem;
 import com.assistant.ai.rpc.enums.ApiQaType;
 import com.assistant.ai.rpc.enums.MessageType;
 import com.assistant.ai.tools.DeepSeekWebSearchTool;
 import com.assistant.ai.util.DocumentConvertUtils;
+import com.assistant.ai.util.UserChatPromptUtils;
 import com.assistant.service.common.exception.CoException;
 import com.assistant.service.domain.enums.PossibleSourceTypeEnum;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,6 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
@@ -66,9 +67,6 @@ public class EnergyAiDocumentApp {
     private final DeepSeekWebSearchTool deepSeekWebSearchTool;
     private final ChatHistoryService chatHistoryService;
 
-    @Value("${ai.chat.history-max-rounds:10}")
-    private int historyMaxRounds;
-
     /**
      * AI RAG 知识库进行对话
      * scopeType对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
@@ -78,7 +76,7 @@ public class EnergyAiDocumentApp {
 
         ChatResponse chatResponse = commonChatClient
                 .prompt()
-                .user(chatConfig.getRewrittenMessage())
+                .user(UserChatPromptUtils.generatePromptUserSpecConsumer(query))
                 .messages(chatConfig.getExistingMessages())
                 .advisors(getAdvisorSpecConsumer(query.getChatId()))
                 .advisors(chatConfig.getDataResourceAdvisors())
@@ -148,6 +146,7 @@ public class EnergyAiDocumentApp {
                                                               .scopeType(query.getScopeType())
                                                               .businessType(documentParams.getBusinessType())
                                                               .question(query.getQuestion())
+                                                              .mediaInfo(buildMediaInfoJson(query))
                                                               .build();
         userRecordService.insert(userRecord);
 
@@ -183,7 +182,7 @@ public class EnergyAiDocumentApp {
 
         Flux<AIStreamResponse> textStream = commonChatClient
                 .prompt()
-                .user(chatConfig.getRewrittenMessage())
+                .user(UserChatPromptUtils.generatePromptUserSpecConsumer(query))
                 .messages(chatConfig.getExistingMessages())
                 .advisors(getAdvisorSpecConsumer(query.getChatId()))
                 .advisors(chatConfig.getDataResourceAdvisors())
@@ -242,6 +241,17 @@ public class EnergyAiDocumentApp {
         response.setChatId(chatId);
         response.setFinal(true);
         return response;
+    }
+
+    /**
+     * 将多媒体附件列表序列化为JSON字符串，用于存储到数据库
+     */
+    private static String buildMediaInfoJson(KnowledgeAIQueryParam query) {
+        List<MediaAttachment> mediaList = query.getMediaList();
+        if (CollUtil.isEmpty(mediaList)) {
+            return null;
+        }
+        return JSONUtil.toJsonStr(mediaList);
     }
 
 }

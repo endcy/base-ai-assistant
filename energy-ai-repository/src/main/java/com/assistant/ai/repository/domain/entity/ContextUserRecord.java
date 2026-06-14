@@ -41,6 +41,11 @@ public class ContextUserRecord implements Serializable {
 
     private String content;
 
+    /**
+     * 多媒体信息JSON（存储图片、音频、视频等多模态附件信息）
+     */
+    private String mediaInfo;
+
     private Boolean enabled;
 
     @TableField(fill = FieldFill.INSERT)

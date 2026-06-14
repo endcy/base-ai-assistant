@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基础接口调用</title>
+    <title>AI接口调用</title>
     <style>
         * {
             margin: 0;
@@ -213,6 +213,106 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* 多媒体附件区块 */
+        .media-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafbfc;
+        }
+
+        .media-section-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .media-section-title .badge {
+            background: #667eea;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: normal;
+        }
+
+        .media-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+
+        .media-item select {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            min-width: 110px;
+        }
+
+        .media-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .media-item input.mime-input {
+            max-width: 160px;
+        }
+
+        .btn-add-media {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-add-media:hover {
+            background: #218838;
+        }
+
+        .btn-remove-media {
+            padding: 6px 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .btn-remove-media:hover {
+            background: #c82333;
+        }
+
+        .media-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+            display: none;
+        }
+
         footer {
             text-align: center;
             padding: 30px;
@@ -239,8 +339,8 @@
 <div class="container">
     <header>
         <a href="index.html" class="back-link">← 返回主页</a>
-        <h1>基础接口调用</h1>
-        <p class="subtitle">调用AI服务的各种接口，测试和验证功能</p>
+        <h1>AI接口调用</h1>
+        <p class="subtitle">调用AI服务的各种接口，支持多模态输入（图片 / 音频 / 视频 / 文档）</p>
     </header>
 
     <div class="api-container">
@@ -294,6 +394,16 @@
                     <label for="syncChatId">聊天ID (chatId):</label>
                     <input type="text" id="syncChatId" placeholder="请输入聊天ID" value='1024'>
                 </div>
+
+                <div class="media-section">
+                    <div class="media-section-title">
+                        多媒体附件 <span class="badge">多模态</span>
+                        <button type="button" class="btn-add-media" onclick="addMediaItem('sync')">+ 添加附件</button>
+                    </div>
+                    <div id="syncMediaList"></div>
+                    <div class="media-preview" id="syncMediaPreview"></div>
+                </div>
+
                 <button class="btn btn-block" onclick="callSyncApi()">调用接口</button>
                 <div class="loading" id="syncLoading">
                     <div class="spinner"></div>
@@ -329,6 +439,16 @@
                     <label for="sseChatId">聊天ID (chatId):</label>
                     <input type="text" id="sseChatId" placeholder="请输入聊天ID" value='1024'>
                 </div>
+
+                <div class="media-section">
+                    <div class="media-section-title">
+                        多媒体附件 <span class="badge">多模态</span>
+                        <button type="button" class="btn-add-media" onclick="addMediaItem('sse')">+ 添加附件</button>
+                    </div>
+                    <div id="sseMediaList"></div>
+                    <div class="media-preview" id="sseMediaPreview"></div>
+                </div>
+
                 <button class="btn btn-block" onclick="callSseApi()">调用接口</button>
                 <div class="loading" id="sseLoading">
                     <div class="spinner"></div>
@@ -364,6 +484,16 @@
                     <label for="ragChatId">聊天ID (chatId):</label>
                     <input type="text" id="ragChatId" placeholder="请输入聊天ID" value='1024'>
                 </div>
+
+                <div class="media-section">
+                    <div class="media-section-title">
+                        多媒体附件 <span class="badge">多模态</span>
+                        <button type="button" class="btn-add-media" onclick="addMediaItem('rag')">+ 添加附件</button>
+                    </div>
+                    <div id="ragMediaList"></div>
+                    <div class="media-preview" id="ragMediaPreview"></div>
+                </div>
+
                 <button class="btn btn-block" onclick="callRagApi()">调用接口</button>
                 <div class="loading" id="ragLoading">
                     <div class="spinner"></div>
@@ -483,11 +613,75 @@
     </div>
 
     <footer>
-        <p>智慧能源AI助手 © 2025 | 用于测试和验证AI服务接口</p>
+        <p>智慧能源AI助手 &copy; 2026 | 用于测试和验证AI服务接口</p>
     </footer>
 </div>
 
 <script>
+    // ========== 多媒体附件管理 ==========
+    let mediaCounters = {sync: 0, sse: 0, rag: 0};
+
+    function addMediaItem(type) {
+        mediaCounters[type]++;
+        const id = type + 'Media_' + mediaCounters[type];
+        const container = document.getElementById(type + 'MediaList');
+        const div = document.createElement('div');
+        div.className = 'media-item';
+        div.id = id;
+        div.innerHTML = '<select class="media-type" onchange="updateMediaPreview(\'' + type + '\')">' +
+            '<option value="IMAGE">图片</option>' +
+            '<option value="AUDIO">音频</option>' +
+            '<option value="VIDEO">视频</option>' +
+            '<option value="DOCUMENT">文档</option>' +
+            '</select>' +
+            '<input type="text" class="media-url" placeholder="请输入媒体URL (如 https://oss.example.com/img.png)" oninput="updateMediaPreview(\'' + type + '\')">' +
+            '<input type="text" class="mime-input" placeholder="MIME类型 (可选, 如 image/png)" oninput="updateMediaPreview(\'' + type + '\')"> ' +
+            '<button type="button" class="btn-remove-media" onclick="removeMediaItem(\'' + type + '\', \'' + id + '\')">删除</button>';
+        container.appendChild(div);
+    }
+
+    function removeMediaItem(type, id) {
+        const item = document.getElementById(id);
+        if (item) {
+            item.remove();
+            updateMediaPreview(type);
+        }
+    }
+
+    function getMediaList(type) {
+        const container = document.getElementById(type + 'MediaList');
+        const items = container.querySelectorAll('.media-item');
+        const mediaList = [];
+        items.forEach(function (item) {
+            const mType = item.querySelector('.media-type').value;
+            const url = item.querySelector('.media-url').value.trim();
+            const mimeType = item.querySelector('.mime-input').value.trim();
+            if (url) {
+                const attachment = {type: mType, url: url};
+                if (mimeType) attachment.mimeType = mimeType;
+                mediaList.push(attachment);
+            }
+        });
+        return mediaList;
+    }
+
+    function updateMediaPreview(type) {
+        const preview = document.getElementById(type + 'MediaPreview');
+        const mediaList = getMediaList(type);
+        if (mediaList.length > 0) {
+            preview.style.display = 'block';
+            preview.textContent = JSON.stringify(mediaList, null, 2);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    function buildMediaQueryParam(type) {
+        const mediaList = getMediaList(type);
+        if (mediaList.length === 0) return '';
+        return '&mediaList=' + encodeURIComponent(JSON.stringify(mediaList));
+    }
+
     // 辅助函数：获取 Authorization headers
     function getAuthHeaders(authValue) {
         const headers = {};
@@ -509,7 +703,7 @@
             return;
         }
 
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}` + buildMediaQueryParam('sync');
 
         showLoading('sync');
 
@@ -565,7 +759,7 @@
         }
 
         // 修正参数，移除groupId和scopeType
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}` + buildMediaQueryParam('sse');
 
         showLoading('sse');
         showResult('sse', '', true);
@@ -605,7 +799,7 @@
             return;
         }
 
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}` + buildMediaQueryParam('rag');
 
         showLoading('rag');
 

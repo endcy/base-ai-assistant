@@ -1,5 +1,7 @@
 package com.assistant.ai.controller;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.assistant.ai.advisor.ChatClientAdvisorFactory;
 import com.assistant.ai.agent.EnergyManus;
 import com.assistant.ai.app.EnergyAiAliDashScopeApp;
@@ -8,6 +10,7 @@ import com.assistant.ai.app.EnergyAiToolsApp;
 import com.assistant.ai.domain.context.RequestRagContext;
 import com.assistant.ai.domain.vo.EnergyReport;
 import com.assistant.ai.rpc.domain.request.KnowledgeAIQueryParam;
+import com.assistant.ai.rpc.domain.request.MediaAttachment;
 import com.assistant.ai.rpc.enums.ApiQaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -52,15 +57,18 @@ public class AiController {
 
     /**
      * 同步调用 智慧能源AI助手 大模型简单问答
+     * 支持多模态输入，mediaList为JSON格式的多媒体附件列表
      */
     @GetMapping("/chat/sync")
-    public String doChatWithAiSync(String message, String chatId) {
+    public String doChatWithAiSync(String message, String chatId,
+                                   @RequestParam(required = false) String mediaList) {
         KnowledgeAIQueryParam query = new KnowledgeAIQueryParam();
         query.setChatId(Long.valueOf(chatId));
         query.setScopeType("Test");
         query.setBusinessType("Test");
         query.setQueryType(ApiQaType.DOMAIN.getCode());
         query.setQuestion(message);
+        query.setMediaList(parseMediaList(mediaList));
         RequestRagContext requestRagContext = new RequestRagContext();
         requestRagContext.setChatId(query.getChatId());
         return energyAiApp.simpleChat(query, requestRagContext);
@@ -114,13 +122,15 @@ public class AiController {
 
     /**
      * 检索增强调用 智慧能源AI助手 pg或本地文档rag调用
+     * 支持多模态输入，mediaList为JSON格式的多媒体附件列表
      */
     @GetMapping("/chat/rag")
     public String doChatWithRag(@RequestParam(required = false) Long groupId,
                                 @RequestParam(required = false) String scopeType,
                                 String message,
-                                Long chatId) {
-        return energyAiApp.doChatWithRag(scopeType, groupId, message, chatId);
+                                Long chatId,
+                                @RequestParam(required = false) String mediaList) {
+        return energyAiApp.doChatWithRag(scopeType, groupId, message, chatId, parseMediaList(mediaList));
     }
 
     /**
@@ -150,5 +160,19 @@ public class AiController {
         return energyManus.runStream(message);
     }
 
+    /**
+     * 解析mediaList JSON字符串为MediaAttachment列表
+     */
+    private List<MediaAttachment> parseMediaList(String mediaListJson) {
+        if (StrUtil.isBlank(mediaListJson)) {
+            return Collections.emptyList();
+        }
+        try {
+            return JSONUtil.toList(mediaListJson, MediaAttachment.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse mediaList JSON: {}", mediaListJson, e);
+            return Collections.emptyList();
+        }
+    }
 
 }
