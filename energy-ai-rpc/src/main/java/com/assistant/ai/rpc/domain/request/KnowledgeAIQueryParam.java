@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * AI问答
@@ -52,4 +53,10 @@ public class KnowledgeAIQueryParam implements Serializable {
      */
     @NotNull(message = "queryType查询类型不能为空")
     private Integer queryType;
+
+    /**
+     * 多媒体附件列表（图片、音频、视频等）
+     * 支持多模态输入，每个附件包含类型、URL、描述等信息
+     */
+    private List<MediaAttachment> mediaList;
 }

@@ -1,22 +1,31 @@
 package com.assistant.ai.app;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.assistant.ai.advisor.ChatClientAdvisorFactory;
 import com.assistant.ai.advisor.HybridRetrievalAdvisor;
+import com.assistant.ai.advisor.PromptLoggerAdvisor;
 import com.assistant.ai.agent.IntentAnalysisAgent;
 import com.assistant.ai.agent.model.IntentResult;
 import com.assistant.ai.config.ChatRagProperties;
+import com.assistant.ai.domain.context.ChatConfigResult;
 import com.assistant.ai.domain.context.RequestRagContext;
+import com.assistant.ai.manager.ChatHistoryService;
 import com.assistant.ai.mcp.config.McpConfig;
 import com.assistant.ai.rag.QueryRewriter;
 import com.assistant.ai.repository.domain.context.DocumentQueryContext;
 import com.assistant.ai.repository.domain.dto.ContextUserRecordDTO;
 import com.assistant.ai.repository.service.ContextUserRecordService;
+import com.assistant.ai.rpc.domain.request.KnowledgeAIQueryParam;
+import com.assistant.ai.rpc.domain.request.MediaAttachment;
+import com.assistant.ai.util.UserChatPromptUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.Message;
@@ -65,6 +74,58 @@ public class EnergyAiApp {
 
     private final ToolCallback[] ragTools;
 
+    private final ChatHistoryService chatHistoryService;
+
+
+    /**
+     * AI 简单进行问答（支持多模态）
+     */
+    public String simpleChat(KnowledgeAIQueryParam query, RequestRagContext requestRagContext) {
+        DocumentQueryContext documentParams = new DocumentQueryContext();
+        documentParams.setOriginalQuestion(query.getQuestion());
+        documentParams.setReReadingQuestion(query.getQuestion());
+        // 默认文档范围
+        String scopeType = query.getScopeType();
+        documentParams.setScopeType(scopeType);
+        ContextUserRecordDTO userRecord = ContextUserRecordDTO.builder()
+                                                              .chatId(query.getChatId())
+                                                              .scopeType(query.getScopeType())
+                                                              .businessType(documentParams.getBusinessType())
+                                                              .question(query.getQuestion())
+                                                              .mediaInfo(CollUtil.isNotEmpty(query.getMediaList()) ? JSONUtil.toJsonStr(query.getMediaList()) : null)
+                                                              .build();
+        userRecordService.insert(userRecord);
+        // 使用日志 Advisor
+        PromptLoggerAdvisor promptLogger = chatClientAdvisorFactory.createPromptLoggerAdvisor(null);
+        List<Advisor> dataResourceAdvisors = CollUtil.newArrayList(promptLogger);
+
+        List<Message> existingMessages = messageWindowChatMemory.get(query.getChatId().toString());
+        if (CollUtil.isEmpty(existingMessages)) {
+            existingMessages = chatHistoryService.loadHistoryFromDb(query.getChatId());
+        }
+        ChatConfigResult chatConfig = new ChatConfigResult(query.getQuestion(), userRecord, existingMessages, dataResourceAdvisors);
+
+        ChatResponse chatResponse = commonChatClient
+                .prompt()
+                .user(UserChatPromptUtils.generatePromptUserSpecConsumer(query))
+                .messages(chatConfig.getExistingMessages())
+                .advisors(dataResourceAdvisors)
+                .advisors(getAdvisorSpecConsumer(query.getChatId()))
+                .call()
+                .chatResponse();
+
+        String content = null;
+        if (chatResponse != null) {
+            content = chatResponse.getResult().getOutput().getText();
+            userRecordService.updateAnswerById(chatConfig.getUserRecord().getId(), content);
+        }
+        if (log.isDebugEnabled()) {
+            //频度最高的调用 使用debug级别
+            log.debug("content: {}", content);
+        }
+        return content;
+    }
+
     /**
      * AI 基础对话（支持多轮对话记忆）
      */
@@ -100,6 +161,15 @@ public class EnergyAiApp {
      * scopeType 对应知识库文档范围，理论最佳实践应该是有一个本地微调模型，能将用户问题归类，即根据不同场景选择不同的知识库
      */
     public String doChatWithRag(String scopeType, Long groupId, String message, @NonNull Long chatId) {
+        return doChatWithRag(scopeType, groupId, message, chatId, null);
+    }
+
+    /**
+     * 和 RAG 知识库进行对话（支持多模态）
+     *
+     * @param mediaList 多媒体附件列表，可为null
+     */
+    public String doChatWithRag(String scopeType, Long groupId, String message, @NonNull Long chatId, List<MediaAttachment> mediaList) {
         // 查询重写
         String rewrittenMessage = queryRewriter.doQueryRewrite(message);
 
@@ -128,19 +198,28 @@ public class EnergyAiApp {
                                                               .scopeType(scopeType)
                                                               .businessType(intentResult.getBusinessType())
                                                               .question(message)
+                                                              .mediaInfo(CollUtil.isNotEmpty(mediaList) ? JSONUtil.toJsonStr(mediaList) : null)
                                                               .build();
         userRecordService.insert(userRecord);
 
         List<Message> existingMessages = messageWindowChatMemory.get(chatId.toString());
+        if (existingMessages.isEmpty()) {
+            existingMessages = chatHistoryService.loadHistoryFromDb(chatId);
+        }
         log.info("###### Chat memory for {}: {} messages size", chatId, existingMessages.size());
 
         // 使用混合检索增强顾问
         HybridRetrievalAdvisor hybridAdvisor = chatClientAdvisorFactory.createHybridRetrievalAdvisor(
                 documentQueryContext, intentResult, requestRagContext);
 
+        // 构建多模态user prompt
+        Consumer<ChatClient.PromptUserSpec> userSpecConsumer = UserChatPromptUtils.generatePromptUserSpecConsumer(
+                buildKnowledgeParam(message, chatId, mediaList)
+        );
+
         ChatResponse chatResponse = commonChatClient
                 .prompt()
-                .user(rewrittenMessage)
+                .user(userSpecConsumer)
                 .messages(existingMessages)
                 .toolCallbacks(mcpToolCallbacks.getToolCallbacks())
                 .toolCallbacks(ragTools)
@@ -159,6 +238,14 @@ public class EnergyAiApp {
             log.debug("content: {}", content);
         }
         return content;
+    }
+
+    private KnowledgeAIQueryParam buildKnowledgeParam(String message, Long chatId, List<MediaAttachment> mediaList) {
+        KnowledgeAIQueryParam param = new KnowledgeAIQueryParam();
+        param.setChatId(chatId);
+        param.setQuestion(message);
+        param.setMediaList(mediaList);
+        return param;
     }
 
     @NotNull

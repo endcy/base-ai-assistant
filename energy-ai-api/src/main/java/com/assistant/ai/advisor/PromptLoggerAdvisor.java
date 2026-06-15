@@ -1,5 +1,7 @@
 package com.assistant.ai.advisor;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
 import com.assistant.ai.constant.EnergyAiConstant;
 import com.assistant.ai.domain.context.RequestRagContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +13,6 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisor;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.metadata.ChatResponseMetadata;
 import org.springframework.ai.chat.metadata.Usage;
@@ -84,9 +85,9 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 
         // 从消息列表中找到最新的用户消息
         for (int i = messages.size() - 1; i >= 0; i--) {
-            Message message = messages.get(i);
+            UserMessage message = messages.get(i);
             if (message != null) {
-                return message.getText();
+                return message.getText() + (CollUtil.isNotEmpty(message.getMetadata()) ? "\t" + JSONUtil.toJsonStr(message.getMedia()) : "");
             }
         }
 

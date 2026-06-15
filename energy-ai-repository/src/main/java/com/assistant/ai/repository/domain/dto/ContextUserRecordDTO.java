@@ -56,6 +56,12 @@ public class ContextUserRecordDTO implements Serializable {
 
     private String content;
 
+    /**
+     * 多媒体信息JSON（存储图片、音频、视频等多模态附件信息）
+     * 格式示例：[{"type":"IMAGE","url":"https://...","description":"...","mimeType":"image/png"}]
+     */
+    private String mediaInfo;
+
     private Boolean enabled;
 
     private Date createTime;
