@@ -87,7 +87,7 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
         for (int i = messages.size() - 1; i >= 0; i--) {
             UserMessage message = messages.get(i);
             if (message != null) {
-                return message.getText() + (CollUtil.isNotEmpty(message.getMetadata()) ? "\t" + JSONUtil.toJsonStr(message.getMedia()) : "");
+                return message.getText() + (CollUtil.isNotEmpty(message.getMedia()) ? "\n" + JSONUtil.toJsonStr(message.getMedia()) : "");
             }
         }
 

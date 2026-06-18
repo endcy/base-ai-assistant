@@ -16,12 +16,15 @@ import com.assistant.ai.rpc.domain.response.AIAnswerRet;
 import com.assistant.ai.rpc.domain.response.RagDocumentMatchRet;
 import com.assistant.ai.rpc.domain.response.SimpleChatRet;
 import com.assistant.ai.rpc.enums.ApiQaType;
+import com.assistant.ai.util.CommonThreadUtils;
 import com.assistant.ai.util.DocumentConvertUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * AI 请求管理器
@@ -92,14 +95,18 @@ public class AiRequestManager {
         ret.setCanAnswer(canAnswer);
 
         if (canAnswer) {
-            // 推荐问题
-            String prompt = String.format(EnergyAiConstant.PROMPT_RAG_RECOMMEND_QUESTION_TEMPLATE, param.getContent());
-            String recommended = generateRecommended(param, prompt);
-            ret.setRecommendedQuestions(recommended);
-            // 回答
-            prompt = String.format(EnergyAiConstant.PROMPT_RAG_RECOMMEND_ANSWER_TEMPLATE, param.getUserQuestion(), param.getContent());
-            String questionAnswer = generateRecommended(param, prompt);
-            ret.setQuestionAnswer(questionAnswer);
+            // 并行执行推荐问题和回答生成
+//            String recommendPrompt = String.format(EnergyAiConstant.PROMPT_RAG_RECOMMEND_QUESTION_TEMPLATE, param.getContent());
+//            CompletableFuture<String> recommendFuture = CompletableFuture.supplyAsync(
+//                    () -> generateRecommended(param, recommendPrompt), CommonThreadUtils.AI_TASK_EXECUTOR);
+//            ThreadUtil.sleep(300);
+            String answerPrompt = String.format(EnergyAiConstant.PROMPT_RAG_RECOMMEND_ANSWER_TEMPLATE, param.getUserQuestion(), param.getContent());
+            CompletableFuture<String> answerFuture = CompletableFuture.supplyAsync(
+                    () -> generateRecommended(param, answerPrompt), CommonThreadUtils.AI_TASK_EXECUTOR);
+            ret.setQuestionAnswer(answerFuture.join());
+
+//            ret.setRecommendedQuestions(recommendFuture.join());
+            ret.setRecommendedQuestions("");
         } else {
             ret.setQuestionAnswer("根据资料内容暂无法回答该问题");
         }
