@@ -6,8 +6,7 @@ import com.assistant.ai.app.EnergyAiDocumentApp;
 import com.assistant.ai.config.ChatRagProperties;
 import com.assistant.ai.constant.EnergyAiConstant;
 import com.assistant.ai.domain.context.RequestRagContext;
-import com.assistant.ai.repository.domain.vector.VectorDocument;
-import com.assistant.ai.repository.service.VectorStoreService;
+import com.assistant.ai.rag.DirectTextSimilarityService;
 import com.assistant.ai.rpc.domain.base.AIStreamResponse;
 import com.assistant.ai.rpc.domain.request.KnowledgeAIQueryParam;
 import com.assistant.ai.rpc.domain.request.RagDocumentMatchParam;
@@ -39,8 +38,8 @@ import java.util.concurrent.CompletableFuture;
 public class AiRequestManager {
     private final EnergyAiDocumentApp energyAiDocumentApp;
     private final EnergyAiApp energyAiApp;
-    private final VectorStoreService vectorStoreService;
     private final ChatRagProperties chatRagProperties;
+    private final DirectTextSimilarityService directTextSimilarityService;
 
     /**
      * 同步问答
@@ -87,8 +86,12 @@ public class AiRequestManager {
      */
     public RagDocumentMatchRet ragDocumentMatch(RagDocumentMatchParam param) {
         RagDocumentMatchRet ret = new RagDocumentMatchRet();
-        VectorDocument result = vectorStoreService.computeContentScore(param.getUserQuestion(), param.getContent());
-        double score = result != null ? result.getScore() : 0.0;
+        double score = directTextSimilarityService.calculateSimilarity(param.getUserQuestion(), param.getContent());
+        if (score < 0) {
+            log.warn("ragDocumentMatch match failed: {}, userQuestion: {}, content 100 chars: {}",
+                    score, param.getUserQuestion(), StrUtil.maxLength(param.getContent(), 100));
+            score = 0.0;
+        }
         ret.setConfidence(score);
         double threshold = chatRagProperties.getSimilarityThreshold();
         boolean canAnswer = score > threshold;
@@ -145,8 +148,12 @@ public class AiRequestManager {
         SimpleChatRet ret = new SimpleChatRet();
 
         if (StrUtil.isNotBlank(param.getContent())) {
-            VectorDocument result = vectorStoreService.computeContentScore(param.getUserQuestion(), param.getContent());
-            double score = result != null ? result.getScore() : 0.0;
+            double score = directTextSimilarityService.calculateSimilarity(param.getUserQuestion(), param.getContent());
+            if (score < 0) {
+                log.warn("simpleChat match failed: {}, userQuestion: {}, content 100 chars: {}",
+                        score, param.getUserQuestion(), StrUtil.maxLength(param.getContent(), 100));
+                score = 0.0;
+            }
             ret.setConfidence(score);
             double threshold = chatRagProperties.getSimilarityThreshold();
             boolean canAnswer = score > threshold;
