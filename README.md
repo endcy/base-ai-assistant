@@ -1491,6 +1491,8 @@ Apache License 2.0
 
 项目部署、必填配置、可选组件裁剪（XXL-Job / RabbitMQ / Dubbo / 远程 MCP 等）、两套 `application.properties` 详细说明，见 **[deployment-guidelines.md](./.docs/deployment-guidelines.md)**。
 
+-- **企业级需求**：<a href="mailto:<EMAIL>">endcy#qq.com<EMAIL></a> ！！！
+
 ---
 
 ## 🙏 致谢
