@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具与权限管理 | Tool Management</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="theme.css">
+    <script src="common.js"></script>
+    <style>
+        .config-section {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .config-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            color: var(--cyan);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tabs-mini {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .tab-mini {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-dim);
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .tab-mini.active {
+            background: var(--bg-card);
+            color: var(--cyan);
+            border-color: var(--border);
+        }
+
+        /* Tools table */
+        .tool-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .tool-table th, .tool-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .tool-table th {
+            color: var(--cyan);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tool-table tr:hover {
+            background: rgba(0, 240, 255, 0.03);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-code {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--cyan);
+        }
+
+        .badge-mcp {
+            background: rgba(0, 255, 157, 0.15);
+            color: var(--green);
+        }
+
+        /* Editable cn_name cell */
+        .cn-name-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cn-name-cell .cn-text {
+            color: var(--text);
+        }
+
+        .cn-name-cell .cn-empty {
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .edit-cn-btn {
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 2px 5px;
+            font-size: 0.8rem;
+            line-height: 1;
+            transition: var(--transition);
+        }
+
+        .edit-cn-btn:hover {
+            color: var(--cyan);
+            border-color: var(--border);
+            background: rgba(0, 240, 255, 0.06);
+        }
+
+        /* Groups grid */
+        .group-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .group-card {
+            padding: 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .group-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        .group-card.mcp {
+            border-left: 3px solid var(--green);
+        }
+
+        .group-card.custom {
+            border-left: 3px solid var(--cyan);
+        }
+
+        .group-card .group-name {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.95rem;
+            color: var(--cyan);
+            margin-bottom: 4px;
+        }
+
+        .group-card .group-cn {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .group-card .group-tools {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            line-height: 1.5;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .group-card .group-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .group-card .group-actions .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.78rem;
+        }
+
+        /* Permission table */
+        .perm-section {
+            margin-top: 18px;
+        }
+
+        .perm-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .perm-row .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--border-hover);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .checkbox-item input {
+            margin-top: 3px;
+        }
+
+        .checkbox-item .grp-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .checkbox-item .grp-tools {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .checkbox-item .grp-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .checkbox-item .grp-badge.mcp {
+            background: rgba(0, 255, 157, 0.2);
+            color: var(--green);
+        }
+
+        .checkbox-item .grp-badge.custom {
+            background: rgba(0, 240, 255, 0.2);
+            color: var(--cyan);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .save-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <a href="index.html" class="back-link">← 返回主页</a>
+        <h1>🛠️ 工具与权限管理</h1>
+        <p class="subtitle">工具清单 · 工具组（MCP 自动组 / 自定义组） · 领域 / 角色权限配置</p>
+    </header>
+
+    <div class="card">
+        <h2>API 基础配置</h2>
+        <div class="row">
+            <div class="form-group">
+                <label>energy-ai-api 服务地址</label>
+                <input type="text" id="apiBaseUrl" value="http://localhost:9051" placeholder="http://localhost:9051">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token</label>
+                <input type="text" id="apiAuth" value="your-token-here" placeholder="Authorization Token">
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs-mini">
+        <div class="tab-mini active" onclick="switchTab('tools')">📋 工具清单</div>
+        <div class="tab-mini" onclick="switchTab('groups')">📦 工具组</div>
+        <div class="tab-mini" onclick="switchTab('perms')">🔐 权限配置</div>
+    </div>
+
+    <!-- ========== Tab 1: 工具清单 ========== -->
+    <div id="tab-tools" class="config-section">
+        <div class="config-title">工具清单（自动同步自 Spring ToolRegistry + @McpServer 注解）</div>
+        <div style="margin-bottom: 12px;">
+            <button class="btn btn-primary" onclick="syncTools()">🔄 立即同步</button>
+            <span id="syncStatus" style="margin-left:12px;color:var(--text-dim);font-size:0.85rem;"></span>
+        </div>
+        <table class="tool-table">
+            <thead>
+            <tr>
+                <th>工具名</th>
+                <th>中文名</th>
+                <th>来源</th>
+                <th>MCP Server</th>
+                <th>描述</th>
+            </tr>
+            </thead>
+            <tbody id="toolsBody"></tbody>
+        </table>
+    </div>
+
+    <!-- ========== Tab 2: 工具组 ========== -->
+    <div id="tab-groups" class="config-section" style="display:none;">
+        <div class="config-title">工具组</div>
+        <div style="margin-bottom: 12px;">
+            <button class="btn btn-success" onclick="createGroup()">+ 新建自定义工具组</button>
+        </div>
+        <div id="groupsGrid" class="group-grid"></div>
+    </div>
+
+    <!-- ========== Tab 3: 权限配置 ========== -->
+    <div id="tab-perms" class="config-section" style="display:none;">
+        <div class="config-title">权限配置</div>
+
+        <div class="perm-section">
+            <h3 style="color:var(--cyan);margin-bottom:10px;">领域类型（scopeType）→ 工具组
+                <span title="合法值：市场客服、用户客服、运营服务、开发运维、海外用户客服、海外运营客服、未知&#10;如需新增类型请联系管理员在 KnowledgeScopeTypeEnum 中添加"
+                      style="cursor:help;font-size:0.85rem;color:var(--text-dim);">❓</span>
+            </h3>
+            <div class="perm-row">
+                <div class="form-group">
+                    <label>领域类型</label>
+                    <select id="permScopeType">
+                        <option value="市场客服">市场客服</option>
+                        <option value="用户客服" selected>用户客服</option>
+                        <option value="运营服务">运营服务</option>
+                        <option value="开发运维">开发运维</option>
+                        <option value="海外用户客服">海外用户客服</option>
+                        <option value="海外运营客服">海外运营客服</option>
+                        <option value="未知">未知</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="loadScopePerm()">加载</button>
+            </div>
+            <div id="scopeCheckboxGrid" class="checkbox-grid"></div>
+            <div class="save-bar">
+                <button class="btn btn-success" onclick="saveScopePerm()">💾 保存领域权限</button>
+            </div>
+        </div>
+
+        <div class="perm-section">
+            <h3 style="color:var(--cyan);margin:20px 0 10px;">用户角色（userRole）→ 工具组</h3>
+            <div class="perm-row">
+                <div class="form-group">
+                    <label>用户角色</label>
+                    <select id="permUserRole">
+                        <option value="USER">USER</option>
+                        <option value="OPERATOR">OPERATOR</option>
+                        <option value="ADMIN" selected>ADMIN</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="loadRolePerm()">加载</button>
+            </div>
+            <div id="roleCheckboxGrid" class="checkbox-grid"></div>
+            <div class="save-bar">
+                <button class="btn btn-success" onclick="saveRolePerm()">💾 保存角色权限</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getApiBaseUrl() {
+        return document.getElementById('apiBaseUrl').value.trim().replace(/\/$/, '');
+    }
+
+    function getApiAuth() {
+        return document.getElementById('apiAuth').value.trim();
+    }
+
+    function getAuthHeaders() {
+        const h = {};
+        const auth = getApiAuth();
+        if (auth) h['Authorization'] = auth;
+        return h;
+    }
+
+    const apiBase = () => getApiBaseUrl();
+
+    // ============== Tab switch ==============
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-mini').forEach((t, i) => {
+            const tabs = ['tools', 'groups', 'perms'];
+            t.classList.toggle('active', tabs[i] === tab);
+        });
+        ['tools', 'groups', 'perms'].forEach(t => {
+            document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+        });
+        if (tab === 'tools') loadTools();
+        if (tab === 'groups') loadGroups();
+        if (tab === 'perms') loadAllGroupsForPerm();
+    }
+
+    // ============== Tab 1: Tools ==============
+    function loadTools() {
+        fetch(apiBase() + '/api/tool', {headers: getAuthHeaders()})
+            .then(r => r.json())
+            .then(tools => {
+                const arr = Array.isArray(tools) ? tools : [];
+                const html = arr.map(t => `
+                <tr>
+                    <td><strong style="color:var(--cyan);">${escapeHtml(t.toolName)}</strong></td>
+                    <td><span class="cn-name-cell">
+                        ${t.cnName
+                    ? `<span class="cn-text">${escapeHtml(t.cnName)}</span>`
+                    : '<span class="cn-empty">未设置</span>'}
+                        <button class="edit-cn-btn" title="编辑中文名" data-id="${t.id}"
+                                data-name="${escapeHtml(t.toolName)}" data-cn="${escapeHtml(t.cnName || '')}">✏️</button>
+                    </span></td>
+                    <td><span class="badge badge-${t.source.toLowerCase()}">${t.source}</span></td>
+                    <td>${t.mcpServer ? escapeHtml(t.mcpServer) : '-'}</td>
+                    <td style="color:var(--text-dim);font-size:0.82rem;max-width:320px;">${escapeHtml((t.description || '').substring(0, 120))}</td>
+                </tr>`).join('');
+                document.getElementById('toolsBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px;">暂无工具，请点击"立即同步"</td></tr>';
+            })
+            .catch(err => showToast('加载失败: ' + err.message, 'error'));
+    }
+
+    // Event delegation for cn-name edit buttons (avoid inline onclick quoting issues)
+    document.getElementById('toolsBody').addEventListener('click', e => {
+        const btn = e.target.closest('.edit-cn-btn');
+        if (btn) editToolCnName(btn.dataset.id, btn.dataset.name, btn.dataset.cn);
+    });
+
+    function escapeHtml(s) {
+        return String(s || '')
+            .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+    }
+
+    async function editToolCnName(id, toolName, currentCn) {
+        const r = await promptDialog(`编辑中文名 — ${toolName}`, [
+            {key: 'cnName', label: '中文名（留空则清除，下次同步时自动取 MCP title）', value: currentCn, placeholder: '中文名'}
+        ]);
+        if (!r) return;
+        const newCn = (r.cnName || '').trim();
+        if (newCn === currentCn.trim()) {
+            showToast('中文名未变更', 'info');
+            return;
+        }
+        try {
+            const res = await fetch(apiBase() + `/api/tool/${id}/cn-name`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+                body: JSON.stringify({cnName: newCn})
+            });
+            const data = await res.json();
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) {
+                _toolMapLoaded = false;
+                await loadToolCnNames(apiBase(), getApiAuth());
+                loadTools();
+            }
+        } catch (err) {
+            showToast('更新失败: ' + err.message, 'error');
+        }
+    }
+
+    async function syncTools() {
+        const status = document.getElementById('syncStatus');
+        status.textContent = '同步中...';
+        status.style.color = 'var(--amber)';
+        try {
+            const res = await fetch(apiBase() + '/api/tool/sync', {
+                method: 'POST', headers: {...getAuthHeaders(), 'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            status.textContent = data.message || '同步成功';
+            status.style.color = 'var(--green)';
+            showToast(data.message || '同步成功', 'success');
+            _toolMapLoaded = false;     // 重置映射缓存，重新加载
+            await loadToolCnNames(apiBase(), getApiAuth());
+            loadTools();
+        } catch (err) {
+            status.textContent = '同步失败';
+            status.style.color = 'var(--red)';
+            showToast('同步失败: ' + err.message, 'error');
+        }
+    }
+
+    // ============== Tab 2: Groups ==============
+    let allGroups = [];
+    let allTools = [];
+
+    async function loadGroups() {
+        try {
+            const [groupsRes, toolsRes] = await Promise.all([
+                fetch(apiBase() + '/api/tool/group', {headers: getAuthHeaders()}).then(r => r.json()),
+                fetch(apiBase() + '/api/tool', {headers: getAuthHeaders()}).then(r => r.json())
+            ]);
+            allGroups = Array.isArray(groupsRes) ? groupsRes : [];
+            allTools = Array.isArray(toolsRes) ? toolsRes : [];
+            renderGroups();
+        } catch (err) {
+            showToast('加载失败: ' + err.message, 'error');
+        }
+    }
+
+    function renderGroups() {
+        const html = allGroups.map(g => {
+            const isMcp = g.groupType === 'MCP';
+            const toolNames = (g.toolNames || []).map(toolDisplayName).join('、');
+            return `<div class="group-card ${isMcp ? 'mcp' : 'custom'}">
+            <div class="group-name">${g.groupName} <span class="badge ${isMcp ? 'badge-mcp' : 'badge-code'}" style="font-family:sans-serif;font-size:0.7rem;">${isMcp ? 'MCP' : 'CUSTOM'}</span></div>
+            <div class="group-cn">${g.cnName || ''}</div>
+            <div class="group-tools">${toolNames || '暂无工具'}</div>
+            <div class="group-actions">
+                ${isMcp ? '<span style="color:var(--text-dim);font-size:0.75rem;">MCP 组只读（按 mcp_server 自动匹配）</span>' :
+                `<button class="btn btn-sm" onclick="editGroup(${g.id})">编辑</button>
+                   <button class="btn btn-sm" onclick="manageMembers(${g.id})">编辑工具</button>
+                   <button class="btn btn-sm btn-danger" onclick="deleteGroup(${g.id})">删除</button>`}
+            </div>
+        </div>`;
+        }).join('');
+        document.getElementById('groupsGrid').innerHTML = html || '<div style="color:var(--text-dim);padding:20px;">暂无工具组</div>';
+    }
+
+    async function createGroup() {
+        const r = await promptDialog('新建自定义工具组', [
+            {key: 'groupName', label: '工具组标识（英文，如 my_group）', placeholder: 'my_group'},
+            {key: 'cnName', label: '中文名'},
+            {key: 'description', label: '描述'}
+        ]);
+        if (!r || !r.groupName) return;
+        try {
+            const res = await fetch(apiBase() + '/api/tool/group', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+                body: JSON.stringify({groupName: r.groupName, cnName: r.cnName, description: r.description, groupType: 'CUSTOM'})
+            });
+            const data = await res.json();
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) loadGroups();
+        } catch (err) {
+            showToast('创建失败: ' + err.message, 'error');
+        }
+    }
+
+    async function editGroup(id) {
+        const g = allGroups.find(x => x.id === id);
+        if (!g) return;
+        const r = await promptDialog('编辑工具组', [
+            {key: 'cnName', label: '中文名', value: g.cnName || ''},
+            {key: 'description', label: '描述', value: g.description || ''}
+        ]);
+        if (!r) return;
+        try {
+            const res = await fetch(apiBase() + '/api/tool/group/' + id, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+                body: JSON.stringify({cnName: r.cnName, description: r.description})
+            });
+            const data = await res.json();
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) loadGroups();
+        } catch (err) {
+            showToast('更新失败: ' + err.message, 'error');
+        }
+    }
+
+    async function deleteGroup(id) {
+        if (!await confirmDialog('确定删除此工具组？关联的成员关系也会一并删除。', '删除确认')) return;
+        try {
+            const res = await fetch(apiBase() + '/api/tool/group/' + id, {
+                method: 'DELETE', headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            showToast(data.message, data.success ? 'success' : 'error');
+            if (data.success) loadGroups();
+        } catch (err) {
+            showToast('删除失败: ' + err.message, 'error');
+        }
+    }
+
+    async function manageMembers(id) {
+        const g = allGroups.find(x => x.id === id);
+        if (!g) return;
+        try {
+            const memberIds = await fetch(apiBase() + '/api/tool/group/' + id + '/members', {headers: getAuthHeaders()}).then(r => r.json());
+            const current = new Set(Array.isArray(memberIds) ? memberIds : []);
+            const html = allTools.map(t => `
+            <label class="checkbox-item">
+                <input type="checkbox" data-tool-id="${t.id}" ${current.has(t.id) ? 'checked' : ''}>
+                <div>
+                    <div class="grp-name">${t.toolName}</div>
+                    <div class="grp-tools">${t.cnName || ''} · ${t.source}${t.mcpServer ? ':' + t.mcpServer : ''}</div>
+                </div>
+            </label>`).join('');
+            openMemberDialog(id, g.groupName, html);
+        } catch (err) {
+            showToast('加载成员失败: ' + err.message, 'error');
+        }
+    }
+
+    function openMemberDialog(groupId, groupName, html) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal';
+        overlay.style.display = 'flex';
+        overlay.innerHTML = `
+        <div class="modal-content" style="max-width:700px;">
+            <div class="modal-header">
+                <h2>工具组 [${groupName}] 编辑工具</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
+                <div class="checkbox-grid">${html}</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-act="cancel">取消</button>
+                <button class="btn btn-primary" data-act="save">保存</button>
+            </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelector('.close').onclick = () => overlay.remove();
+        overlay.querySelector('[data-act="cancel"]').onclick = () => overlay.remove();
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) overlay.remove();
+        });
+        overlay.querySelector('[data-act="save"]').onclick = async () => {
+            const ids = Array.from(overlay.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => parseInt(cb.dataset.toolId));
+            try {
+                const res = await fetch(apiBase() + '/api/tool/group/' + groupId + '/members', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+                    body: JSON.stringify({toolIds: ids})
+                });
+                const data = await res.json();
+                showToast(data.message, data.success ? 'success' : 'error');
+                if (data.success) {
+                    overlay.remove();
+                    loadGroups();
+                }
+            } catch (err) {
+                showToast('保存失败: ' + err.message, 'error');
+            }
+        };
+    }
+
+    // ============== Tab 3: Permissions ==============
+    async function loadAllGroupsForPerm() {
+        try {
+            const res = await fetch(apiBase() + '/api/tool/group', {headers: getAuthHeaders()});
+            const data = await res.json();
+            allGroups = Array.isArray(data) ? data : [];
+            if (allGroups.length === 0) await loadGroups();
+        } catch (err) {
+            showToast('加载工具组失败: ' + err.message, 'error');
+        }
+    }
+
+    function renderPermCheckboxes(containerId, enabledGroups) {
+        const enabledSet = new Set(enabledGroups || []);
+        const html = allGroups.map(g => {
+            const isMcp = g.groupType === 'MCP';
+            const checked = enabledSet.has(g.groupName) ? 'checked' : '';
+            const toolNames = (g.toolNames || []).map(toolDisplayName).join('、');
+            return `<label class="checkbox-item">
+            <input type="checkbox" data-group="${g.groupName}" ${checked}>
+            <div>
+                <div class="grp-name">${g.cnName || g.groupName} <span class="grp-badge ${isMcp ? 'mcp' : 'custom'}">${isMcp ? 'MCP' : '自定义'}</span></div>
+                <div class="grp-tools">${toolNames || '暂无工具'}</div>
+            </div>
+        </label>`;
+        }).join('');
+        document.getElementById(containerId).innerHTML = html || '<div style="color:var(--text-dim);">暂无工具组，请先在"工具组" Tab 创建</div>';
+    }
+
+    async function loadScopePerm() {
+        const scopeType = document.getElementById('permScopeType').value.trim();
+        if (!scopeType) {
+            showToast('请输入领域类型', 'warning');
+            return;
+        }
+        try {
+            const res = await fetch(`${apiBase()}/api/scope-tool-config/scope?scopeType=${encodeURIComponent(scopeType)}`, {headers: getAuthHeaders()});
+            const data = await res.json();
+            const configs = Array.isArray(data) ? data : [];
+            const enabled = configs.filter(c => c.enabled).map(c => c.toolGroup);
+            renderPermCheckboxes('scopeCheckboxGrid', enabled);
+        } catch (err) {
+            showToast('查询失败: ' + err.message, 'error');
+        }
+    }
+
+    async function saveScopePerm() {
+        const scopeType = document.getElementById('permScopeType').value.trim();
+        if (!scopeType) {
+            showToast('请输入领域类型', 'warning');
+            return;
+        }
+        const configs = [];
+        document.querySelectorAll('#scopeCheckboxGrid input[type="checkbox"]').forEach(cb => {
+            configs.push({scopeType, toolGroup: cb.dataset.group, enabled: cb.checked});
+        });
+        try {
+            await fetch(apiBase() + '/api/scope-tool-config/scope/batch', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+                body: JSON.stringify({scopeType, configs})
+            });
+            showToast('领域权限已保存', 'success');
+        } catch (err) {
+            showToast('保存失败: ' + err.message, 'error');
+        }
+    }
+
+    async function loadRolePerm() {
+        const userRole = document.getElementById('permUserRole').value.trim();
+        if (!userRole) {
+            showToast('请输入用户角色', 'warning');
+            return;
+        }
+        try {
+            const res = await fetch(`${apiBase()}/api/scope-tool-config/role?userRole=${encodeURIComponent(userRole)}`, {headers: getAuthHeaders()});
+            const data = await res.json();
+            const configs = Array.isArray(data) ? data : [];
+            const enabled = configs.filter(c => c.enabled).map(c => c.toolGroup);
+            renderPermCheckboxes('roleCheckboxGrid', enabled);
+        } catch (err) {
+            showToast('查询失败: ' + err.message, 'error');
+        }
+    }
+
+    async function saveRolePerm() {
+        const userRole = document.getElementById('permUserRole').value.trim();
+        if (!userRole) {
+            showToast('请输入用户角色', 'warning');
+            return;
+        }
+        const configs = [];
+        document.querySelectorAll('#roleCheckboxGrid input[type="checkbox"]').forEach(cb => {
+            configs.push({userRole, toolGroup: cb.dataset.group, enabled: cb.checked});
+        });
+        try {
+            await Promise.all(configs.map(c => fetch(apiBase() + '/api/scope-tool-config/role', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
+                body: JSON.stringify(c)
+            })));
+            showToast('角色权限已保存', 'success');
+        } catch (err) {
+            showToast('保存失败: ' + err.message, 'error');
+        }
+    }
+
+    // ============== Init ==============
+    async function init() {
+        await loadToolCnNames(apiBase(), getApiAuth());   // 先加载工具中文名映射（从 /api/tool 接口）
+        loadTools();
+    }
+
+    init();
+</script>
+</body>
+</html>

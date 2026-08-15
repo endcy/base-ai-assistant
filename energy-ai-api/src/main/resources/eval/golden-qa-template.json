@@ -1,0 +1,59 @@
+[
+  {
+    "question": "设备显示故障码E001是什么意思？",
+    "expectedKeywords": [
+      "故障码",
+      "E001",
+      "通信故障",
+      "处理方法"
+    ],
+    "expectedToolCalls": [
+      "searchKnowledgeBase"
+    ]
+  },
+  {
+    "question": "如何查询我最近的订单？",
+    "expectedKeywords": [
+      "订单",
+      "查询",
+      "记录"
+    ],
+    "expectedToolCalls": [
+      "searchKnowledgeBase"
+    ]
+  },
+  {
+    "question": "某城市的服务站点分布在哪里？",
+    "expectedKeywords": [
+      "站点",
+      "分布",
+      "地址"
+    ],
+    "expectedToolCalls": [
+      "searchKnowledgeBase"
+    ]
+  },
+  {
+    "question": "分时电价时段是怎么划分的？",
+    "expectedKeywords": [
+      "峰谷",
+      "电价",
+      "时段"
+    ],
+    "expectedToolCalls": [
+      "searchElectricityPrice"
+    ]
+  },
+  {
+    "question": "设备运行过程中突然断电怎么办？",
+    "expectedKeywords": [
+      "断电",
+      "应急",
+      "处理",
+      "报修"
+    ],
+    "expectedToolCalls": [
+      "searchKnowledgeBase"
+    ]
+  }
+]

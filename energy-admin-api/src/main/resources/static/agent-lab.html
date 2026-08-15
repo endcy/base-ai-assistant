@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能体实验室 | Agent Lab</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="theme.css">
+    <script src="common.js"></script>
+    <style>
+        /* Page-specific: Stream terminal & Thought timeline */
+        .stream-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: #e0e0e0;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+        }
+
+        .stream-container .thinking {
+            color: var(--cyan);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .stream-container .tool-call {
+            color: var(--amber);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 184, 0, 0.1);
+        }
+
+        .stream-container .tool-result {
+            color: var(--green);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+        }
+
+        .stream-container .final-answer {
+            color: #fff;
+            padding: 12px 0;
+            border-bottom: 2px solid var(--cyan);
+            font-weight: 700;
+        }
+
+        .stream-container .step-start {
+            color: var(--text-dim);
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+
+        .stream-container .error {
+            color: var(--red);
+            padding: 8px 0;
+        }
+
+        .stream-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            color: var(--text-dim);
+        }
+
+        .stream-status .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+            animation: pulse 1.5s infinite;
+        }
+
+        .stream-status .live-dot.off {
+            background: var(--text-dim);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .thought-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .thought-timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .thought-step {
+            position: relative;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            background: var(--bg-input);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--border);
+        }
+
+        .thought-step.thinking-step {
+            border-left-color: var(--cyan);
+        }
+
+        .thought-step.tool-step {
+            border-left-color: var(--amber);
+        }
+
+        .thought-step.final-step {
+            border-left-color: var(--green);
+        }
+
+        .thought-step .step-index {
+            position: absolute;
+            left: -30px;
+            top: 12px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--cyan);
+            text-align: center;
+            line-height: 22px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .thought-step .step-meta {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .thought-step .step-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.88rem;
+            color: var(--text);
+        }
+
+        .thought-step .tool-item {
+            margin: 6px 0;
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .thought-step .tool-item .tn {
+            font-weight: 700;
+            color: var(--amber);
+        }
+
+        .thought-step .tool-item .ta {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+        }
+
+        .thought-step .tool-item .tr {
+            margin-top: 4px;
+            color: var(--green);
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .value {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* Toggle switches (self-contained, does not inherit .form-group label/input styles) */
+        .option-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px 28px;
+            margin-bottom: 14px;
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .toggle input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .toggle-slider {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .toggle-slider::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: rgba(0, 240, 255, 0.25);
+            border-color: var(--cyan);
+        }
+
+        .toggle input:checked + .toggle-slider::after {
+            transform: translateX(18px);
+            background: var(--cyan);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+        }
+
+        .toggle input:focus-visible + .toggle-slider {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <a href="index.html" class="back-link">← 返回主页</a>
+        <h1>🧪 智能体实验室 | Agent Lab</h1>
+        <p class="subtitle">提交任务 · 查询状态 · 工具清单 · 凭证管理 · 健康检查</p>
+    </header>
+
+    <!-- API 基础配置 -->
+    <div class="card">
+        <h2>API 基础配置</h2>
+        <div class="row">
+            <div class="form-group">
+                <label>AI 服务基础 URL</label>
+                <input type="text" id="apiBaseUrl" value="http://localhost:9051" placeholder="http://localhost:9051">
+            </div>
+            <div class="form-group">
+                <label>Authorization Token</label>
+                <input type="text" id="apiAuth" value="your-token-here" placeholder="可选，如: your-token-here">
+            </div>
+        </div>
+        <p style="font-size: 0.85rem; color: #888; margin-top: 5px;">💡 所有 API 调用将使用此配置。修改后刷新页面生效。</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('submit')">📤 提交任务</button>
+        <button class="tab-btn" onclick="switchTab('query')">🔍 查询任务</button>
+        <button class="tab-btn" onclick="switchTab('tools')">🛠️ 工具清单</button>
+        <button class="tab-btn" onclick="switchTab('credentials')">🔑 凭证管理</button>
+        <button class="tab-btn" onclick="switchTab('health')">💓 健康检查</button>
+    </div>
+
+    <!-- ========== Tab 1: 提交任务 ========== -->
+    <div id="tab-submit" class="tab-content active">
+        <div class="card">
+            <h2>提交智能体任务</h2>
+            <div class="quick-test">
+                <button class="btn btn-primary btn-sm" onclick="quickTest('SINGLE_SHOT')">⚡ 快速 RAG 问答</button>
+                <button class="btn btn-success btn-sm" onclick="quickTest('AGENTIC')">🤖 AGENTIC 思考模式</button>
+                <button class="btn btn-warning btn-sm" onclick="quickTest('PLAN_AND_ACT')">📋 先规划后执行</button>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>执行模式</label>
+                    <select id="submitMode">
+                        <option value="AGENTIC">AGENTIC — 自主思考+工具调用</option>
+                        <option value="SINGLE_SHOT">SINGLE_SHOT — 单次RAG回答</option>
+                        <option value="PLAN_AND_ACT">PLAN_AND_ACT — 先规划后执行</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>最大步数 (仅 AGENTIC)</label>
+                    <input type="number" id="submitMaxSteps" value="10" min="1" max="30">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>Chat ID</label>
+                    <input type="text" id="submitChatId" value="888">
+                </div>
+                <div class="form-group">
+                    <label>Group ID（租户/商户分组）</label>
+                    <input type="text" id="submitGroupId" value="-1">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>领域类型 (scopeType)</label>
+                    <select id="submitScopeType">
+                        <option value="市场客服">市场客服</option>
+                        <option value="用户客服" selected>用户客服</option>
+                        <option value="运营服务">运营服务</option>
+                        <option value="开发运维">开发运维</option>
+                        <option value="海外用户客服">海外用户客服</option>
+                        <option value="海外运营客服">海外运营客服</option>
+                        <option value="未知">未知</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>用户角色 (userRole)</label>
+                    <select id="submitUserRole">
+                        <option value="USER">USER</option>
+                        <option value="OPERATOR">OPERATOR</option>
+                        <option value="ADMIN" selected>ADMIN</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>问题</label>
+                <textarea id="submitQuestion" placeholder="请输入你的问题，如：'帮我查一下站点SZ001的信息' 或 'What is error code E001?'"></textarea>
+            </div>
+            <div class="option-row">
+                <label class="toggle">
+                    <input type="checkbox" id="submitSync">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">同步执行（阻塞等待结果）</span>
+                </label>
+                <label class="toggle">
+                    <input type="checkbox" id="submitStream" checked>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">流式输出（异步模式下实时查看思考过程）</span>
+                </label>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="submitAgentTask()">🚀 提交任务</button>
+            <div class="loading" id="submitLoading">
+                <div class="spinner"></div>
+                <p>等待 AI 响应中...</p></div>
+            <!-- 流式输出区域 -->
+            <div class="stream-container" id="submitStreamBox" style="display:none;">
+                <div id="submitStreamContent"></div>
+                <div class="stream-status" id="submitStreamStatus">
+                    <div class="live-dot" id="submitLiveDot"></div>
+                    <span id="submitStreamLabel">🔄 执行中...</span>
+                </div>
+            </div>
+            <!-- 思考过程时间线 -->
+            <div id="submitThoughts" style="display:none;margin-top:15px;"></div>
+            <div class="result-box" id="submitResult" style="display:none;">
+                <h4 style="margin-bottom:8px;color:#2c5364;">任务结果</h4>
+                <pre id="submitResultContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Tab 2: 查询任务 ========== -->
+    <div id="tab-query" class="tab-content">
+        <div class="card">
+            <h2>按 Task ID 查询</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>Task ID</label>
+                    <input type="text" id="queryTaskId" placeholder="粘贴 taskId">
+                </div>
+                <div class="form-group">
+                    <label>Authorization Token</label>
+                    <input type="text" id="queryAuth" placeholder="如: your-token-here">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="queryTaskById()">查询状态</button>
+            <button class="btn btn-danger" style="margin-left:10px;" onclick="cancelTask()">取消任务</button>
+            <button class="btn btn-success" style="margin-left:10px;" onclick="loadThoughts()">🧠 思考过程</button>
+            <div class="result-box" id="queryResult" style="display:none;">
+                <pre id="queryResultContent"></pre>
+            </div>
+            <div class="thought-timeline" id="thoughtsTimeline" style="display:none;margin-top:15px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>按 Chat ID 查询任务列表</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>Chat ID</label>
+                    <input type="text" id="queryChatId" value="888">
+                </div>
+                <div class="form-group">
+                    <label>Authorization Token</label>
+                    <input type="text" id="queryChatAuth" placeholder="如: your-token-here">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="queryTasksByChat()">查询该会话的所有任务</button>
+            <div class="result-box" id="queryChatResult" style="display:none;">
+                <pre id="queryChatResultContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Tab 3: 工具清单 ========== -->
+    <div id="tab-tools" class="tab-content">
+        <div class="card">
+            <h2>已注册工具清单</h2>
+            <button class="btn btn-primary" onclick="loadToolInventory()">🔄 刷新工具清单</button>
+            <div class="result-box" id="toolsResult" style="display:none;">
+                <div id="toolsResultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Tab 4: 凭证管理 ========== -->
+    <div id="tab-credentials" class="tab-content">
+        <div class="card">
+            <h2>DashScope 凭证状态</h2>
+            <button class="btn btn-primary" onclick="checkCredentialStatus()">📊 查询状态</button>
+            <button class="btn btn-warning" style="margin-left:10px;" onclick="clearCredentialCooldown()">🧹 清除冷却</button>
+            <div class="result-box" id="credResult" style="display:none;">
+                <pre id="credResultContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Tab 5: 健康检查 ========== -->
+    <div id="tab-health" class="tab-content">
+        <div class="card">
+            <h2>系统健康检查</h2>
+            <button class="btn btn-primary" onclick="checkHealth()">💓 检查健康状态</button>
+            <div id="healthDashboard" style="display:none; margin-top: 20px;">
+                <div id="healthStatusBar"></div>
+                <div class="status-panel" id="healthPanel" style="margin-top:16px;"></div>
+                <details style="margin-top: 20px;">
+                    <summary style="cursor:pointer; color:var(--text-dim); font-size:0.8rem; letter-spacing:1px; text-transform:uppercase; user-select:none;">🔍 查看原始 JSON</summary>
+                    <div class="result-box" id="healthResult" style="display:none; margin-top:10px;">
+                        <pre id="healthResultContent"></pre>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <footer><p>智慧能源AI助手 © 2025 | Agent Lab 智能体实验室</p></footer>
+</div>
+
+<script>
+    // ========== 全局配置 ==========
+    function getApiBaseUrl() {
+        return document.getElementById('apiBaseUrl').value.trim().replace(/\/$/, '');
+    }
+
+    function getApiAuth() {
+        return document.getElementById('apiAuth').value.trim();
+    }
+
+    function getAuthHeaders() {
+        const headers = {};
+        const auth = getApiAuth();
+        if (auth) headers['Authorization'] = auth;
+        return headers;
+    }
+
+    // ========== Tab Switching ==========
+    function switchTab(name) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            if (b.textContent.includes(name === 'submit' ? '提交' : name === 'query' ? '查询' : name === 'tools' ? '工具' : name === 'credentials' ? '凭证' : '健康')) b.classList.add('active');
+        });
+        document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    // ========== Helpers ==========
+    function apiPost(url, auth, body) {
+        const headers = {'Content-Type': 'application/json'};
+        if (auth && auth.trim()) headers['Authorization'] = auth.trim();
+        return fetch(url, {method: 'POST', headers, body: JSON.stringify(body)}).then(r => r.text());
+    }
+
+    function apiGet(url, auth) {
+        const headers = {};
+        if (auth && auth.trim()) headers['Authorization'] = auth.trim();
+        return fetch(url, {method: 'GET', headers}).then(r => r.text());
+    }
+
+    function showLoading(id) {
+        document.getElementById(id + 'Loading').style.display = 'block';
+        document.getElementById(id + 'Result').style.display = 'none';
+    }
+
+    function hideLoading(id) {
+        document.getElementById(id + 'Loading').style.display = 'none';
+    }
+
+    function showResult(id, text) {
+        document.getElementById(id + 'Result').style.display = 'block';
+        document.getElementById(id + 'ResultContent').textContent = text;
+    }
+
+    function buildAuth(val) {
+        return val && val.trim() ? val.trim() : '';
+    }
+
+    // ========== Quick Test ==========
+    function quickTest(mode) {
+        document.getElementById('submitMode').value = mode;
+        switchTab('submit');
+        // 不再自动提交 —— 让用户填完问题后手动点"提交任务"按钮
+    }
+
+    // ========== Tab 1: Submit ==========
+    let currentEventSource = null;
+
+    function submitAgentTask() {
+        const baseUrl = getApiBaseUrl();
+        const auth = getApiAuth();
+        const mode = document.getElementById('submitMode').value;
+        const maxSteps = parseInt(document.getElementById('submitMaxSteps').value) || 10;
+        const chatId = document.getElementById('submitChatId').value || '888';
+        const groupId = document.getElementById('submitGroupId').value || '-1';
+        const scopeType = document.getElementById('submitScopeType').value || '';
+        const userRole = document.getElementById('submitUserRole').value || 'USER';
+        const question = document.getElementById('submitQuestion').value;
+        const sync = document.getElementById('submitSync').checked;
+        const stream = !sync && document.getElementById('submitStream').checked;
+
+        if (!question) {
+            showToast('请输入问题', 'warning');
+            return;
+        }
+
+        const body = {mode, chatId: isNaN(chatId) ? chatId : parseInt(chatId), groupId, scopeType: scopeType || null, userRole, question, maxSteps};
+        const endpoint = sync ? baseUrl + '/api/agent/task/execute-sync' : baseUrl + '/api/agent/task/submit';
+
+        // 关闭之前的流
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+        }
+
+        if (stream) {
+            // 流式模式：先提交任务，再订阅 SSE
+            initStreamUI();
+            apiPost(endpoint, auth, body)
+                .then(data => {
+                    try {
+                        const obj = JSON.parse(data);
+                        const ret = obj.data || obj;
+                        if (ret.taskId) {
+                            // 订阅 SSE 流
+                            subscribeSSE(ret.taskId, auth);
+                            // 自动填充 query tab
+                            document.getElementById('queryTaskId').value = ret.taskId;
+                        } else {
+                            appendStreamText('error', '提交失败: ' + JSON.stringify(ret));
+                            endStreamUI();
+                        }
+                    } catch (e) {
+                        appendStreamText('error', '解析失败: ' + data);
+                        endStreamUI();
+                    }
+                })
+                .catch(err => {
+                    appendStreamText('error', '提交任务失败: ' + err.message);
+                    endStreamUI();
+                });
+        } else {
+            // 非流式模式：同步等待
+            showLoading('submit');
+            apiPost(endpoint, auth, body)
+                .then(data => {
+                    hideLoading('submit');
+                    showResult('submit', tryFormatJson(data));
+                })
+                .catch(err => {
+                    hideLoading('submit');
+                    showResult('submit', '错误: ' + err.message);
+                });
+        }
+    }
+
+    // ========== SSE 流式输出 ==========
+    function initStreamUI() {
+        document.getElementById('submitLoading').style.display = 'none';
+        document.getElementById('submitResult').style.display = 'none';
+        document.getElementById('submitThoughts').style.display = 'none';
+        const streamDiv = document.getElementById('submitStreamBox');
+        streamDiv.style.display = 'block';
+        document.getElementById('submitStreamContent').innerHTML = '';
+        document.getElementById('submitLiveDot').classList.remove('off');
+        document.getElementById('submitStreamLabel').textContent = '🔄 执行中...';
+        document.getElementById('submitStreamStatus').style.display = 'flex';
+    }
+
+    function endStreamUI(success) {
+        const dot = document.getElementById('submitLiveDot');
+        dot.classList.add('off');
+        if (success) {
+            document.getElementById('submitStreamLabel').textContent = '✅ 执行完成';
+        } else {
+            document.getElementById('submitStreamLabel').textContent = '❌ 执行失败';
+        }
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+        }
+    }
+
+    function appendStreamText(className, text) {
+        const container = document.getElementById('submitStreamContent');
+        const div = document.createElement('div');
+        div.className = className;
+        if (className === 'tool-call') {
+            div.innerHTML = '🔧 <strong>' + text + '</strong>';
+        } else if (className === 'tool-result') {
+            div.innerHTML = '📊 <strong>' + text + '</strong>';
+        } else if (className === 'thinking') {
+            div.textContent = '💭 ' + text;
+        } else if (className === 'final-answer') {
+            div.innerHTML = '✨ <strong>最终答案:</strong><br>' + text.replace(/\n/g, '<br>');
+        } else if (className === 'step-start') {
+            div.textContent = '── ' + text + ' ──';
+        } else {
+            div.textContent = text;
+        }
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function subscribeSSE(taskId, auth) {
+        const baseUrl = getApiBaseUrl();
+        // EventSource 不支持自定义 header，token 走 query 参数（SimpleAuthInterceptor 已支持降级）
+        const streamUrl = baseUrl + '/api/agent/task/' + taskId + '/stream?token=' + encodeURIComponent(auth || '');
+
+        currentEventSource = new EventSource(streamUrl);
+
+        currentEventSource.onmessage = function (event) {
+            try {
+                const evt = JSON.parse(event.data);
+                switch (evt.type) {
+                    case 'TASK_STARTED':
+                        appendStreamText('step-start', '任务开始 (taskId=' + taskId + ')');
+                        break;
+                    case 'STEP_STARTED':
+                        appendStreamText('step-start', '── Step ' + evt.step + ' ──');
+                        break;
+                    case 'THINKING':
+                        if (evt.content) appendStreamText('thinking', evt.content);
+                        break;
+                    case 'TOOL_CALL':
+                        appendStreamText('tool-call', evt.toolName + '(' + (evt.toolArgs || '') + ')');
+                        break;
+                    case 'TOOL_RESULT':
+                        appendStreamText('tool-result', evt.toolName + ' → ' + (evt.toolResult || ''));
+                        break;
+                    case 'FINAL_ANSWER':
+                        appendStreamText('final-answer', evt.content);
+                        break;
+                    case 'TASK_COMPLETED':
+                        endStreamUI(true);
+                        break;
+                    case 'TASK_FAILED':
+                        appendStreamText('error', '❌ ' + (evt.content || '任务失败'));
+                        endStreamUI(false);
+                        break;
+                }
+            } catch (e) {
+                console.warn('SSE parse error:', e);
+            }
+        };
+
+        currentEventSource.onerror = function () {
+            // EventSource 在 SSE 流结束时也会触发 error (chrome behavior)
+            setTimeout(() => {
+                if (currentEventSource && currentEventSource.readyState === EventSource.CLOSED) {
+                    endStreamUI(true);
+                }
+            }, 1000);
+        };
+    }
+
+    // ========== Tab 2: Query ==========
+    function queryTaskById() {
+        const taskId = document.getElementById('queryTaskId').value;
+        const auth = getApiAuth();
+        if (!taskId) {
+            showToast('请输入 Task ID', 'warning');
+            return;
+        }
+        const url = getApiBaseUrl() + '/api/agent/task/' + taskId;
+        apiGet(url, auth)
+            .then(data => {
+                showResult('query', tryFormatJson(data));
+            })
+            .catch(err => {
+                showResult('query', '错误: ' + err.message);
+            });
+    }
+
+    async function cancelTask() {
+        const taskId = document.getElementById('queryTaskId').value;
+        const auth = getApiAuth();
+        if (!taskId) {
+            showToast('请输入 Task ID', 'warning');
+            return;
+        }
+        if (!await confirmDialog(`确定要取消任务 ${taskId} 吗？`, '取消任务')) return;
+        const url = getApiBaseUrl() + '/api/agent/task/' + taskId + '/cancel';
+        apiPost(url, auth, {})
+            .then(data => {
+                showResult('query', tryFormatJson(data));
+                showToast('任务已取消', 'success');
+            })
+            .catch(err => {
+                showResult('query', '错误: ' + err.message);
+            });
+    }
+
+    function queryTasksByChat() {
+        const chatId = document.getElementById('queryChatId').value;
+        const auth = getApiAuth();
+        if (!chatId) {
+            showToast('请输入 Chat ID', 'warning');
+            return;
+        }
+        const url = getApiBaseUrl() + '/api/agent/task/list?chatId=' + chatId;
+        apiGet(url, auth)
+            .then(data => {
+                showResult('queryChat', tryFormatJson(data));
+            })
+            .catch(err => {
+                showResult('queryChat', '错误: ' + err.message);
+            });
+    }
+
+    // ========== Tab 3: Tools ==========
+    function loadToolInventory() {
+        const url = getApiBaseUrl() + '/api/agent/tools';
+        const auth = getApiAuth();
+        apiGet(url, auth)
+            .then(data => {
+                const resultDiv = document.getElementById('toolsResultContent');
+                try {
+                    const obj = JSON.parse(data);
+                    let html = '<p><strong>工具总数：</strong>' + (obj.total || (obj.tools ? obj.tools.length : 0)) + '</p>';
+                    html += '<table><thead><tr><th>工具名</th><th>业务类型</th><th>风险等级</th><th>需要审批</th></tr></thead><tbody>';
+                    const tools = obj.tools || obj.data?.tools || [];
+                    tools.forEach(t => {
+                        const riskClass = (t.riskLevel === 'HIGH' || t.riskLevel === 'CRITICAL') ? 'high' : '';
+                        html += '<tr><td><span class="tool-tag ' + riskClass + '">' + t.name + '</span></td><td>' + (t.businessType || '-') + '</td><td>' + (t.riskLevel || 'LOW') + '</td><td>' + (t.requiresApproval ? '是' : '否') + '</td></tr>';
+                    });
+                    html += '</tbody></table>';
+                    html += '<details style="margin-top:10px"><summary>原始 JSON</summary><pre>' + JSON.stringify(obj, null, 2) + '</pre></details>';
+                    resultDiv.innerHTML = html;
+                    document.getElementById('toolsResult').style.display = 'block';
+                } catch (e) {
+                    resultDiv.innerHTML = '<pre>' + data + '</pre>';
+                    document.getElementById('toolsResult').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                document.getElementById('toolsResultContent').innerHTML = '<pre>错误: ' + err.message + '</pre>';
+                document.getElementById('toolsResult').style.display = 'block';
+            });
+    }
+
+    // ========== Tab 4: Credentials ==========
+    function checkCredentialStatus() {
+        const url = getApiBaseUrl() + '/api/agent/credentials/status';
+        const auth = getApiAuth();
+        apiGet(url, auth)
+            .then(data => {
+                showResult('cred', tryFormatJson(data));
+            })
+            .catch(err => {
+                showResult('cred', '错误: ' + err.message);
+            });
+    }
+
+    async function clearCredentialCooldown() {
+        const url = getApiBaseUrl() + '/api/agent/credentials/clear-cooldown';
+        const auth = getApiAuth();
+        if (!await confirmDialog('确定要手动清除凭证冷却？', '清除凭证冷却')) return;
+        apiPost(url, auth, {})
+            .then(data => {
+                showResult('cred', tryFormatJson(data));
+                showToast('凭证冷却已清除', 'success');
+            })
+            .catch(err => {
+                showResult('cred', '错误: ' + err.message);
+            });
+    }
+
+    // ========== Tab 5: Health ==========
+    function checkHealth() {
+        const url = getApiBaseUrl() + '/api/agent/health';
+        const auth = getApiAuth();
+        apiGet(url, auth)
+            .then(data => {
+                try {
+                    const obj = JSON.parse(data);
+                    // 兼容两种返回格式：{status,msg,data:{...}} 或 直接 {...}
+                    const raw = obj.data || obj;
+                    const ts = raw.timestamp || obj.ts || Date.now();
+                    const overall = raw.status || 'UNKNOWN';
+
+                    // 整体状态横幅
+                    const statusStyles = {
+                        UP: {bg: 'rgba(0,255,157,0.12)', border: 'var(--green)', color: 'var(--green)', text: '✅ 系统运行正常'},
+                        DEGRADED: {bg: 'rgba(255,184,0,0.12)', border: 'var(--amber)', color: 'var(--amber)', text: '⚠️ 部分服务降级'},
+                        DOWN: {bg: 'rgba(255,71,87,0.12)', border: 'var(--red)', color: 'var(--red)', text: '❌ 服务异常'}
+                    };
+                    const s = statusStyles[overall] || statusStyles.DOWN;
+                    document.getElementById('healthStatusBar').innerHTML =
+                        '<div style="padding:14px 20px; border-radius:var(--radius-sm); background:' + s.bg +
+                        '; border:1px solid ' + s.border + '; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">' +
+                        '<div style="font-family:Orbitron,monospace; font-size:1.2rem; font-weight:700; color:' + s.color + '; letter-spacing:1px;">' + s.text + '</div>' +
+                        '<div style="font-size:0.8rem; color:var(--text-dim);">更新于 ' + new Date(ts).toLocaleString('zh-CN') + '</div>' +
+                        '</div>';
+
+                    // 4 张指标卡片（语义化标签 + 颜色）
+                    const metrics = [
+                        {
+                            key: 'toolsRegistered', label: '工具注册', icon: '🔧',
+                            format: v => v + ' 个',
+                            color: () => 'var(--cyan)'
+                        },
+                        {
+                            key: 'credentialEnabled', label: '凭证启用', icon: '🔑',
+                            format: v => v ? '已启用' : '未启用',
+                            color: v => v ? 'var(--green)' : 'var(--text-dim)'
+                        },
+                        {
+                            key: 'redis', label: 'Redis', icon: '🗄️',
+                            format: v => v === 'UP' ? 'UP' : (typeof v === 'string' ? v.split(':')[0] : v),
+                            color: v => v === 'UP' ? 'var(--green)' : 'var(--red)'
+                        },
+                        {
+                            key: 'mysql', label: 'MySQL', icon: '🗃️',
+                            format: v => v === 'UP' ? 'UP' : (typeof v === 'string' ? v.split(':')[0] : v),
+                            color: v => v === 'UP' ? 'var(--green)' : 'var(--red)'
+                        }
+                    ];
+                    let cards = '';
+                    metrics.forEach(m => {
+                        if (!(m.key in raw)) return;
+                        const v = raw[m.key];
+                        const color = m.color(v);
+                        cards += '<div class="stat-card" style="background:rgba(0,240,255,0.03); border-color:' + color + '40;">' +
+                            '<div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:8px; text-transform:none; letter-spacing:0.5px;">' + m.icon + ' ' + m.label + '</div>' +
+                            '<div style="font-family:Orbitron,monospace; font-size:1.4rem; font-weight:700; color:' + color + '; letter-spacing:0.5px;">' + m.format(v) + '</div>' +
+                            '</div>';
+                    });
+                    document.getElementById('healthPanel').innerHTML = cards;
+
+                    // 原始 JSON（折叠区）
+                    const resultBox = document.getElementById('healthResult');
+                    resultBox.style.display = 'block';
+                    document.getElementById('healthResultContent').textContent = JSON.stringify(obj, null, 2);
+
+                    document.getElementById('healthDashboard').style.display = 'block';
+                } catch (e) {
+                    showResult('health', '解析错误: ' + e.message);
+                }
+            })
+            .catch(err => {
+                showResult('health', '错误: ' + err.message);
+            });
+    }
+
+    // ========== Tab 2: 思考过程 ==========
+    function loadThoughts() {
+        const taskId = document.getElementById('queryTaskId').value;
+        const auth = buildAuth(document.getElementById('queryAuth').value);
+        if (!taskId) {
+            showToast('请先输入 Task ID', 'warning');
+            return;
+        }
+
+        const baseUrl = getApiBaseUrl() + '/api/agent/task/' + taskId + '/thoughts';
+        const timeline = document.getElementById('thoughtsTimeline');
+        timeline.style.display = 'none';
+        timeline.innerHTML = '';
+
+        apiGet(baseUrl, auth)
+            .then(data => {
+                try {
+                    const obj = JSON.parse(data);
+                    const thoughts = obj.data || obj;
+                    if (!thoughts || thoughts.length === 0) {
+                        timeline.innerHTML = '<div class="thought-step thinking-step"><div class="step-content">暂无思考过程数据（任务可能尚未执行 AGENTIC 模式）</div></div>';
+                        timeline.style.display = 'block';
+                        return;
+                    }
+                    let html = '';
+                    thoughts.forEach((t, idx) => {
+                        const hasTools = t.toolCalls && t.toolCalls !== '[]';
+                        const isFinal = t.thought && !hasTools && idx === thoughts.length - 1;
+                        const stepClass = isFinal ? 'final-step' : (hasTools ? 'tool-step' : 'thinking-step');
+
+                        html += '<div class="thought-step ' + stepClass + '">';
+                        html += '<div class="step-index">' + (t.stepIndex || (idx + 1)) + '</div>';
+                        html += '<div class="step-meta">耗时 ' + (t.durationMs || 0) + 'ms · Prompt ' + (t.promptTokens || 0) + ' · Completion ' + (t.completionTokens || 0) + ' tokens</div>';
+
+                        if (t.thought) {
+                            html += '<div class="step-content">💭 ' + escapeHtml(t.thought) + '</div>';
+                        }
+
+                        // 工具调用
+                        if (hasTools) {
+                            try {
+                                const calls = JSON.parse(t.toolCalls);
+                                const results = JSON.parse(t.toolResults);
+                                calls.forEach((call, ci) => {
+                                    const result = results && results[ci];
+                                    html += '<div class="tool-item">';
+                                    html += '<div class="tn">🔧 ' + escapeHtml(call.name) + '</div>';
+                                    html += '<div class="ta">参数: ' + escapeHtml(call.args) + '</div>';
+                                    if (result) {
+                                        html += '<div class="tr">结果: ' + escapeHtml(typeof result.result === 'string' ? result.result : JSON.stringify(result.result)) + '</div>';
+                                    }
+                                    html += '</div>';
+                                });
+                            } catch (e) {
+                                html += '<div class="tool-item"><div class="tn">🔧 工具调用</div><div class="ta">' + escapeHtml(t.toolCalls) + '</div><div class="tr">' + escapeHtml(t.toolResults) + '</div></div>';
+                            }
+                        }
+                        html += '</div>';
+                    });
+                    timeline.innerHTML = html;
+                    timeline.style.display = 'block';
+                } catch (e) {
+                    timeline.innerHTML = '<div class="thought-step thinking-step"><div class="step-content">JSON 解析失败: ' + e.message + '</div></div>';
+                    timeline.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                timeline.innerHTML = '<div class="thought-step thinking-step"><div class="step-content">加载失败: ' + err.message + '</div></div>';
+                timeline.style.display = 'block';
+            });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ========== Misc ==========
+    function tryFormatJson(text) {
+        try {
+            return JSON.stringify(JSON.parse(text), null, 2);
+        } catch (e) {
+            return text;
+        }
+    }
+
+    // Enter key submit
+    document.addEventListener('keydown', function (e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab && activeTab.id === 'tab-submit') submitAgentTask();
+            else if (activeTab && activeTab.id === 'tab-query') queryTaskById();
+        }
+    });
+</script>
+</body>
+</html>

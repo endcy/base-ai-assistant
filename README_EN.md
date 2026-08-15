@@ -443,7 +443,7 @@ base-ai-assistant/
 ├── energy-ai-api/             # Core Service (RAG, Agent, MCP implementation)
 ├── energy-ai-mcp/             # MCP Service Definitions
 ├── energy-ai-repository/      # Data Persistence (MySQL, PGVector)
-├── energy-ai-rpc/             # RPC Interface Definitions (Dubbo/Feign)
+├── ces-ai-rpc/                # RPC Interface Definitions (Dubbo/Feign, JDK 1.8 compatible)
 ├── service-common/            # Common Services (configuration, utilities)
 └── service-domain/            # Domain Model Definitions
 ```
@@ -673,7 +673,7 @@ mvn clean package -DskipTests
 #### Option 1: IDE Launch (Recommended for Development & Debugging)
 
 1. Ensure JDK 21 is configured
-2. Run `AiApiApplication.main()` in your IDE to start the core AI service (port 9051)
+2. Run `EnergyAiApplication.main()` in your IDE to start the core AI service (port 9051)
 3. Run `AdminApiApplication.main()` in your IDE to start the admin console (port 9050)
 
 #### Option 2: Command Line Launch
@@ -1019,6 +1019,154 @@ Exposed to the main Agent via 3 tools, with LLM-driven autonomous decisions:
 - `chat_with_sub_agent`: Continue conversation with an existing SubAgent
 - `destroy_sub_agent`: Destroy the SubAgent and release resources
 
+### 13. 🧠 Advanced Agent Framework (Multi-Mode)
+
+**Pain Point**: Different business scenarios require different levels of Agent autonomy — simple RAG Q&A does not need multi-step reasoning, while complex tasks need planning and reflection.
+
+**Solution**: A unified multi-mode Agent execution framework, switched via the `AgentMode` enum:
+
+| Mode           | Description                                                                                      | Use Case                          |
+|----------------|--------------------------------------------------------------------------------------------------|-----------------------------------|
+| `SINGLE_SHOT`  | Single-pass RAG, no explicit think/act loop, uses Spring AI built-in tool execution              | Simple Q&A, knowledge retrieval   |
+| `AGENTIC`      | Explicit ReAct loop (think → act → observe → repeat) with maxSteps and persisted thought process | Multi-step reasoning + tool calls |
+| `PLAN_AND_ACT` | Plan first, then execute step by step with per-step reflection                                   | Multi-step planning tasks         |
+
+**Core Components**:
+
+- `AgentExecutor` / `DefaultAgentExecutor`: mode-based dispatch executor
+- `AgentSession` / `AgentStateMachine`: session state machine (INITIALIZED → RUNNING → COMPLETED / FAILED / TERMINATED_BY_BUDGET / TERMINATED_BY_USER)
+- `AgentTaskService`: async task submission, status query, cancellation
+- `ReActAgent` / `ToolCallAgent` / `PlanningAgent` / `ReflectionAgent`: agent strategies
+- `AgentEventPublisher`: SSE streaming of thought processes and tool calls
+- Persistence: `ai_agent_session`, `ai_agent_thought`, `ai_llm_call_audit`, `ai_tool_call_audit`
+
+**Console**: `agent-lab.html` Agent Lab — task submission, real-time SSE thought process, tool inventory, credential management, health check.
+
+### 14. 🛡️ Guardrails System
+
+**Pain Point**: LLM applications face security risks including prompt injection, jailbreak attacks, sensitive data leakage, and harmful content output.
+
+**Solution**: Bidirectional input/output guardrails, enabled by configuration:
+
+**Input Guardrails (InputGuardrail)**:
+
+| Implementation            | Description                                                      |
+|---------------------------|------------------------------------------------------------------|
+| `PromptInjectionDetector` | Rule-based + small-model binary classification                   |
+| `JailbreakFilter`         | Detects "ignore previous instructions" templates                 |
+| `PiiRedactor`             | Redacts phone numbers, ID cards, bank cards (enabled by default) |
+| `TopicGate`               | Rejects out-of-domain small talk                                 |
+
+**Output Guardrails (OutputGuardrail)**:
+
+| Implementation     | Description                                       |
+|--------------------|---------------------------------------------------|
+| `ContentModerator` | Content moderation API / keyword blacklist        |
+| `SchemaValidator`  | Validates against expected schema                 |
+| `ToxicFilter`      | Profanity / hate speech filtering                 |
+| `LeakageDetector`  | System prompt / internal schema leakage detection |
+
+**Tool Parameter Validation**: `ToolValidator` validates parameters before invocation; `GuardedToolCallback` / `GuardedToolFactory` wrap guardrails onto tool callbacks.
+
+### 15. 🔌 MCP Client Framework (SSE + Streamable HTTP)
+
+**Pain Point**: Traditional SSE connections do not support automatic reconnection; network fluctuations in production can break MCP tools.
+
+**Solution**: Dual-mode MCP client framework with unified abstraction + automatic reconnection:
+
+| Mode            | Characteristics    | Use Case                                 |
+|-----------------|--------------------|------------------------------------------|
+| SSE             | Server-Sent Events | Legacy service exposure                  |
+| Streamable HTTP | HTTP Stream        | **Reconnection, production-recommended** |
+
+**Core Components**:
+
+- `McpConfig` / `McpSseClientConfig` / `McpStreamAbleConnectionsProperties`: connection config
+- `McpClientAuthConfig` / `McpClientAuthProperties`: client authentication (Token support)
+- `AbstractMcpClient` / `AbstractSseMcpClient`: unified client abstraction
+- Built-in MCP client examples: weather, maps, web search, web scraping, image search, electricity price
+
+### 16. 🛠️ Tool Management System (Registry / Groups / Permissions)
+
+**Pain Point**: Tools are hardcoded in code; adding/adjusting tools requires redeployment; tool permissions cannot be configured dynamically by role/domain.
+
+**Solution**: A three-layer tool management system:
+
+- **Tool Registry (ToolRegistry)**: auto-syncs `@Tool` methods and `@McpServer` MCP tools to the `ai_tool` table at startup (source: CODE / MCP)
+- **Tool Groups**: `ai_tool_group` supports MCP auto-groups (read-only, auto-matched by mcp_server) and CUSTOM groups (editable members)
+- **Permissions**: `ai_scope_tool_config` (domain → tool group) and `ai_role_tool_config` (role → tool group), resolved dynamically via `ToolPermissionGate`
+- **Tool CN Names**: runtime tool name mapping, auto-taken from MCP title
+
+**Console**: `tool-management.html` — tool sync, group management, visual domain/role permission configuration.
+
+### 17. 📝 Prompt Version Management
+
+**Pain Point**: No version tracking for Prompt templates, no rollback, no safe canary releases.
+
+**Solution**: `PromptVersionService` maintains version number + SHA-256 content hash per template, supporting canary releases (percentage-controlled traffic split between old/new versions).
+
+- `PromptTemplateKey`: unified template identifier
+- `PromptTemplateService`: template loading and rendering
+- Production connects to the `ai_prompt_version` table for persistence
+
+### 18. 🧩 Plugin / Extension System
+
+**Pain Point**: Adding tools, Agent strategies, model providers, etc. requires modifying core code.
+
+**Solution**: `EnergyAiExtension` extension-point interface + `ExtensionRegistry`, inspired by Dify's Plugin categories but using in-process SPI (much lighter than Dify's separate daemon).
+
+- All pluggable extensions (tools / Agent strategies / model providers / data sources / endpoints) implement the interface and auto-register via Spring `@Component`
+- Runtime enumeration / retrieval / enable / disable
+
+### 19. 🎯 Agent Evaluation Framework
+
+**Pain Point**: Agent quality cannot be quantified; Prompt/tool adjustments lack regression protection.
+
+**Solution**: `AgentEvaluator` (LLM-as-judge) scores the Agent multi-dimensionally against a Golden QA set:
+
+- **Correctness**: whether the answer is accurate
+- **Groundedness**: whether the answer is well-grounded
+- **Completeness**: whether key information points are covered
+- **Tool call accuracy**: whether expected tools were invoked
+
+**Golden QA format** (`eval/golden-qa-template.json`):
+
+```json
+[
+  {
+    "question": "What does error code E001 mean?",
+    "expectedKeywords": [
+      "fault code",
+      "E001"
+    ],
+    "expectedToolCalls": [
+      "searchKnowledgeBase"
+    ]
+  }
+]
+```
+
+### 20. 📚 Parent-Child Chunk Retrieval
+
+**Pain Point**: Small chunks give high retrieval precision but incomplete context; large chunks give complete context but lower precision.
+
+**Solution**: Two-level chunking — child chunks for precise vector retrieval, parent chunks for complete context:
+
+- `vector_store` gains `parent_id` (points to parent chunk) and `chunk_level` (PARENT / CHILD) columns
+- Retrieval uses CHILD chunks for precise vector similarity matching
+- Backfilling resolves the PARENT chunk via `parent_id` and returns the complete context to the LLM
+
+See `.sql/pgsql/20260808/parent_child_index.sql`.
+
+### 21. 🧠 Memory Summary Service
+
+**Pain Point**: Very long conversations overflow the context window and consume excessive tokens.
+
+**Solution**: `MemorySummaryService` compresses the oldest rounds with LLM into a summary when history exceeds `ai.chat.summary.threshold-rounds`, keeping the most recent N rounds intact.
+
+- Falls back to the original history on summary failure (no information loss)
+- Complements the three-layer compression memory (SmartChatMemory) for DB-history loading scenarios
+
 ---
 
 ## 📝 Pending Features
@@ -1038,12 +1186,53 @@ Exposed to the main Agent via 3 tools, with LLM-driven autonomous decisions:
 - [√] Streaming Q&A support (SSE + Token usage tracking)
 - [√] API authentication interceptor
 - [√] Document vector matching recommendations
+- [√] Advanced Agent framework (multi-mode: SINGLE_SHOT / AGENTIC / PLAN_AND_ACT)
+- [√] Guardrails system (input/output guardrails + PII redaction)
+- [√] MCP client framework (SSE + Streamable HTTP with reconnection)
+- [√] Tool management system (registry / groups / domain & role permissions)
+- [√] Prompt version management (version + content hash + canary release)
+- [√] Plugin / Extension system (ExtensionRegistry)
+- [√] Agent evaluation framework (Golden QA + LLM-as-judge multi-dimensional scoring)
+- [√] Parent-Child chunk retrieval
+- [√] Memory Summary service
 - [ ] Business data MCP tools (on-demand extensions for order queries, user info, and other database interactions)
 - [ ] Dynamic SQL generation MCP (natural language → SQL queries)
 
 ---
 
 ## 📋 Changelog
+
+### v1.3.0 (2026-08-13) — Advanced Agent Framework & Tool Management System
+
+#### 🚀 New Features
+
+- **Advanced Agent Framework**: multi-mode agent execution (`SINGLE_SHOT` / `AGENTIC` / `PLAN_AND_ACT`), including `AgentExecutor`, `AgentSession` state machine, `AgentTaskService` async task
+  management, and SSE thought-process streaming
+- **Guardrails System**: input guardrails (prompt injection detection, jailbreak filter, PII redaction, topic gate) + output guardrails (content moderation, schema validation, toxicity filter, leakage
+  detection) + tool parameter validation
+- **MCP Client Framework**: unified `AbstractMcpClient` abstraction supporting SSE and Streamable HTTP with authentication and reconnection
+- **Tool Management System**: dynamic `ToolRegistry` + `ai_tool` / `ai_tool_group` / `ai_tool_group_member` grouping + `ToolPermissionGate` domain/role permission resolution
+- **Prompt Version Management**: `PromptVersionService` with version number + SHA-256 content hash + canary release
+- **Plugin / Extension System**: `EnergyAiExtension` + `ExtensionRegistry` in-process SPI registration
+- **Agent Evaluation Framework**: `AgentEvaluator` LLM-as-judge multi-dimensional scoring on Golden QA sets
+- **Parent-Child Chunk Retrieval**: precise child-chunk retrieval + complete parent-chunk context backfilling
+- **Memory Summary Service**: `MemorySummaryService` LLM summarization for over-long history
+
+#### 🎨 New Admin Console Pages
+
+- **`agent-lab.html` Agent Lab**: task submission, SSE real-time thought process, tool inventory, credential management, health check
+- **`tool-management.html` Tool & Permission Management**: tool sync, group management, visual domain/role permission configuration
+- **`theme.css` / `common.js`**: unified theme and shared utilities (Toast / confirm dialog / prompt dialog / tool CN-name mapping)
+
+#### 📦 SQL Changes
+
+- Added `.sql/mysql/20260722/ddl_alter_group_id_to_varchar.sql`: `group_id` BIGINT → VARCHAR(64)
+- Added `.sql/mysql/20260808/ddl_agent_tables.sql`: agent session/thought/audit/prompt-version tables
+- Added `.sql/mysql/20260813/ddl_rename_tenant_to_group.sql`: `tenant_id` → `group_id`
+- Added `.sql/mysql/20260813/ddl_scope_tool_config.sql`: domain/role tool permission tables
+- Added `.sql/mysql/20260813/ddl_tool_registry.sql`: tool registry + tool group tables
+- Added `.sql/mysql/20260813/dml_role_mcp_server_groups.sql`: MCP server group role mapping data
+- Added `.sql/pgsql/20260808/parent_child_index.sql`: PGVector parent_id / chunk_level columns and indexes
 
 ### v1.1.0 (2026-06-11) — Feature Expansion & Architecture Enhancement
 

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.assistant</groupId>
+        <groupId>com.endcy</groupId>
         <artifactId>base-ai-assistant</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -231,7 +231,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.assistant</groupId>
+            <groupId>com.endcy</groupId>
             <artifactId>service-domain</artifactId>
             <version>1.0.0</version>
         </dependency>

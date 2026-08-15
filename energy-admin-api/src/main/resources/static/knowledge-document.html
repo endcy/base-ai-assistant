@@ -4,319 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>知识文档管理</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-        }
-
-        input, select, button {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-        }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-success {
-            background: #2ecc71;
-        }
-
-        .btn-success:hover {
-            background: #27ae60;
-        }
-
-        .btn-warning {
-            background: #f39c12;
-        }
-
-        .btn-warning:hover {
-            background: #d35400;
-        }
-
-        .btn-disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
-
-        .btn-disabled:hover {
-            background: #bdc3c7;
-            transform: none;
-            box-shadow: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background-color: #667eea;
-            color: white;
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background-color: #f8f9ff;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .modal-footer {
-            padding: 20px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid #eee;
-        }
-
-        .close {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .close:hover {
-            color: #ff6b6b;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .pagination-info {
-            margin: 0 15px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .pagination button {
-            padding: 8px 15px;
-            min-width: 40px;
-        }
-
-        .pagination .current-page {
-            background-color: #5a6fd8;
-            color: white;
-        }
-
-        .pagination .ellipsis {
-            background: none;
-            border: none;
-            cursor: default;
-            color: #999;
-        }
-
-        .pagination .ellipsis:hover {
-            background: none;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .page-sizer {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-left: 20px;
-        }
-
-        .page-sizer select {
-            padding: 5px 10px;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 5px;
-            color: white;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 2000;
-            display: none;
-        }
-
-        .notification.success {
-            background-color: #2ecc71;
-        }
-
-        .notification.error {
-            background-color: #e74c3c;
-        }
-
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            th, td {
-                padding: 10px;
-                font-size: 14px;
-            }
-
-            .pagination {
-                flex-direction: column;
-            }
-
-            .page-sizer {
-                margin: 10px 0;
-            }
-        }
-    </style>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="theme.css">
+    <script src="common.js"></script>
 </head>
 <body>
 <div class="container">
     <header>
+        <a href="index.html" class="back-link">← 返回主页</a>
         <h1>知识文档管理系统</h1>
         <p>管理您的知识文档内容</p>
     </header>
@@ -326,10 +21,7 @@
             <input type="text" id="searchInput" placeholder="搜索标题...">
             <button onclick="searchDocuments()">搜索</button>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-warning" onclick="window.location.href='batch-import.html'">批量导入</button>
-            <button class="btn-success" onclick="openCreateModal()">新增文档</button>
-        </div>
+        <button class="btn-success" onclick="openCreateModal()">新增文档</button>
     </div>
 
     <table id="documentsTable">
@@ -390,7 +82,7 @@
             </div>
             <div class="form-group">
                 <label for="groupId">组ID</label>
-                <input type="number" id="groupId">
+                <input type="text" id="groupId">
             </div>
             <div class="form-group">
                 <label>
@@ -657,7 +349,7 @@
             sourceType: document.getElementById('sourceType').value,
             sourcePath: document.getElementById('sourcePath').value,
             groupId: document.getElementById('groupId').value ?
-                parseInt(document.getElementById('groupId').value) : null,
+                document.getElementById('groupId').value : null,
             enablePublic: document.getElementById('enablePublic').checked,
             enabled: document.getElementById('enabled').checked
         };
@@ -690,8 +382,8 @@
     }
 
     // 删除文档
-    function deleteDocument(id) {
-        if (!confirm('确定要删除这个文档吗？')) {
+    async function deleteDocument(id) {
+        if (!await confirmDialog('确定要删除这个文档吗？', '删除确认')) {
             return;
         }
 

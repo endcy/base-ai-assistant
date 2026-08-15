@@ -16,6 +16,21 @@
 - **Manus 超级 Agent**：具备自主规划能力的编排型智能体，可拆解复杂任务为多步执行
 - **SubAgent 子代理**：拥有独立对话记忆的子智能体，处理复杂任务时隔离上下文，不污染主对话
 
+### 高级智能体框架（多模式）
+
+- **多模式执行**：`AgentMode` 枚举支持 `SINGLE_SHOT`（单次 RAG）、`AGENTIC`（ReAct 循环）、`PLAN_AND_ACT`（先规划后执行）三种模式
+- **会话状态机**：`AgentSession` / `AgentStateMachine` 管理 INITIALIZED → RUNNING → COMPLETED / FAILED / TERMINATED_BY_BUDGET / TERMINATED_BY_USER 生命周期
+- **异步任务管理**：`AgentTaskService` 支持任务提交、状态查询、取消
+- **思考过程持久化**：`AgentEventPublisher` SSE 流式发布思考过程、工具调用事件
+- **规划与反思**：`PlanningAgent` / `ReflectionAgent` 支持多步规划与逐步反思
+
+### Guardrails 护栏系统
+
+- **输入护栏**：提示注入检测、越狱过滤、PII 脱敏（默认启用）、话题门控
+- **输出护栏**：内容审核、Schema 校验、毒性过滤、系统提示词泄露检测
+- **工具参数校验**：`ToolValidator` 调用前校验参数合法性
+- **护栏包装**：`GuardedToolCallback` / `GuardedToolFactory` 将护栏包装到工具回调
+
 ### 混合 RAG 检索增强
 
 - **多路召回**：支持本地内存向量库、PGVector 向量库、BM25 关键词检索、阿里云百炼云知识库四路并行召回
@@ -51,6 +66,28 @@
 - **智能三层压缩**：摘要压缩 → Assistant 裁剪 → 滑动窗口，递进式控制上下文长度
 - **文件持久化**：对话记忆支持 Kryo 序列化持久化到本地文件
 - **多轮上下文**：RAG 模式下正确传递历史对话，保证多轮连贯性
+- **Memory Summary 服务**：`MemorySummaryService` 超长历史 LLM 摘要压缩，摘要失败自动降级
+
+### 工具管理系统
+
+- **工具注册表**：`ToolRegistry` 启动时自动同步 `@Tool` 方法与 MCP 工具
+- **工具组**：MCP 自动组（只读）+ CUSTOM 自定义组（可编辑成员）
+- **权限解析**：`ToolPermissionGate` 按领域类型 / 用户角色动态解析工具权限
+- **工具中文名**：运行时维护工具中文名映射
+
+### Prompt 版本管理
+
+- **版本号 + 内容哈希**：`PromptVersionService` 维护版本号与 SHA-256 内容哈希
+- **金丝雀发布**：canary percentage 控制新旧版本流量比例
+
+### 插件 / 扩展系统
+
+- **扩展点接口**：`EnergyAiExtension` 定义可插拔扩展（工具 / Agent 策略 / 模型提供方 / 数据源 / 端点）
+- **注册中心**：`ExtensionRegistry` 运行时枚举 / 获取 / 启用 / 禁用
+
+### Agent 评估框架
+
+- **LLM-as-judge**：`AgentEvaluator` 基于 Golden QA 集多维度评分（正确性 / groundedness / 完整性 / 工具调用准确率）
 
 ### 中文文档处理
 
@@ -64,7 +101,7 @@
 |----------------------|-------------------------|
 | energy-ai-repository | 数据持久化（MySQL + PGVector） |
 | energy-ai-mcp        | MCP 工具定义与发现             |
-| energy-ai-rpc        | RPC 接口契约与 DTO 定义        |
+| ces-ai-rpc           | RPC 接口契约与 DTO 定义        |
 | service-common       | 通用配置、工具类、中间件集成          |
 | service-domain       | 领域模型、枚举、DTO 定义          |
 

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.assistant</groupId>
+        <groupId>com.endcy</groupId>
         <artifactId>base-ai-assistant</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -22,20 +22,21 @@
     </properties>
 
     <dependencies>
+
         <dependency>
-            <groupId>com.assistant</groupId>
+            <groupId>com.endcy</groupId>
             <artifactId>energy-ai-repository</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>
-            <groupId>com.assistant</groupId>
+            <groupId>com.endcy</groupId>
             <artifactId>energy-ai-mcp</artifactId>
             <version>1.0.0</version>
         </dependency>
         <dependency>
-            <groupId>com.assistant</groupId>
-            <artifactId>energy-ai-rpc</artifactId>
-            <version>1.0.0</version>
+            <groupId>com.endcy</groupId>
+            <artifactId>ces-ai-rpc</artifactId>
+            <version>${energy-api-rpc.version}</version>
         </dependency>
 
         <!-- ces-job-core -->
@@ -62,11 +63,13 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
         </dependency>
-<!--        <dependency>-->
+
+        <!--        <dependency>-->
 <!--            <groupId>org.springframework.ai</groupId>-->
 <!--            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>-->
 <!--            <version>1.1.0-M4</version>-->
 <!--        </dependency>-->
+
         <!-- https://docs.spring.io/spring-ai/reference/api/chat/ollama-chat.html -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
@@ -104,7 +107,6 @@
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-generator</artifactId>
-            <version>4.38.0</version>
         </dependency>
         <!-- 支持文件会话记忆持久化的序列化 -->
         <dependency>
@@ -143,6 +145,12 @@
             <groupId>com.tencentcloudapi</groupId>
             <artifactId>tencentcloud-sdk-java-common</artifactId>
             <version>${tencentcloud-sdk.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.tencentcloudapi</groupId>
@@ -150,6 +158,36 @@
             <version>${tencentcloud-sdk.version}</version>
         </dependency>
 
+        <!-- 阿里云 OSS 对象存储 -->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.17.4</version>
+        </dependency>
+        <!-- EasyExcel 生成 Excel 文件 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.3.4</version>
+        </dependency>
+
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- 跳过单元测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
