@@ -8,7 +8,7 @@
 
 <div align="center">
 
-**An Enterprise-Grade RAG Intelligent Assistant Development Framework Built on Spring AI + Spring AI Alibaba**
+**An Enterprise-Grade RAG/AGENTIC Intelligent Assistant Development Framework Built on Spring AI + Spring AI Alibaba**
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -1235,7 +1235,7 @@ See `.sql/pgsql/20260808/parent_child_index.sql`.
 
 ## 📋 Changelog
 
-### v1.3.0 (2026-08-13) — Advanced Agent Framework & Tool Management System
+### v1.3.0 (2026-08-13) — Advanced Agent Framework & Tool Management System (Epic update verified in production environment)
 
 #### 🚀 New Features
 

@@ -8,7 +8,7 @@
 
 <div align="center">
 
-**基于 Spring AI + Spring AI Alibaba 的企业级 RAG 智能助手开发框架**
+**基于 Spring AI + Spring AI Alibaba 的企业级 RAG/高级智能体 智能助手开发框架**
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -1357,7 +1357,7 @@ SubAgent-2 ────┘
 
 ## 📋 更新日志
 
-### v1.3.0 (2026-08-13) — 高级 Agent 框架与工具管理系统
+### v1.3.0 (2026-08-13) — 高级 Agent 框架与工具管理系统 (已投产验证的史诗级更新)
 
 #### 🚀 新功能
 
