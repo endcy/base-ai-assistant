@@ -19,6 +19,10 @@ public class MybatisPlusFillHandler implements MetaObjectHandler {
         if (metaObject.hasSetter("updateTime")) {
             setFieldValByName("updateTime", currentTime, metaObject);
         }
+        // 业务日期字段（如 ai_token_usage.request_date 为 NOT NULL 无默认值，插入时必须填充）
+        if (metaObject.hasSetter("requestDate") && ObjectUtil.isNull(metaObject.getValue("requestDate"))) {
+            setFieldValByName("requestDate", currentTime, metaObject);
+        }
     }
 
     @Override

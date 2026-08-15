@@ -24,6 +24,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 文档导入工具类
@@ -44,11 +45,11 @@ public class DocumentImportHelper {
     // 支持的文档扩展名
     private static final Set<String> SUPPORTED_EXTENSIONS = new HashSet<>(Arrays.asList("md", "markdown", "txt", "text"));
 
-    // 从数据库加载的分类映射（运行时缓存）
-    private final Map<String, String> scopeTypeCodeMap = new HashMap<>();  // keyword -> code
-    private final Map<String, String> scopeTypeNameMap = new HashMap<>();  // keyword -> name
-    private final Map<String, String> businessTypeCodeMap = new HashMap<>(); // keyword -> code
-    private final Map<String, String> businessTypeNameMap = new HashMap<>(); // keyword -> name
+    // 从数据库加载的分类映射（运行时缓存；可能被导入线程读取、刷新线程重建，使用并发安全容器）
+    private final Map<String, String> scopeTypeCodeMap = new ConcurrentHashMap<>();  // keyword -> code
+    private final Map<String, String> scopeTypeNameMap = new ConcurrentHashMap<>();  // keyword -> name
+    private final Map<String, String> businessTypeCodeMap = new ConcurrentHashMap<>(); // keyword -> code
+    private final Map<String, String> businessTypeNameMap = new ConcurrentHashMap<>(); // keyword -> name
 
     /**
      * 初始化时加载分类配置
@@ -125,10 +126,15 @@ public class DocumentImportHelper {
     }
 
     /**
-     * 手动刷新分类映射（用于配置变更后）
+     * 手动刷新分类映射（用于配置变更后）。
+     * 刷新前先清空旧映射，避免已删除的分类残留累积。
      */
     public void refreshCategoryMappings() {
         log.info("手动刷新分类映射...");
+        scopeTypeCodeMap.clear();
+        scopeTypeNameMap.clear();
+        businessTypeCodeMap.clear();
+        businessTypeNameMap.clear();
         loadCategoryMappings();
     }
 

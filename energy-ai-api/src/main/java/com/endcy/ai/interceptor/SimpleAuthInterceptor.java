@@ -22,7 +22,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class SimpleAuthInterceptor implements HandlerInterceptor {
 
-    @Value("${ai.service.client.access-token:123456abc}")
+    @Value("${ai.service.client.access-token:}")
     private String SIMPLE_AUTH_KEY;
 
     private static final String ERROR_TIPS = "Authorization not valid!";
@@ -35,12 +35,22 @@ public class SimpleAuthInterceptor implements HandlerInterceptor {
             token = StrUtil.trimToEmpty(request.getParameter("token"));
         }
         if (log.isDebugEnabled()) {
-            log.debug("--- SimpleAuthInterceptor token[{}] ---", token);
+            log.debug("--- SimpleAuthInterceptor token[{}] ---", maskToken(token));
         }
         if (StrUtil.isBlank(token) || !SIMPLE_AUTH_KEY.equals(token)) {
             throw new AuthException(ERROR_TIPS);
         }
 
         return true;
+    }
+
+    /**
+     * 对 token 做掩码处理，避免敏感信息明文落入日志。
+     */
+    private String maskToken(String token) {
+        if (StrUtil.isBlank(token) || token.length() <= 8) {
+            return "***";
+        }
+        return token.substring(0, 4) + "****" + token.substring(token.length() - 4);
     }
 }

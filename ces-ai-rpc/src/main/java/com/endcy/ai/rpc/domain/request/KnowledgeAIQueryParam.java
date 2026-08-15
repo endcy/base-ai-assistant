@@ -24,10 +24,11 @@ public class KnowledgeAIQueryParam extends BaseAiRequest {
 
     /**
      * 查询类型 1=知识库问答 2=领域知识问答 3=DeepSeek在线搜索
+     * <p>默认 DOMAIN(2)：调用方不传时避免拆箱 NPE，走领域知识问答链路。</p>
      *
      * @see com.endcy.ai.rpc.enums.ApiQaType
      */
-    private Integer queryType;
+    private Integer queryType = 2;
 
     private List<MediaAttachment> mediaList;
 }

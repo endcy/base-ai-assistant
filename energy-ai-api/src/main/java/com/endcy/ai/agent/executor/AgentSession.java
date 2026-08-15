@@ -151,9 +151,13 @@ public class AgentSession {
         this.totalCompletionTokens += completionTokens;
     }
 
+    /**
+     * 记录一步思考轨迹。
+     * <p>注意：步数由执行器循环统一通过 {@link #setCurrentStep(int)} 管理，
+     * 此处不再自增 currentStep，避免双重递增导致持久化步数偏大。</p>
+     */
     public void recordThought(AgentThought thought) {
         this.thoughts.add(thought);
-        this.currentStep++;
     }
 
     // ---- Inner class ----

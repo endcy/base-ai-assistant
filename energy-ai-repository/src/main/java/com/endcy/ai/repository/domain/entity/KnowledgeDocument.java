@@ -24,6 +24,11 @@ public class KnowledgeDocument implements Serializable {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    /**
+     * 业务系统知识库文档 id（外部文档标识，与 group_id 组成唯一键 uk_document_group_doc_id）
+     */
+    private Long docId;
+
     private String scopeType;
 
     private String businessType;

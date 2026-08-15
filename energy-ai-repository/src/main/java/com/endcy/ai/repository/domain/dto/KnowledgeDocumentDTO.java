@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,6 +38,13 @@ public class KnowledgeDocumentDTO implements Serializable {
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
+
+    /**
+     * 业务系统知识库文档 id（外部文档标识，与 groupId 组成唯一键）
+     */
+    @NotNull
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long docId;
 
     /**
      * 知识领域类型

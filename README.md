@@ -69,23 +69,56 @@
 1. 启动 energy-ai-api 工程
 2. 启动 energy-admin-api 工程后访问：http://localhost:9050/index.html
 
+**🏠 基础演示主页**
+
 <div align="center">
-<table>
-<tr>
-<td align="center">
-<b>基础演示主页</b><br/>
-<img src="./.assets/img_1.png" width="300" alt="基础演示主页"/>
-</td>
-<td align="center">
-<b>文档内容管理</b><br/>
-<img src="./.assets/img_2.png" width="300" alt="文档内容管理"/>
-</td>
-<td align="center">
-<b>接口调用验证</b><br/>
-<img src="./.assets/img_3.png" width="300" alt="接口调用"/>
-</td>
-</tr>
-</table>
+<img src="./.assets/img_1.png" width="800" alt="基础演示主页"/>
+</div>
+
+**📄 文档内容管理**
+
+<div align="center">
+<img src="./.assets/img_2.png" width="800" alt="文档内容管理"/>
+</div>
+
+**🔌 接口调用验证**
+
+<div align="center">
+<img src="./.assets/img_3.png" width="800" alt="接口调用"/>
+</div>
+
+**🛠️ 工具管理（工具列表 / 工具分组 / 权限配置）**
+
+<div align="center">
+<img src="./.assets/img_4.png" width="800" alt="工具列表"/>
+
+<img src="./.assets/img_5.png" width="800" alt="工具组合"/>
+
+<img src="./.assets/img_6.png" width="800" alt="工具权限设置"/>
+</div>
+
+**💬 对话历史**
+
+<div align="center">
+<img src="./.assets/img_7.png" width="800" alt="对话记录"/>
+</div>
+
+**🤖 智能体调用入口**
+
+<div align="center">
+<img src="./.assets/img_8.png" width="800" alt="智能体验证入口"/>
+</div>
+
+**⚡ Agent SSE 流式调用**
+
+<div align="center">
+<img src="./.assets/img_9.png" width="600" alt="智能体调用"/>
+</div>
+
+**📋 Agent 任务查询**
+
+<div align="center">
+<img src="./.assets/img_10.png" width="450" alt="任务查询"/>
 </div>
 
 > **新增管理功能**：知识分类配置管理、Token 用量统计、批量文档导入
@@ -100,7 +133,7 @@
 
 **解决方案**：多路召回 + 重排序的混合检索架构
 <div align="center">
-<img src="./.assets/img_23.png" alt="RAG混合检索" width="400"/>
+<img src="./.assets/img_23.png" alt="RAG混合检索" width="360"/>
 </div>
 
 **效果对比**：
@@ -451,7 +484,7 @@ getSkipCount();     // 跳过数量（已存在）
 MCP 应用适合于 RAG 之外的数据增强，作为 AI 与外部系统的"通用接口"，实现工具标准化调用。定义 MCP 功能可以包含例如用户需要获取天气数据、获取节假日信息等等功能，也可用于类似做数据预测前的条件数据查询，如目标温度湿度等时序数据、电网定价信息等等。
 
 <div align="center">
-<img src="./.assets/img_12.png" alt="MCP 应用" width="400"/>
+<img src="./.assets/img_12.png" alt="MCP 应用" width="300"/>
 </div>
 
 **MCP 和 Tools 的关系**：
@@ -522,7 +555,7 @@ base-ai-assistant/
 配置 ai.rag 相关参数，实现自定义配置类 ChatRagProperties，设定 rag 参数，默认向量相似度 0.6，召回数为 3；自定义多条件 Filter.Expression 生成工具，支持多条件的元数据查询。
 
 <div align="center">
-<img src="./.assets/img_16.png" alt="文档召回配置" width="600"/>
+<img src="./.assets/img_16.png" alt="文档召回配置" width="430"/>
 </div>
 
 ---
@@ -542,7 +575,7 @@ base-ai-assistant/
 本地也支持类似 dify 等 rag 框架的本地文档管理，实现了工程 resources 源文件的文档库、指定目录的文档库等实现。
 
 <div align="center">
-<img src="./.assets/img_19.png" alt="本地知识库文档" width="400"/>
+<img src="./.assets/img_19.png" alt="本地知识库文档" width="453"/>
 </div>
 
 ### 数据库知识文档
@@ -570,7 +603,7 @@ base-ai-assistant/
 知识文档向量化存储，用于用户问题使用文本向量相似度检索知识文档关联性查询。
 
 <div align="center">
-<img src="./.assets/img_22.png" alt="向量存储" width="500"/>
+<img src="./.assets/img_22.png" alt="向量存储" width="610"/>
 </div>
 
 ---
@@ -1451,6 +1484,12 @@ SubAgent-2 ────┘
 ## 📄 开源协议
 
 Apache License 2.0
+
+---
+
+## 📖 部署与配置指南
+
+项目部署、必填配置、可选组件裁剪（XXL-Job / RabbitMQ / Dubbo / 远程 MCP 等）、两套 `application.properties` 详细说明，见 **[deployment-guidelines.md](./.docs/deployment-guidelines.md)**。
 
 ---
 

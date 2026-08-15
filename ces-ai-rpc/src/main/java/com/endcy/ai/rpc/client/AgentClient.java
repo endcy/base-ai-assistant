@@ -62,6 +62,9 @@ public class AgentClient {
         return ClientUtils.resolveTipsData(ret, "agent task list");
     }
 
+    /**
+     * 取消 Agent 任务（服务端为 POST /task/{taskId}/cancel，客户端必须用 POST，否则 405）
+     */
     public CommonResMsgDTO<Boolean> cancelTask(String taskId, String reason) {
         String uri = "/api/agent/task/" + taskId + "/cancel";
         if (reason != null && !reason.isEmpty()) {
@@ -71,7 +74,7 @@ public class AgentClient {
                 // UTF-8 always supported
             }
         }
-        return get(uri, Boolean.class);
+        return post(uri, null, Boolean.class);
     }
 
     public Flux<String> streamTaskEvents(String taskId) {

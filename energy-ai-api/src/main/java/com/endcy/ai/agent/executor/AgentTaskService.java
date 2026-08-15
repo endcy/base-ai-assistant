@@ -2,6 +2,7 @@ package com.endcy.ai.agent.executor;
 
 import cn.hutool.core.util.StrUtil;
 import com.endcy.ai.repository.service.AgentSessionRepository;
+import com.endcy.ai.util.CommonThreadUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class AgentTaskService {
         agentSessionRepository.createSession(taskId, chatId, null, groupId,
                 mode.name(), userQuestion);
 
-        // Asynchronous execution
+        // Asynchronous execution (use dedicated AI thread pool to avoid occupying ForkJoinPool.commonPool and dragging down all commonPool asynchronous tasks)
         CompletableFuture.runAsync(() -> {
             try {
                 String answer = agentExecutor.execute(session, userQuestion);
@@ -84,7 +85,7 @@ public class AgentTaskService {
                 CompletableFuture.runAsync(() -> agentEventPublisher.removeEventSink(taskId),
                         CompletableFuture.delayedExecutor(5, java.util.concurrent.TimeUnit.SECONDS));
             }
-        });
+        }, CommonThreadUtils.AI_TASK_EXECUTOR);
 
         log.info("提交异步任务 taskId={} mode={} chatId={}", taskId, mode, chatId);
         return taskId;

@@ -1,6 +1,7 @@
 package com.endcy.ai.advisor;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.json.JSONUtil;
 import com.endcy.ai.constant.EnergyAiConstant;
 import com.endcy.ai.domain.context.RequestRagContext;
@@ -23,16 +24,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 /**
  * 自定义日志 Advisor
  * 打印 info 级别日志、只输出单次用户提示词和 AI 回复的文本
  * 每次请求创建新实例，避免并发问题
+ * <p>
+ * 日志脱敏：用户输入/AI 回复落日志前统一做 PII 掩码（手机号/身份证）并截断长度，
+ * 避免用户隐私明文落盘。
+ * </p>
  */
 @Slf4j
 public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * 日志中文本最大保留长度，超出截断
+     */
+    private static final int LOG_TEXT_MAX_LENGTH = 500;
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("1[3-9]\\d{9}");
+    private static final Pattern ID_CARD_PATTERN = Pattern.compile("\\d{17}[\\dXx]");
 
     private final RequestRagContext requestRagContext;
 
@@ -54,16 +68,16 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
     @NotNull
     @Override
     public ChatClientResponse adviseCall(@NotNull ChatClientRequest chatClientRequest, CallAdvisorChain chain) {
-        // 在调用链开始前记录原始用户输入
+        // 在调用链开始前记录原始用户输入（脱敏+截断后落日志）
         String originalUserInput = extractOriginalUserInput(chatClientRequest);
-        log.info("User Request: {}", originalUserInput);
+        log.info("User Request: {}", sanitizeForLog(originalUserInput));
 
         ChatClientResponse response = chain.nextCall(chatClientRequest);
         ChatResponse chatResponse = response.chatResponse();
-        // 记录 AI 响应
+        // 记录 AI 响应（脱敏+截断后落日志）
         String aiResponse = chatResponse != null ?
                 chatResponse.getResult().getOutput().getText() : null;
-        log.info("AI Response: {}", aiResponse);
+        log.info("AI Response: {}", sanitizeForLog(aiResponse));
 
         // 记录 Token 用量
         logTokenUsage(chatResponse);
@@ -79,7 +93,7 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 
         for (UserMessage message : messages) {
             if (log.isDebugEnabled()) {
-                log.info(">>>>>> User Message and Rag Context: {}", message);
+                log.info(">>>>>> User Message and Rag Context: {}", sanitizeForLog(String.valueOf(message)));
             }
         }
 
@@ -151,9 +165,9 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
     @NotNull
     @Override
     public Flux<ChatClientResponse> adviseStream(@NotNull ChatClientRequest chatClientRequest, StreamAdvisorChain chain) {
-        // 类似的修复用于流式处理
+        // 类似的修复用于流式处理（脱敏+截断后落日志）
         String originalUserInput = extractOriginalUserInput(chatClientRequest);
-        log.info("User Request: {}", originalUserInput);
+        log.info("User Request: {}", sanitizeForLog(originalUserInput));
 
         Flux<ChatClientResponse> responseFlux = chain.nextStream(chatClientRequest);
 
@@ -163,9 +177,26 @@ public class PromptLoggerAdvisor implements CallAdvisor, StreamAdvisor {
         return responseFlux.doOnNext(response -> {
             if (response != null && response.chatResponse() != null) {
                 String aiResponse = response.chatResponse().getResult().getOutput().getText();
-                log.info("AI Response: {}", aiResponse);
+                log.info("AI Response: {}", sanitizeForLog(aiResponse));
                 lastResponse.set(response.chatResponse());
             }
         }).doOnComplete(() -> logTokenUsage(lastResponse.get()));
+    }
+
+    /**
+     * 日志脱敏：手机号/身份证掩码 + 超长截断，避免用户隐私明文落盘。
+     */
+    private String sanitizeForLog(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        String sanitized = PHONE_PATTERN.matcher(text).replaceAll(m ->
+                DesensitizedUtil.mobilePhone(m.group()));
+        sanitized = ID_CARD_PATTERN.matcher(sanitized).replaceAll(m ->
+                DesensitizedUtil.idCardNum(m.group(), 6, 2));
+        if (sanitized.length() > LOG_TEXT_MAX_LENGTH) {
+            sanitized = sanitized.substring(0, LOG_TEXT_MAX_LENGTH) + "...[truncated]";
+        }
+        return sanitized;
     }
 }

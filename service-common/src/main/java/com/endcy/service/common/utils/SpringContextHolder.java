@@ -18,8 +18,11 @@ import java.util.List;
 public class SpringContextHolder implements ApplicationContextAware, DisposableBean {
 
     private static final List<CallBack> CALL_BACKS = new ArrayList<>();
-    private static ApplicationContext applicationContext = null;
-    private static boolean addCallback = true;
+    /**
+     * volatile 保证容器刷新线程写入后对所有读取线程立即可见
+     */
+    private static volatile ApplicationContext applicationContext = null;
+    private static volatile boolean addCallback = true;
 
     /**
      * 针对 某些初始化方法，在SpringContextHolder 未初始化时 提交回调方法。

@@ -1,6 +1,5 @@
 package com.endcy.ai.advisor.retriever;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.endcy.ai.config.ChatRagProperties;
 import com.endcy.ai.repository.domain.context.DocumentQueryContext;
@@ -18,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 基础检索器抽象类
@@ -32,14 +32,11 @@ public abstract class BaseDocumentRetriever implements DocumentRetriever {
     protected final ChatRagProperties chatRagProperties;
 
     public List<Document> retrieve(@NotNull List<Query> query) {
-        // 查询拓展 顺序执行
-        List<Document> results = CollUtil.newArrayList();
-        query.parallelStream().forEach(item -> {
-            if (item != null && StrUtil.isNotBlank(item.text())) {
-                results.addAll(retrieve(item));
-            }
-        });
-        return results;
+        // 查询拓展 多路并行检索；用 collect 归集结果，避免向普通 ArrayList 并发 add 产生竞态
+        return query.parallelStream()
+                    .filter(item -> item != null && StrUtil.isNotBlank(item.text()))
+                    .flatMap(item -> retrieve(item).stream())
+                    .collect(Collectors.toList());
     }
 
     protected Filter.Expression computeRequestFilterExpression(Query query, String filterExpressionKey) {

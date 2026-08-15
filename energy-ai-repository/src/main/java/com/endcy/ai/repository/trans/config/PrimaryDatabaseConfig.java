@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -91,5 +92,16 @@ public class PrimaryDatabaseConfig {
     @Primary
     public PlatformTransactionManager transactionManager(@Qualifier("dataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
+    }
+
+    /**
+     * MySQL 主库 JdbcTemplate。
+     * <p>标记 @Primary 作为无限定符注入时的默认 JdbcTemplate（业务表大多在 MySQL），
+     * 避免误注入 PostgreSQL 模板导致查 MySQL 表报错；PG 专用场景请注入 {@code @Qualifier("pgSqlTemplate")}。</p>
+     */
+    @Bean
+    @Primary
+    public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 }

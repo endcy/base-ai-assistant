@@ -26,8 +26,8 @@ public enum PromptTemplateKey {
     RAG_EMPTY("rag-empty", ""),
     RAG_RECOMMEND_QUESTION("rag-recommend-question", EnergyAiConstant.PROMPT_RAG_RECOMMEND_QUESTION_TEMPLATE),
     RAG_RECOMMEND_ANSWER("rag-recommend-answer", EnergyAiConstant.PROMPT_RAG_RECOMMEND_ANSWER_TEMPLATE),
-    MEDIA_ANALYSIS_SYSTEM("media-analysis-system", EnergyAiConstant.SYSTEM_PROMPT),
-    MEDIA_ANALYSIS_USER("media-analysis-user", "");
+    MEDIA_ANALYSIS_SYSTEM("media-analysis-system", EnergyAiConstant.MEDIA_ANALYSIS_SYSTEM_PROMPT),
+    MEDIA_ANALYSIS_USER("media-analysis-user", EnergyAiConstant.MEDIA_ANALYSIS_USER_PROMPT);
 
     /**
      * File name under classpath:/prompts/ (without extension)

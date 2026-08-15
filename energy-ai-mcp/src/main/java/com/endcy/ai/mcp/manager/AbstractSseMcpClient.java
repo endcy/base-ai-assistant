@@ -63,80 +63,81 @@ public abstract class AbstractSseMcpClient {
             sseConn.setConnectTimeout(10_000);
             sseConn.setReadTimeout(getTimeoutSeconds() * 1000);
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(sseConn.getInputStream()));
+            // reader 用 try-with-resources 确保流资源释放（disconnect 不会关闭输入流）
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(sseConn.getInputStream()))) {
 
-            // 2. Read first frame: event:endpoint / data:<messageUrl>
-            String messageUrl = null;
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data:") && line.contains("message")) {
-                    messageUrl = line.substring(5).trim();
-                    break;
+                // 2. Read first frame: event:endpoint / data:<messageUrl>
+                String messageUrl = null;
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("data:") && line.contains("message")) {
+                        messageUrl = line.substring(5).trim();
+                        break;
+                    }
                 }
-            }
-            if (messageUrl == null) {
-                throw new RuntimeException("SSE handshake did not receive endpoint event");
-            }
-            String fullMessageUrl = resolveBaseUrl(getEndpoint()) + messageUrl;
-            log.debug("SSE handshake successful, messageUrl={}", fullMessageUrl);
-
-            // 3. Prepare to await SSE response
-            AtomicReference<String> resultRef = new AtomicReference<>();
-            CountDownLatch latch = new CountDownLatch(1);
-
-            // 4. Separate thread sends POST tools/call
-            Thread postThread = new Thread(() -> {
-                try {
-                    Thread.sleep(300); // Ensure SSE reader is ready
-                    Map<String, Object> body = new HashMap<>();
-                    body.put("jsonrpc", "2.0");
-                    body.put("id", 1);
-                    body.put("method", "tools/call");
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("name", toolName);
-                    params.put("arguments", arguments != null ? arguments : new HashMap<>());
-                    body.put("params", params);
-
-                    HttpRequest postReq = HttpRequest.newBuilder()
-                                                     .uri(URI.create(fullMessageUrl))
-                                                     .timeout(Duration.ofSeconds(getTimeoutSeconds()))
-                                                     .header("Content-Type", "application/json")
-                                                     .header("Authorization", "Bearer " + getApiKey())
-                                                     .POST(HttpRequest.BodyPublishers.ofString(JSON.toJSONString(body)))
-                                                     .build();
-                    httpClient.send(postReq, HttpResponse.BodyHandlers.discarding());
-                } catch (Exception e) {
-                    log.warn("SSE POST exception: {}", e.getMessage());
-                    latch.countDown();
+                if (messageUrl == null) {
+                    throw new RuntimeException("SSE handshake did not receive endpoint event");
                 }
-            });
-            postThread.setDaemon(true);
-            postThread.start();
+                String fullMessageUrl = resolveBaseUrl(getEndpoint()) + messageUrl;
+                log.debug("SSE handshake successful, messageUrl={}", fullMessageUrl);
 
-            // 5. Main thread continues reading SSE stream, awaits JSON-RPC response (with "result")
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("data:") && line.contains("\"result\"")) {
-                    resultRef.set(line.substring(5).trim());
-                    latch.countDown();
-                    break;
+                // 3. Prepare to await SSE response
+                AtomicReference<String> resultRef = new AtomicReference<>();
+                CountDownLatch latch = new CountDownLatch(1);
+
+                // 4. Separate thread sends POST tools/call（reader 已阻塞在 readLine 上，无需 sleep 等待）
+                Thread postThread = new Thread(() -> {
+                    try {
+                        Map<String, Object> body = new HashMap<>();
+                        body.put("jsonrpc", "2.0");
+                        body.put("id", 1);
+                        body.put("method", "tools/call");
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("name", toolName);
+                        params.put("arguments", arguments != null ? arguments : new HashMap<>());
+                        body.put("params", params);
+
+                        HttpRequest postReq = HttpRequest.newBuilder()
+                                                         .uri(URI.create(fullMessageUrl))
+                                                         .timeout(Duration.ofSeconds(getTimeoutSeconds()))
+                                                         .header("Content-Type", "application/json")
+                                                         .header("Authorization", "Bearer " + getApiKey())
+                                                         .POST(HttpRequest.BodyPublishers.ofString(JSON.toJSONString(body)))
+                                                         .build();
+                        httpClient.send(postReq, HttpResponse.BodyHandlers.discarding());
+                    } catch (Exception e) {
+                        log.warn("SSE POST exception: {}", e.getMessage());
+                        latch.countDown();
+                    }
+                });
+                postThread.setDaemon(true);
+                postThread.start();
+
+                // 5. Main thread continues reading SSE stream, awaits JSON-RPC response (with "result")
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("data:") && line.contains("\"result\"")) {
+                        resultRef.set(line.substring(5).trim());
+                        latch.countDown();
+                        break;
+                    }
                 }
-            }
 
-            // 6. Await result (SSE reader already got it, or wait for POST to complete)
-            if (!latch.await(getTimeoutSeconds(), TimeUnit.SECONDS)) {
-                throw new RuntimeException("SSE response timeout");
-            }
+                // 6. Await result (SSE reader already got it, or wait for POST to complete)
+                if (!latch.await(getTimeoutSeconds(), TimeUnit.SECONDS)) {
+                    throw new RuntimeException("SSE response timeout");
+                }
 
-            String raw = resultRef.get();
-            if (raw == null) {
-                throw new RuntimeException("SSE did not return valid result");
+                String raw = resultRef.get();
+                if (raw == null) {
+                    throw new RuntimeException("SSE did not return valid result");
+                }
+                JSONObject rpcResp = JSON.parseObject(raw);
+                if (rpcResp.containsKey("error")) {
+                    throw new RuntimeException("MCP error: " + rpcResp.getJSONObject("error"));
+                }
+                JSONObject result = rpcResp.getJSONObject("result");
+                return extractTextContent(result);
             }
-            JSONObject rpcResp = JSON.parseObject(raw);
-            if (rpcResp.containsKey("error")) {
-                throw new RuntimeException("MCP error: " + rpcResp.getJSONObject("error"));
-            }
-            JSONObject result = rpcResp.getJSONObject("result");
-            return extractTextContent(result);
         } catch (Exception e) {
             log.warn("SSE MCP callTool failed tool=[{}]: {}", toolName, e.getMessage());
             throw new RuntimeException("SSE MCP call failed [" + toolName + "]: " + e.getMessage(), e);

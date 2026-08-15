@@ -68,23 +68,56 @@ applications — all fully extensible to your needs.
 1. Start the `energy-ai-api` project
 2. Start the `energy-admin-api` project and visit: http://localhost:9050/index.html
 
+**🏠 Basic Demo Homepage**
+
 <div align="center">
-<table>
-<tr>
-<td align="center">
-<b>Basic Demo Homepage</b><br/>
-<img src="./.assets/img_1.png" width="300" alt="Basic Demo Homepage"/>
-</td>
-<td align="center">
-<b>Document Content Management</b><br/>
-<img src="./.assets/img_2.png" width="300" alt="Document Content Management"/>
-</td>
-<td align="center">
-<b>API Call Verification</b><br/>
-<img src="./.assets/img_3.png" width="300" alt="API Call"/>
-</td>
-</tr>
-</table>
+<img src="./.assets/img_1.png" width="800" alt="Basic Demo Homepage"/>
+</div>
+
+**📄 Document Content Management**
+
+<div align="center">
+<img src="./.assets/img_2.png" width="800" alt="Document Content Management"/>
+</div>
+
+**🔌 API Call Verification**
+
+<div align="center">
+<img src="./.assets/img_3.png" width="800" alt="API Call"/>
+</div>
+
+**🛠️ Tool Management (Tool List / Tool Groups / Permission Configuration)**
+
+<div align="center">
+<img src="./.assets/img_4.png" width="800" alt="Tool List"/>
+
+<img src="./.assets/img_5.png" width="800" alt="Tool Groups"/>
+
+<img src="./.assets/img_6.png" width="800" alt="Tool Permissions"/>
+</div>
+
+**💬 Conversation History**
+
+<div align="center">
+<img src="./.assets/img_7.png" width="800" alt="Conversation Records"/>
+</div>
+
+**🤖 Agent Invocation Entry**
+
+<div align="center">
+<img src="./.assets/img_8.png" width="800" alt="Agent Verification Entry"/>
+</div>
+
+**⚡ Agent SSE Streaming Call**
+
+<div align="center">
+<img src="./.assets/img_9.png" width="600" alt="Agent Invocation"/>
+</div>
+
+**📋 Agent Task Query**
+
+<div align="center">
+<img src="./.assets/img_10.png" width="450" alt="Task Query"/>
 </div>
 
 > **New Admin Features**: Knowledge category configuration management, Token usage statistics, batch document import
@@ -99,7 +132,7 @@ applications — all fully extensible to your needs.
 
 **Solution**: Multi-path retrieval + reranking hybrid retrieval architecture
 <div align="center">
-<img src="./.assets/img_23.png" alt="RAG Hybrid Retrieval" width="400"/>
+<img src="./.assets/img_23.png" alt="RAG Hybrid Retrieval" width="360"/>
 </div>
 
 **Performance Comparison**:
@@ -392,7 +425,7 @@ weather data retrieval, holiday information queries, and more. They can also be 
 humidity, etc.) or grid pricing information.
 
 <div align="center">
-<img src="./.assets/img_12.png" alt="MCP Application" width="400"/>
+<img src="./.assets/img_12.png" alt="MCP Application" width="300"/>
 </div>
 
 **Relationship Between MCP and Tools**:
@@ -469,7 +502,7 @@ Configure `ai.rag` parameters via a custom configuration class `ChatRagPropertie
 multi-condition `Filter.Expression` builder supporting multi-criteria metadata queries.
 
 <div align="center">
-<img src="./.assets/img_16.png" alt="Document Retrieval Configuration" width="600"/>
+<img src="./.assets/img_16.png" alt="Document Retrieval Configuration" width="430"/>
 </div>
 
 ---
@@ -490,7 +523,7 @@ library requires dedicated personnel to convert knowledge content into files and
 Local document management similar to Dify and other RAG frameworks is also supported, with implementations for `resources` source file libraries and specified directory document libraries.
 
 <div align="center">
-<img src="./.assets/img_19.png" alt="Local Knowledge Base Documents" width="400"/>
+<img src="./.assets/img_19.png" alt="Local Knowledge Base Documents" width="453"/>
 </div>
 
 ### Database Knowledge Documents
@@ -519,7 +552,7 @@ User conversation record table: `ai_context_user_record`
 Knowledge document vectorization storage, used for text embedding similarity retrieval of knowledge document relevance when users ask questions.
 
 <div align="center">
-<img src="./.assets/img_22.png" alt="Vector Storage" width="500"/>
+<img src="./.assets/img_22.png" alt="Vector Storage" width="610"/>
 </div>
 
 ---
@@ -1306,6 +1339,13 @@ Issues and Pull Requests are welcome!
 ## 📄 License
 
 Apache License 2.0
+
+---
+
+## 📖 Deployment Guide
+
+For detailed deployment instructions, required configurations, optional component slimming (XXL-Job / RabbitMQ / Dubbo / remote MCP, etc.), and the two `application.properties` files explained, see *
+*[deployment-guidelines.md](./.docs/deployment-guidelines.md)**.
 
 ---
 

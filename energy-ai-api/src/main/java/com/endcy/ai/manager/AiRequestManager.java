@@ -6,6 +6,8 @@ import com.endcy.ai.app.EnergyAiDocumentApp;
 import com.endcy.ai.config.ChatRagProperties;
 import com.endcy.ai.constant.EnergyAiConstant;
 import com.endcy.ai.domain.context.RequestRagContext;
+import com.endcy.ai.guardrail.GuardrailResult;
+import com.endcy.ai.guardrail.InputGuardrailChain;
 import com.endcy.ai.rag.DirectTextSimilarityService;
 import com.endcy.ai.rpc.domain.base.AIStreamResponse;
 import com.endcy.ai.rpc.domain.request.KnowledgeAIQueryParam;
@@ -15,6 +17,7 @@ import com.endcy.ai.rpc.domain.response.AIAnswerRet;
 import com.endcy.ai.rpc.domain.response.RagDocumentMatchRet;
 import com.endcy.ai.rpc.domain.response.SimpleChatRet;
 import com.endcy.ai.rpc.enums.ApiQaType;
+import com.endcy.ai.rpc.enums.MessageType;
 import com.endcy.ai.util.CommonThreadUtils;
 import com.endcy.ai.util.DocumentConvertUtils;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +43,25 @@ public class AiRequestManager {
     private final EnergyAiApp energyAiApp;
     private final ChatRagProperties chatRagProperties;
     private final DirectTextSimilarityService directTextSimilarityService;
+    private final InputGuardrailChain inputGuardrailChain;
+
+    /**
+     * 输入护栏校验：被拦截时直接返回预设响应；命中 PII 脱敏时改写用户问题后放行。
+     *
+     * @return 通过返回 null；被拦截时返回预设的拦截响应文本
+     */
+    private String applyInputGuardrail(KnowledgeAIQueryParam query) {
+        GuardrailResult result = inputGuardrailChain.check(query.getQuestion(), null);
+        if (result.isBlocked()) {
+            log.warn("输入护栏拦截 chatId={}: {}", query.getChatId(), result.getReason());
+            return result.getPresetResponse();
+        }
+        if (result.isRedacted()) {
+            // 用脱敏后的问题替换原始输入，避免 PII 进入模型与日志
+            query.setQuestion(result.getRedactedContent());
+        }
+        return null;
+    }
 
     /**
      * 同步问答
@@ -50,6 +72,12 @@ public class AiRequestManager {
     public AIAnswerRet qaSync(KnowledgeAIQueryParam query) {
         RequestRagContext requestRagContext = new RequestRagContext();
         requestRagContext.setChatId(query.getChatId());
+        String guardBlocked = applyInputGuardrail(query);
+        if (guardBlocked != null) {
+            AIAnswerRet blocked = new AIAnswerRet();
+            blocked.setText(guardBlocked);
+            return blocked;
+        }
         String answer;
         if (query.getQueryType() == ApiQaType.DEEPSEEK.getCode()) {
             query.setScopeType("deepseek");
@@ -74,6 +102,15 @@ public class AiRequestManager {
     public Flux<AIStreamResponse> qaStream(KnowledgeAIQueryParam query) {
         RequestRagContext requestRagContext = new RequestRagContext();
         requestRagContext.setChatId(query.getChatId());
+        String guardBlocked = applyInputGuardrail(query);
+        if (guardBlocked != null) {
+            AIStreamResponse blockedResp = new AIStreamResponse();
+            blockedResp.setChatId(query.getChatId());
+            blockedResp.setType(MessageType.TEXT);
+            blockedResp.setData(guardBlocked);
+            blockedResp.setFinal(true);
+            return Flux.just(blockedResp);
+        }
         return Flux.defer(() -> energyAiDocumentApp.doChatRagStream(query, requestRagContext)).subscribeOn(Schedulers.boundedElastic());
     }
 
