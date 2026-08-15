@@ -36,7 +36,7 @@ public class ContextUserRecordDTO implements Serializable {
 
     private Integer userType;
 
-    private Long groupId;
+    private String groupId;
 
     /**
      * 知识领域类型

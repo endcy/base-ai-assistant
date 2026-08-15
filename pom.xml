@@ -55,7 +55,6 @@
         <easy-captcha.version>1.6.2</easy-captcha.version>
         <spring-cloud.version>2023.0.6</spring-cloud.version>
         <xxl-job.version>2.5.0</xxl-job.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
         <dubbo-spring-boot-starter.version>3.3.0</dubbo-spring-boot-starter.version>
         <tencentcloud-sdk.version>3.1.1345</tencentcloud-sdk.version>

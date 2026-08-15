@@ -33,7 +33,7 @@ public class ContextUserRecordQueryParam extends BaseQueryParam {
     private Integer userType;
 
     @Query
-    private Long groupId;
+    private String groupId;
 
     @Query
     private String scopeType;

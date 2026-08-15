@@ -141,7 +141,7 @@ public class DocumentImportHelper {
      * @return 导入结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public BatchImportResult importFromDirectory(String directoryPath, Long groupId, String defaultScopeType) {
+    public BatchImportResult importFromDirectory(String directoryPath, String groupId, String defaultScopeType) {
         BatchImportResult result = BatchImportResult.builder()
                                                     .successCount(0)
                                                     .failCount(0)
@@ -368,7 +368,7 @@ public class DocumentImportHelper {
     /**
      * 构建文档 DTO
      */
-    private KnowledgeDocumentDTO buildDocumentDTO(File file, DocumentMetadata metadata, Long groupId) {
+    private KnowledgeDocumentDTO buildDocumentDTO(File file, DocumentMetadata metadata, String groupId) {
         KnowledgeDocumentDTO dto = new KnowledgeDocumentDTO();
 
         dto.setScopeType(metadata.getScopeType());

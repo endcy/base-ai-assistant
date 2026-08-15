@@ -66,5 +66,5 @@ public interface KnowledgeDocumentService {
      * @param defaultScopeType 默认知识领域类型（如果无法从路径推断）
      * @return 导入结果：成功数量、失败数量、详细信息
      */
-    BatchImportResult batchImportFromDirectory(String directoryPath, Long groupId, String defaultScopeType);
+    BatchImportResult batchImportFromDirectory(String directoryPath, String groupId, String defaultScopeType);
 }

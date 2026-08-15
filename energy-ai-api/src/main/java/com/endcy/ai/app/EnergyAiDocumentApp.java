@@ -83,8 +83,8 @@ public class EnergyAiDocumentApp {
             params.setReReadingQuestion(rewrittenMessage);
         }
         params.setScopeType(StrUtil.blankToDefault(query.getScopeType(), "用户客服"));
-        if (toLongGroupId(query.getGroupId()) != null) {
-            params.setGroupId(toLongGroupId(query.getGroupId()));
+        if (query.getGroupId() != null) {
+            params.setGroupId(query.getGroupId());
         }
         return params;
     }
@@ -144,7 +144,7 @@ public class EnergyAiDocumentApp {
     public String deepseek(KnowledgeAIQueryParam query) {
         ContextUserRecordDTO userRecord = ContextUserRecordDTO.builder()
                                                               .chatId(query.getChatId())
-                                                              .groupId(toLongGroupId(query.getGroupId()))
+                                                              .groupId(query.getGroupId())
                                                               .scopeType(query.getScopeType())
                                                               .businessType(query.getBusinessType())
                                                               .question(query.getQuestion())
@@ -201,7 +201,7 @@ public class EnergyAiDocumentApp {
     private ContextUserRecordDTO persistUserRecord(KnowledgeAIQueryParam query, DocumentQueryContext docParams) {
         ContextUserRecordDTO record = ContextUserRecordDTO.builder()
                                                           .chatId(query.getChatId())
-                                                          .groupId(toLongGroupId(query.getGroupId()))
+                                                          .groupId(query.getGroupId())
                                                           .scopeType(query.getScopeType())
                                                           .businessType(docParams.getBusinessType())
                                                           .question(query.getQuestion())
@@ -304,17 +304,4 @@ public class EnergyAiDocumentApp {
         return response;
     }
 
-    /**
-     * Convert String groupId (RPC) to Long (DB); "-1" or non-numeric returns null.
-     */
-    private static Long toLongGroupId(String groupId) {
-        if (groupId == null || groupId.isBlank()) {
-            return null;
-        }
-        try {
-            return Long.parseLong(groupId.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
 }

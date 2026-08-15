@@ -1,6 +1,7 @@
 package com.endcy.ai.config;
 
 import cn.hutool.core.util.ArrayUtil;
+import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import com.endcy.ai.advisor.ChatClientAdvisorFactory;
 import com.endcy.ai.constant.EnergyAiConstant;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,20 @@ public class ChatClientConfig {
     @Bean("intentChatClient")
     public ChatClient intentChatClient() {
         return ChatClient.builder(dashscopeChatModel).build();
+    }
+
+    /**
+     * 多媒体分析专用 ChatClient，使用可配置的多模态模型（默认 qwen3.5-omni-flash）
+     * 复用 dashscopeChatModel，通过 DashScopeChatOptions 按需切换模型
+     */
+    @Bean("mediaAnalysisChatClient")
+    public ChatClient mediaAnalysisChatClient(ChatRagProperties chatRagProperties) {
+        DashScopeChatOptions mediaOptions = DashScopeChatOptions.builder()
+                                                                .withModel(chatRagProperties.getMediaAnalysisModel())
+                                                                .build();
+        return ChatClient.builder(dashscopeChatModel)
+                         .defaultOptions(mediaOptions)
+                         .build();
     }
 
 }

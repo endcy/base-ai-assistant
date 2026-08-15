@@ -73,7 +73,7 @@ public class DeepSeekWebSearchTool {
             // 输出json格式的字符串回包
             if (resp.isStream()) {
                 for (SSEResponseModel.SSE e : resp) {
-                    System.out.println(e.Data);
+                    log.debug("DeepSeek stream event: {}", e.Data);
                 }
             } else {
                 //log.info(AbstractModel.toJsonString(resp));

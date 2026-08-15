@@ -1,7 +1,7 @@
 package com.endcy.ai.repository.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,7 +21,6 @@ public class KnowledgeDocument implements Serializable {
     @Serial
     private static final long serialVersionUID = 699559436960646084L;
 
-    @Id
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
@@ -31,7 +30,7 @@ public class KnowledgeDocument implements Serializable {
 
     private String title;
 
-    private Long groupId;
+    private String groupId;
 
     private String content;
 

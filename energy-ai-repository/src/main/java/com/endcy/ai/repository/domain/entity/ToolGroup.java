@@ -1,5 +1,6 @@
 package com.endcy.ai.repository.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serial;

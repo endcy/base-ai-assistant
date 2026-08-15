@@ -11,7 +11,7 @@ public interface BusinessConstant {
     /**
      * 平台级groupId默认值
      */
-    Long PLATFORM_GROUP_ID = 0L;
+    String PLATFORM_GROUP_ID = "0";
 
     /**
      * 租户/分组用户元数据过滤字段名称

@@ -216,7 +216,7 @@ class VectorStoreManagerTest {
             doc.setContent("测试内容" + (startId + i));
             doc.setScopeType("test_scope");
             doc.setBusinessType("test_business");
-            doc.setGroupId(1L);
+            doc.setGroupId("1");
             doc.setLoaded(false);
             doc.setEnabled(true);
             docs.add(doc);

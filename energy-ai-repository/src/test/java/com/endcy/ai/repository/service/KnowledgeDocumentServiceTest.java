@@ -60,7 +60,7 @@ class KnowledgeDocumentServiceTest {
             dto.setContent("内容" + i);
             dto.setScopeType("test_scope");
             dto.setBusinessType("test_business");
-            dto.setGroupId(1L);
+            dto.setGroupId("1");
             dto.setLoaded(i % 2 == 0);
             dto.setEnabled(true);
             mockDtoList.add(dto);
@@ -71,7 +71,7 @@ class KnowledgeDocumentServiceTest {
             entity.setContent("内容" + i);
             entity.setScopeType("test_scope");
             entity.setBusinessType("test_business");
-            entity.setGroupId(1L);
+            entity.setGroupId("1");
             entity.setLoaded(i % 2 == 0);
             entity.setEnabled(true);
             mockEntityList.add(entity);
@@ -96,7 +96,7 @@ class KnowledgeDocumentServiceTest {
     void testQueryAll_WithPageable() {
         // 给定
         KnowledgeDocumentQueryParam query = new KnowledgeDocumentQueryParam();
-        query.setGroupId(1L);
+        query.setGroupId("1");
         Pageable pageable = PageRequest.of(0, 10);
 
         IPage<KnowledgeDocument> mockPage = mock(IPage.class);
@@ -118,7 +118,7 @@ class KnowledgeDocumentServiceTest {
     void testQueryAll_WithoutPageable() {
         // 给定
         KnowledgeDocumentQueryParam query = new KnowledgeDocumentQueryParam();
-        query.setGroupId(1L);
+        query.setGroupId("1");
 
         when(knowledgeDocumentMapper.selectList(any())).thenReturn(mockEntityList);
         when(knowledgeDocumentConverter.toDto(mockEntityList)).thenReturn(mockDtoList);

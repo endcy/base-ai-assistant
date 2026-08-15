@@ -33,7 +33,7 @@ public class KnowledgeDocumentQueryParam extends BaseQueryParam {
     private String title;
 
     @Query
-    private Long groupId;
+    private String groupId;
 
     @Query
     private String sourceType;

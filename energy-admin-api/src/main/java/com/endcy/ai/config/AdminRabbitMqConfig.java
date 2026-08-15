@@ -1,6 +1,7 @@
 package com.endcy.ai.config;
 
 import com.endcy.service.common.constant.MQConstant;
+import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

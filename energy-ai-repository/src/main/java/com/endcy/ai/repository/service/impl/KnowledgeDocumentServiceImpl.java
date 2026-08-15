@@ -125,7 +125,7 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public BatchImportResult batchImportFromDirectory(String directoryPath, Long groupId, String defaultScopeType) {
+    public BatchImportResult batchImportFromDirectory(String directoryPath, String groupId, String defaultScopeType) {
         log.info("批量导入文档：directoryPath={}, groupId={}, defaultScopeType={}", directoryPath, groupId, defaultScopeType);
         return documentImportHelper.importFromDirectory(directoryPath, groupId, defaultScopeType);
     }

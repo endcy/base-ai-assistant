@@ -100,20 +100,6 @@ public class EnergyAiApp {
     }
 
     /**
-     * Convert String groupId (RPC) to Long (DB); "-1" or non-numeric returns null.
-     */
-    private static Long toLongGroupId(String groupId) {
-        if (StrUtil.isBlank(groupId)) {
-            return null;
-        }
-        try {
-            return Long.parseLong(groupId.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    /**
      * Simple AI Q&amp;A (supports multimodal + multi-turn conversation memory).
      */
     public String simpleChat(KnowledgeAIQueryParam query, RequestRagContext requestRagContext) {
@@ -124,7 +110,7 @@ public class EnergyAiApp {
 
         ContextUserRecordDTO userRecord = ContextUserRecordDTO.builder()
                                                               .chatId(query.getChatId())
-                                                              .groupId(toLongGroupId(query.getGroupId()))
+                                                              .groupId(query.getGroupId())
                                                               .scopeType(query.getScopeType())
                                                               .question(query.getQuestion())
                                                               .mediaInfo(buildMediaInfoJson(query))
@@ -239,9 +225,8 @@ public class EnergyAiApp {
         }
         scopeType = StrUtil.blankToDefault(scopeType, "用户客服");
         documentParams.setScopeType(scopeType);
-        Long groupIdLong = toLongGroupId(groupId);
-        if (groupIdLong != null) {
-            documentParams.setGroupId(groupIdLong);
+        if (groupId != null) {
+            documentParams.setGroupId(groupId);
         }
 
         long t3 = System.currentTimeMillis();
@@ -255,7 +240,7 @@ public class EnergyAiApp {
 
         ContextUserRecordDTO userRecord = ContextUserRecordDTO.builder()
                                                               .chatId(chatId)
-                                                              .groupId(groupIdLong)
+                                                              .groupId(groupId)
                                                               .scopeType(scopeType)
                                                               .businessType(documentParams.getBusinessType())
                                                               .question(message)

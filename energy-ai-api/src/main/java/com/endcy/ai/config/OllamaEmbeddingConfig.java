@@ -24,7 +24,7 @@ import java.util.List;
  * <p>配置项（Apollo ai-common namespace 或 application.properties）:</p>
  * <pre>
  * ai.rag.enable-ollama-embedding=true
- * ai.rag.ollama-base-url=http://192.168.1.100:11434
+ * ai.rag.ollama-base-url=http://localhost:11434
  * ai.rag.ollama-embedding-model=nomic-embed-text
  * </pre>
  *

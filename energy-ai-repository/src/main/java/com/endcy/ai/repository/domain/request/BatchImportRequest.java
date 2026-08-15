@@ -23,9 +23,9 @@ public class BatchImportRequest implements Serializable {
     private String directoryPath;
 
     /**
-     * 用户分组 ID（租户 ID）
+     * 用户分组 ID（租户 ID），支持非数字的租户标识
      */
-    private Long groupId;
+    private String groupId;
 
     /**
      * 默认知识领域类型（如果无法从路径推断）

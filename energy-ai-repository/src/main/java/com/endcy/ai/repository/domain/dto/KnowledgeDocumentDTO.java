@@ -65,8 +65,7 @@ public class KnowledgeDocumentDTO implements Serializable {
     /**
      * 内容分组id，如租户id
      */
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long groupId;
+    private String groupId;
 
     /**
      * 内容

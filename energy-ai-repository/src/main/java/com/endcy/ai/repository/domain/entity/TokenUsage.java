@@ -1,7 +1,7 @@
 package com.endcy.ai.repository.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -20,7 +20,6 @@ public class TokenUsage implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Id
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 

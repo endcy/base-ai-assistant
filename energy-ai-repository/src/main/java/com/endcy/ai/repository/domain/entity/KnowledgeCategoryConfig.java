@@ -1,7 +1,7 @@
 package com.endcy.ai.repository.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -23,7 +23,6 @@ public class KnowledgeCategoryConfig implements Serializable {
     /**
      * 主键 ID
      */
-    @Id
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
