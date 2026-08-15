@@ -1,0 +1,133 @@
+package com.endcy.ai.repository.service.impl;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.BooleanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.endcy.ai.repository.domain.dto.KnowledgeDocumentDTO;
+import com.endcy.ai.repository.domain.entity.KnowledgeDocument;
+import com.endcy.ai.repository.domain.query.KnowledgeDocumentQueryParam;
+import com.endcy.ai.repository.domain.result.BatchImportResult;
+import com.endcy.ai.repository.helper.DocumentImportHelper;
+import com.endcy.ai.repository.service.KnowledgeDocumentService;
+import com.endcy.ai.repository.service.convert.KnowledgeDocumentConverter;
+import com.endcy.ai.repository.trans.mapper.KnowledgeDocumentMapper;
+import com.endcy.service.common.base.PageInfo;
+import com.endcy.service.common.utils.PageUtil;
+import com.endcy.service.common.utils.QueryHelpMybatisPlus;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+
+/**
+ * ...
+ *
+ * @author endcy
+ * @since 2025/08/04 20:55:57
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@CacheConfig(cacheNames = KnowledgeDocumentService.CACHE_KEY)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
+public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
+
+    private final KnowledgeDocumentMapper knowledgeDocumentMapper;
+    private final KnowledgeDocumentConverter knowledgeDocumentConverter;
+    private final VectorStoreServiceImpl vectorStoreService;
+    private final DocumentImportHelper documentImportHelper;
+
+    @Override
+    public List<KnowledgeDocumentDTO> getUnloadedDocuments(int page, int size) {
+        KnowledgeDocumentQueryParam query = new KnowledgeDocumentQueryParam();
+        query.setEnabled(true);
+        query.setLoaded(false);
+        QueryWrapper<KnowledgeDocument> queryWrapper = QueryHelpMybatisPlus.getPredicateSimple(query);
+        LambdaQueryWrapper<KnowledgeDocument> lambdaQueryWrapper = queryWrapper.lambda()
+                                                                               .orderByAsc(KnowledgeDocument::getId)
+                                                                               .last(" LIMIT " + (page * size) + ", " + size);
+        return knowledgeDocumentConverter.toDto(knowledgeDocumentMapper.selectList(lambdaQueryWrapper));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateDocumentEnabledStatus(List<Long> documentIds, Boolean status) {
+        if (BooleanUtil.isFalse(status)) {
+            vectorStoreService.removeByDocIds(CollUtil.newHashSet(documentIds));
+        }
+        LambdaUpdateWrapper<KnowledgeDocument> updateWrapper = Wrappers.lambdaUpdate();
+        updateWrapper.set(KnowledgeDocument::getEnabled, status)
+                     .set(!status, KnowledgeDocument::getLoaded, false)
+                     .in(KnowledgeDocument::getId, documentIds);
+        return knowledgeDocumentMapper.update(null, updateWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateDocumentLoadedStatus(List<Long> documentIds, Boolean status) {
+        LambdaUpdateWrapper<KnowledgeDocument> updateWrapper = Wrappers.lambdaUpdate();
+        updateWrapper.set(KnowledgeDocument::getLoaded, status)
+                     .in(KnowledgeDocument::getId, documentIds);
+        return knowledgeDocumentMapper.update(null, updateWrapper);
+    }
+
+    @Override
+    public PageInfo<KnowledgeDocumentDTO> queryAll(KnowledgeDocumentQueryParam query, Pageable pageable) {
+        IPage<KnowledgeDocument> queryPage = PageUtil.toMybatisPage(pageable);
+        IPage<KnowledgeDocument> page = knowledgeDocumentMapper.selectPage(queryPage, QueryHelpMybatisPlus.getPredicateSimple(query));
+        return knowledgeDocumentConverter.convertPage(page);
+    }
+
+    @Override
+    public List<KnowledgeDocumentDTO> queryAll(KnowledgeDocumentQueryParam query) {
+        return knowledgeDocumentConverter.toDto(knowledgeDocumentMapper.selectList(QueryHelpMybatisPlus.getPredicateSimple(query)));
+    }
+
+    @Override
+    public KnowledgeDocumentDTO getById(Long id) {
+        return knowledgeDocumentConverter.toDto(knowledgeDocumentMapper.selectById(id));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int insert(KnowledgeDocumentDTO res) {
+        KnowledgeDocument entity = knowledgeDocumentConverter.toEntity(res);
+        return knowledgeDocumentMapper.insert(entity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateById(KnowledgeDocumentDTO res) {
+        if (res.getId() == null) {
+            return 0;
+        }
+        res.setLoaded(false);
+        vectorStoreService.removeByDocIds(CollUtil.newHashSet(res.getId()));
+        KnowledgeDocument entity = knowledgeDocumentConverter.toEntity(res);
+        return knowledgeDocumentMapper.updateById(entity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int removeByIds(Set<Long> ids) {
+        return knowledgeDocumentMapper.deleteByIds(ids);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public BatchImportResult batchImportFromDirectory(String directoryPath, String groupId, String defaultScopeType) {
+        log.info("批量导入文档：directoryPath={}, groupId={}, defaultScopeType={}", directoryPath, groupId, defaultScopeType);
+        return documentImportHelper.importFromDirectory(directoryPath, groupId, defaultScopeType);
+    }
+
+}

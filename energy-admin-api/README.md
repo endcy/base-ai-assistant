@@ -44,6 +44,7 @@
 
 - 内置静态 HTML 页面，无需前端构建工具
 - 文档管理、分类配置、Token 统计、批量导入等可视化操作
+- 智能体实验室（Agent Lab）、工具与权限管理等高级管理界面
 - 接口调用验证页面
 
 ## 架构说明
@@ -61,6 +62,8 @@
 ## 访问地址
 
 - 管理主页：`http://localhost:9050/index.html`
+- 智能体实验室：`http://localhost:9050/agent-lab.html`
+- 工具与权限管理：`http://localhost:9050/tool-management.html`
 - 文档管理：`http://localhost:9050/knowledge-document.html`
 - 分类配置：`http://localhost:9050/knowledge-category.html`
 - Token 统计：`http://localhost:9050/token-usage.html`

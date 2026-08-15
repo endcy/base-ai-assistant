@@ -8,7 +8,7 @@
 
 <div align="center">
 
-**基于 Spring AI + Spring AI Alibaba 的企业级 RAG 智能助手开发框架**
+**基于 Spring AI + Spring AI Alibaba 的企业级 RAG/高级智能体 智能助手开发框架**
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -69,23 +69,56 @@
 1. 启动 energy-ai-api 工程
 2. 启动 energy-admin-api 工程后访问：http://localhost:9050/index.html
 
+**🏠 基础演示主页**
+
 <div align="center">
-<table>
-<tr>
-<td align="center">
-<b>基础演示主页</b><br/>
-<img src="./.assets/img_1.png" width="300" alt="基础演示主页"/>
-</td>
-<td align="center">
-<b>文档内容管理</b><br/>
-<img src="./.assets/img_2.png" width="300" alt="文档内容管理"/>
-</td>
-<td align="center">
-<b>接口调用验证</b><br/>
-<img src="./.assets/img_3.png" width="300" alt="接口调用"/>
-</td>
-</tr>
-</table>
+<img src="./.assets/img_1.png" width="800" alt="基础演示主页"/>
+</div>
+
+**📄 文档内容管理**
+
+<div align="center">
+<img src="./.assets/img_2.png" width="800" alt="文档内容管理"/>
+</div>
+
+**🔌 接口调用验证**
+
+<div align="center">
+<img src="./.assets/img_3.png" width="800" alt="接口调用"/>
+</div>
+
+**🛠️ 工具管理（工具列表 / 工具分组 / 权限配置）**
+
+<div align="center">
+<img src="./.assets/img_4.png" width="800" alt="工具列表"/>
+
+<img src="./.assets/img_5.png" width="800" alt="工具组合"/>
+
+<img src="./.assets/img_6.png" width="800" alt="工具权限设置"/>
+</div>
+
+**💬 对话历史**
+
+<div align="center">
+<img src="./.assets/img_7.png" width="800" alt="对话记录"/>
+</div>
+
+**🤖 智能体调用入口**
+
+<div align="center">
+<img src="./.assets/img_8.png" width="800" alt="智能体验证入口"/>
+</div>
+
+**⚡ Agent SSE 流式调用**
+
+<div align="center">
+<img src="./.assets/img_9.png" width="600" alt="智能体调用"/>
+</div>
+
+**📋 Agent 任务查询**
+
+<div align="center">
+<img src="./.assets/img_10.png" width="450" alt="任务查询"/>
 </div>
 
 > **新增管理功能**：知识分类配置管理、Token 用量统计、批量文档导入
@@ -100,7 +133,7 @@
 
 **解决方案**：多路召回 + 重排序的混合检索架构
 <div align="center">
-<img src="./.assets/img_23.png" alt="RAG混合检索" width="400"/>
+<img src="./.assets/img_23.png" alt="RAG混合检索" width="360"/>
 </div>
 
 **效果对比**：
@@ -451,7 +484,7 @@ getSkipCount();     // 跳过数量（已存在）
 MCP 应用适合于 RAG 之外的数据增强，作为 AI 与外部系统的"通用接口"，实现工具标准化调用。定义 MCP 功能可以包含例如用户需要获取天气数据、获取节假日信息等等功能，也可用于类似做数据预测前的条件数据查询，如目标温度湿度等时序数据、电网定价信息等等。
 
 <div align="center">
-<img src="./.assets/img_12.png" alt="MCP 应用" width="400"/>
+<img src="./.assets/img_12.png" alt="MCP 应用" width="300"/>
 </div>
 
 **MCP 和 Tools 的关系**：
@@ -498,7 +531,7 @@ base-ai-assistant/
 ├── energy-ai-api/             # 核心服务（RAG、Agent、MCP 实现）
 ├── energy-ai-mcp/             # MCP 服务定义
 ├── energy-ai-repository/      # 数据持久化（MySQL、PGVector）
-├── energy-ai-rpc/             # RPC 接口定义（Dubbo/Feign）
+├── ces-ai-rpc/                # RPC 接口定义（Dubbo/Feign，兼容 JDK 1.8）
 ├── service-common/            # 通用服务（配置、工具类）
 └── service-domain/            # 领域模型定义
 ```
@@ -522,7 +555,7 @@ base-ai-assistant/
 配置 ai.rag 相关参数，实现自定义配置类 ChatRagProperties，设定 rag 参数，默认向量相似度 0.6，召回数为 3；自定义多条件 Filter.Expression 生成工具，支持多条件的元数据查询。
 
 <div align="center">
-<img src="./.assets/img_16.png" alt="文档召回配置" width="600"/>
+<img src="./.assets/img_16.png" alt="文档召回配置" width="430"/>
 </div>
 
 ---
@@ -542,7 +575,7 @@ base-ai-assistant/
 本地也支持类似 dify 等 rag 框架的本地文档管理，实现了工程 resources 源文件的文档库、指定目录的文档库等实现。
 
 <div align="center">
-<img src="./.assets/img_19.png" alt="本地知识库文档" width="400"/>
+<img src="./.assets/img_19.png" alt="本地知识库文档" width="453"/>
 </div>
 
 ### 数据库知识文档
@@ -570,7 +603,7 @@ base-ai-assistant/
 知识文档向量化存储，用于用户问题使用文本向量相似度检索知识文档关联性查询。
 
 <div align="center">
-<img src="./.assets/img_22.png" alt="向量存储" width="500"/>
+<img src="./.assets/img_22.png" alt="向量存储" width="610"/>
 </div>
 
 ---
@@ -734,7 +767,7 @@ mvn clean package -DskipTests
 #### 方式一：IDE 直接启动（推荐开发调试）
 
 1. 确保 JDK 21 已配置
-2. 在 IDE 中运行 `AiApiApplication.main()` 启动核心 AI 服务（端口 9051）
+2. 在 IDE 中运行 `EnergyAiApplication.main()` 启动核心 AI 服务（端口 9051）
 3. 在 IDE 中运行 `AdminApiApplication.main()` 启动管理后台（端口 9050）
 
 #### 方式二：命令行启动
@@ -1139,6 +1172,154 @@ SubAgent-2 ────┘
 - `chat_with_sub_agent`：与已有 SubAgent 继续对话
 - `destroy_sub_agent`：销毁 SubAgent，释放资源
 
+### 14. 🧠 高级智能体框架（多模式 Agent）
+
+**痛点**：不同业务场景对 Agent 的自主程度要求不同——简单的 RAG 问答不需要多步推理，复杂任务又需要规划与反思。
+
+**解决方案**：统一的多模式 Agent 执行框架，通过 `AgentMode` 枚举在三种执行模式间切换：
+
+| 模式             | 说明                                                      | 适用场景             |
+|----------------|---------------------------------------------------------|------------------|
+| `SINGLE_SHOT`  | 单次 RAG 问答，无显式 think/act 循环，使用 Spring AI 内置工具执行          | 简单问答、知识库检索       |
+| `AGENTIC`      | 显式 ReAct 循环（思考 → 行动 → 观察 → 重复），支持 maxSteps、工具调用与思考过程持久化 | 需要多步推理与工具调用的复杂任务 |
+| `PLAN_AND_ACT` | 先规划、后逐步执行，每步执行后反思调整                                     | 多步骤规划型任务         |
+
+**核心组件**：
+
+- `AgentExecutor` / `DefaultAgentExecutor`：按模式分发的执行器
+- `AgentSession` / `AgentStateMachine`：会话状态机（INITIALIZED → RUNNING → COMPLETED / FAILED / TERMINATED_BY_BUDGET / TERMINATED_BY_USER）
+- `AgentTaskService`：异步任务提交、状态查询、取消
+- `ReActAgent` / `ToolCallAgent` / `PlanningAgent` / `ReflectionAgent`：各类 Agent 策略
+- `AgentEventPublisher`：思考过程、工具调用等事件的 SSE 流式发布
+- 持久化：`ai_agent_session`、`ai_agent_thought`、`ai_llm_call_audit`、`ai_tool_call_audit` 四张表
+
+**配套后台**：`agent-lab.html` 智能体实验室，支持任务提交、SSE 实时思考过程、工具清单、凭证管理与健康检查。
+
+### 15. 🛡️ Guardrails 护栏系统
+
+**痛点**：LLM 应用面临提示注入、越狱攻击、敏感信息泄露、有害内容输出等安全风险。
+
+**解决方案**：输入/输出双向护栏，按配置启用：
+
+**输入护栏（InputGuardrail）**：
+
+| 实现                        | 说明                            |
+|---------------------------|-------------------------------|
+| `PromptInjectionDetector` | 规则 + 小模型二分类，识别提示注入            |
+| `JailbreakFilter`         | 识别"忽略之前的指令"等越狱模板              |
+| `PiiRedactor`             | 手机号、身份证号、银行卡号等 PII 自动脱敏（默认启用） |
+| `TopicGate`               | 拒绝领域外无关闲聊话题                   |
+
+**输出护栏（OutputGuardrail）**：
+
+| 实现                 | 说明                |
+|--------------------|-------------------|
+| `ContentModerator` | 内容审核 API / 关键词黑名单 |
+| `SchemaValidator`  | 校验输出是否匹配预期 Schema |
+| `ToxicFilter`      | 脏话 / 仇恨言论过滤       |
+| `LeakageDetector`  | 系统提示词 / 内部表结构泄露检测 |
+
+**工具参数校验**：`ToolValidator` 在工具调用前校验参数合法性，`GuardedToolCallback` / `GuardedToolFactory` 将护栏包装到工具回调上。
+
+### 16. 🔌 MCP 客户端框架（SSE + Streamable HTTP）
+
+**痛点**：传统 SSE 连接不支持断线重连，生产环境网络抖动会导致 MCP 工具失效。
+
+**解决方案**：双模式 MCP 客户端框架，统一抽象 + 自动重连：
+
+| 模式              | 特点                 | 适用场景          |
+|-----------------|--------------------|---------------|
+| SSE             | Server-Sent Events | 传统服务暴露        |
+| Streamable HTTP | HTTP Stream        | **断线重连、生产推荐** |
+
+**核心组件**：
+
+- `McpConfig` / `McpSseClientConfig` / `McpStreamAbleConnectionsProperties`：连接配置
+- `McpClientAuthConfig` / `McpClientAuthProperties`：客户端认证（支持 Token）
+- `AbstractMcpClient` / `AbstractSseMcpClient`：统一客户端抽象
+- 内置 MCP 客户端示例：天气查询、地图、网页搜索、网页抓取、图片搜索、电价查询等
+
+### 17. 🛠️ 工具管理系统（Registry / Groups / Permissions）
+
+**痛点**：工具硬编码在代码中，新增/调整工具需要重新部署；不同角色/领域的工具权限无法动态配置。
+
+**解决方案**：工具注册、分组、权限三层管理体系：
+
+- **工具注册表（ToolRegistry）**：启动时自动同步 `@Tool` 方法与 `@McpServer` MCP 工具到 `ai_tool` 表，来源区分 CODE / MCP
+- **工具组**：`ai_tool_group` 表支持 MCP 自动组（只读，按 mcp_server 自动匹配）与 CUSTOM 自定义组（可编辑成员）
+- **权限配置**：`ai_scope_tool_config`（领域类型 → 工具组）与 `ai_role_tool_config`（用户角色 → 工具组），通过 `ToolPermissionGate` 动态解析
+- **工具中文名**：运行时维护工具中文名映射，自动取 MCP title
+
+**配套后台**：`tool-management.html` 工具与权限管理控制台，支持工具同步、工具组管理、领域/角色权限可视化配置。
+
+### 18. 📝 Prompt 版本管理
+
+**痛点**：Prompt 模板修改无版本追踪，无法回滚，也无法安全灰度。
+
+**解决方案**：`PromptVersionService` 为每个 Prompt 模板维护版本号 + 内容哈希（SHA-256），支持金丝雀发布（canary percentage 控制新旧版本流量比例）。
+
+- `PromptTemplateKey`：模板标识统一管理
+- `PromptTemplateService`：模板加载与渲染
+- 生产部署对接 `ai_prompt_version` 表持久化
+
+### 19. 🧩 插件 / 扩展系统
+
+**痛点**：新增工具、Agent 策略、模型提供方等能力需要修改核心代码。
+
+**解决方案**：`EnergyAiExtension` 扩展点接口 + `ExtensionRegistry` 注册中心，参考 Dify 的 Plugin 分类设计，但采用进程内 SPI（比 Dify 独立守护进程更轻量）。
+
+- 所有可插拔扩展（工具 / Agent 策略 / 模型提供方 / 数据源 / 端点）实现该接口，通过 Spring `@Component` 自动注册
+- 支持运行时枚举 / 获取 / 启用 / 禁用
+
+### 20. 🎯 Agent 评估框架
+
+**痛点**：Agent 效果无法量化，Prompt/工具调整缺乏回归保障。
+
+**解决方案**：`AgentEvaluator`（LLM-as-judge），基于 Golden QA 集对 Agent 进行多维度评分：
+
+- **正确性（correctness）**：回答是否准确
+- **groundedness**：回答是否有据可依
+- **完整性（completeness）**：是否覆盖关键信息点
+- **工具调用准确率**：是否按预期调用了正确工具
+
+**Golden QA 格式**（`eval/golden-qa-template.json`）：
+
+```json
+[
+  {
+    "question": "设备显示故障码E001是什么意思？",
+    "expectedKeywords": [
+      "故障码",
+      "E001"
+    ],
+    "expectedToolCalls": [
+      "searchKnowledgeBase"
+    ]
+  }
+]
+```
+
+### 21. 📚 Parent-Child 父子分块检索
+
+**痛点**：小分块检索精度高但上下文不完整，大分块上下文完整但检索精度下降。
+
+**解决方案**：双级切分，child chunk 用于精确向量检索，parent chunk 用于提供完整上下文：
+
+- `vector_store` 表新增 `parent_id`（指向 parent chunk）与 `chunk_level`（PARENT / CHILD）字段
+- 检索时用 CHILD chunk 做向量相似度精确命中
+- 回填时通过 `parent_id` 查到 PARENT chunk，把完整上下文返回给 LLM
+
+详见 `.sql/pgsql/20260808/parent_child_index.sql`。
+
+### 22. 🧠 Memory Summary 记忆摘要服务
+
+**痛点**：超长对话导致上下文窗口溢出，Token 消耗巨大。
+
+**解决方案**：`MemorySummaryService` 对话历史摘要服务，当历史消息超过阈值（`ai.chat.summary.threshold-rounds`）时，把最早若干轮用 LLM 压缩成摘要，保留最近 N 轮完整消息。
+
+- 摘要失败时自动降级返回原始历史（不丢失信息）
+- 与三层压缩记忆（SmartChatMemory）互补，面向 DB 历史加载场景
+
 ---
 
 ## 📝 待完善功能
@@ -1160,12 +1341,51 @@ SubAgent-2 ────┘
 - [√] API 认证拦截器
 - [√] 文档向量匹配推荐
 - [√] 超时治理与重试策略（自定义 HTTP 超时 + 指数退避重试，防止接口卡死）
+- [√] 高级智能体框架（多模式：SINGLE_SHOT / AGENTIC / PLAN_AND_ACT）
+- [√] Guardrails 护栏系统（输入 / 输出护栏 + PII 脱敏）
+- [√] MCP 客户端框架（SSE + Streamable HTTP，断线重连）
+- [√] 工具管理系统（注册表 / 工具组 / 领域角色权限）
+- [√] Prompt 版本管理（版本号 + 内容哈希 + 金丝雀发布）
+- [√] 插件 / 扩展系统（ExtensionRegistry）
+- [√] Agent 评估框架（Golden QA + LLM-as-judge 多维度评分）
+- [√] Parent-Child 父子分块检索
+- [√] Memory Summary 记忆摘要服务
 - [ ] 业务数据 MCP 工具（按需拓展订单查询、用户信息等数据库联动）
 - [ ] 动态 SQL 生成 MCP（自然语言→SQL 查询）
 
 ---
 
 ## 📋 更新日志
+
+### v1.3.0 (2026-08-13) — 高级 Agent 框架与工具管理系统 (已投产验证的史诗级更新)
+
+#### 🚀 新功能
+
+- **高级智能体框架**：新增多模式 Agent 执行体系（`SINGLE_SHOT` / `AGENTIC` / `PLAN_AND_ACT`），含 `AgentExecutor`、`AgentSession` 状态机、`AgentTaskService` 异步任务管理与 SSE 思考过程流式发布
+- **Guardrails 护栏系统**：输入护栏（提示注入检测、越狱过滤、PII 脱敏、话题门控）+ 输出护栏（内容审核、Schema 校验、毒性过滤、泄露检测）+ 工具参数校验
+- **MCP 客户端框架**：统一抽象 `AbstractMcpClient`，支持 SSE 与 Streamable HTTP 双模式，内置认证与断线重连
+- **工具管理系统**：`ToolRegistry` 动态注册 + `ai_tool` / `ai_tool_group` / `ai_tool_group_member` 工具组体系 + `ToolPermissionGate` 领域/角色权限动态解析
+- **Prompt 版本管理**：`PromptVersionService` 版本号 + SHA-256 内容哈希 + 金丝雀发布
+- **插件 / 扩展系统**：`EnergyAiExtension` + `ExtensionRegistry` 进程内 SPI 扩展注册
+- **Agent 评估框架**：`AgentEvaluator` 基于 Golden QA 集 LLM-as-judge 多维评分
+- **Parent-Child 父子分块检索**：child chunk 精确检索 + parent chunk 完整上下文回填
+- **Memory Summary 服务**：`MemorySummaryService` 超长历史 LLM 摘要压缩
+
+#### 🎨 管理后台新增
+
+- **`agent-lab.html` 智能体实验室**：任务提交、SSE 实时思考过程、工具清单、凭证管理、健康检查
+- **`tool-management.html` 工具与权限管理**：工具同步、工具组管理、领域/角色权限可视化配置
+- **`theme.css` / `common.js`**：统一主题样式与公共工具（Toast / 确认框 / 输入框 / 工具中文名映射）
+
+#### 📦 SQL 变更
+
+- 新增 `.sql/mysql/20260722/ddl_alter_group_id_to_varchar.sql`：`group_id` 列类型 BIGINT → VARCHAR(64)
+- 新增 `.sql/mysql/20260808/ddl_agent_tables.sql`：Agent 会话/思考/审计/Prompt 版本表
+- 新增 `.sql/mysql/20260813/ddl_rename_tenant_to_group.sql`：`tenant_id` → `group_id`
+- 新增 `.sql/mysql/20260813/ddl_scope_tool_config.sql`：领域/角色工具权限配置表
+- 新增 `.sql/mysql/20260813/ddl_tool_registry.sql`：工具注册表 + 工具组表
+- 新增 `.sql/mysql/20260813/dml_role_mcp_server_groups.sql`：MCP 服务组角色映射数据
+- 新增 `.sql/pgsql/20260808/parent_child_index.sql`：PGVector parent_id / chunk_level 字段与索引
 
 ### v1.2.0 (2026-06-14) — 多模态媒体识别与超时治理
 
@@ -1264,6 +1484,14 @@ SubAgent-2 ────┘
 ## 📄 开源协议
 
 Apache License 2.0
+
+---
+
+## 📖 部署与配置指南
+
+项目部署、必填配置、可选组件裁剪（XXL-Job / RabbitMQ / Dubbo / 远程 MCP 等）、两套 `application.properties` 详细说明，见 **[deployment-guidelines.md](./.docs/deployment-guidelines.md)**。
+
+-- **企业级需求**：<a href="mailto:<EMAIL>">endcy#qq.com<EMAIL></a> ！！！
 
 ---
 

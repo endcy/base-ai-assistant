@@ -7,7 +7,7 @@
         <version>3.3.13</version>
     </parent>
 
-    <groupId>com.assistant</groupId>
+    <groupId>com.endcy</groupId>
     <artifactId>base-ai-assistant</artifactId>
     <version>1.0.0</version>
     <name>base-ai-assistant</name>
@@ -18,10 +18,10 @@
         <module>energy-admin-api</module>
         <module>energy-ai-api</module>
         <module>energy-ai-mcp</module>
-        <module>energy-ai-rpc</module>
         <module>energy-ai-repository</module>
         <module>service-domain</module>
         <module>service-common</module>
+        <module>ces-ai-rpc</module>
     </modules>
 
     <properties>
@@ -55,12 +55,12 @@
         <easy-captcha.version>1.6.2</easy-captcha.version>
         <spring-cloud.version>2023.0.6</spring-cloud.version>
         <xxl-job.version>2.5.0</xxl-job.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
         <dubbo-spring-boot-starter.version>3.3.0</dubbo-spring-boot-starter.version>
         <tencentcloud-sdk.version>3.1.1345</tencentcloud-sdk.version>
 
         <energy-api.version>1.0.0</energy-api.version>
+        <energy-api-rpc.version>3.2.0-SNAPSHOT</energy-api-rpc.version>
     </properties>
 
     <dependencies>

@@ -3,335 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI接口调用</title>
+    <title>基础接口调用</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="theme.css">
+    <script src="common.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px 20px;
-            color: white;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 800px;
-            margin: 0 auto 20px;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .back-link:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-        }
-
-        .api-container {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            padding: 20px 0;
-        }
-
+        /* Page-specific: Card headers with colored gradients */
         .api-card {
-            background: white;
-            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            transition: all 0.3s ease;
-        }
-
-        .api-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
         }
 
         .card-header {
-            padding: 20px;
-            color: white;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 18px 20px;
+            color: #fff;
         }
 
         .card-header h2 {
-            font-size: 1.6rem;
-            margin-bottom: 5px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            border-bottom: none;
+            padding-bottom: 0;
+            color: #fff;
         }
 
         .card-header .endpoint {
-            font-size: 1rem;
-            opacity: 0.9;
-            font-family: 'Courier New', monospace;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            opacity: 0.7;
         }
 
-        .card-body {
-            padding: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-group input[type="text"], .form-group textarea {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .form-group input.auth-input {
-            font-family: 'Courier New', monospace;
-            background: #f8f9fa;
-            border-color: #667eea;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-
-        .btn-block {
-            display: block;
-            width: 100%;
-            text-align: center;
-        }
-
-        .result-container {
-            margin-top: 25px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid #667eea;
-        }
-
-        .result-container.streaming {
-            border-left-color: #f39c12;
-        }
-
-        .result-container h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .result-content {
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 15px;
-            background: white;
-            border-radius: 5px;
-            border: 1px solid #eee;
-        }
-
-        .streaming-content {
-            color: #f39c12;
-            font-family: 'Courier New', monospace;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 15px;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 多媒体附件区块 */
         .media-section {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: #fafbfc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-bottom: 12px;
+            background: var(--bg-input);
         }
 
         .media-section-title {
             font-weight: 600;
-            font-size: 0.95rem;
-            color: #555;
-            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .media-section-title .badge {
-            background: #667eea;
-            color: white;
-            font-size: 0.75rem;
+            background: var(--cyan);
+            color: var(--bg);
+            font-size: 0.7rem;
             padding: 2px 8px;
             border-radius: 10px;
-            font-weight: normal;
         }
 
         .media-item {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-            border: 1px solid #eee;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
         }
 
         .media-item select {
-            padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 13px;
-            min-width: 110px;
+            min-width: 100px;
         }
 
         .media-item input {
             flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 13px;
         }
 
-        .media-item input.mime-input {
-            max-width: 160px;
+        .media-item input.mimeType-input {
+            max-width: 140px;
         }
 
         .btn-add-media {
-            padding: 8px 16px;
-            background: #28a745;
-            color: white;
+            padding: 6px 12px;
+            background: var(--green);
+            color: var(--bg);
             border: none;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .btn-add-media:hover {
-            background: #218838;
+            font-size: 0.8rem;
+            font-family: inherit;
         }
 
         .btn-remove-media {
-            padding: 6px 12px;
-            background: #dc3545;
-            color: white;
+            padding: 4px 10px;
+            background: var(--red);
+            color: #fff;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             flex-shrink: 0;
         }
 
-        .btn-remove-media:hover {
-            background: #c82333;
-        }
-
         .media-preview {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: #666;
-            word-break: break-all;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius-sm);
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
             display: none;
         }
 
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: rgba(255,255,255,0.7);
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            .card-body {
-                padding: 20px;
-            }
+        .api-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 10px 0;
         }
     </style>
 </head>
@@ -339,25 +127,45 @@
 <div class="container">
     <header>
         <a href="index.html" class="back-link">← 返回主页</a>
-        <h1>AI接口调用</h1>
-        <p class="subtitle">调用AI服务的各种接口，支持多模态输入（图片 / 音频 / 视频 / 文档）</p>
+        <h1>基础接口调用</h1>
+        <p class="subtitle">调用AI服务的各种接口，测试和验证功能</p>
     </header>
 
     <div class="api-container">
+        <!-- API 基础配置 -->
+        <div class="api-card">
+            <div class="card-header">
+                <h2>API 基础配置</h2>
+                <div class="endpoint">设置 AI 服务地址</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="apiBaseUrl">AI 服务基础 URL:</label>
+                    <input type="text" id="apiBaseUrl" value="http://localhost:9051" placeholder="http://localhost:9051">
+                </div>
+                <div class="form-group">
+                    <label for="apiAuth">Authorization Token:</label>
+                    <input type="text" id="apiAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="your-token-here">
+                </div>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">
+                    💡 所有 API 调用将使用此基础 URL 和认证信息
+                </p>
+            </div>
+        </div>
+
         <!-- 刷新RAG文档向量 -->
         <div class="api-card">
             <div class="card-header">
                 <h2>刷新RAG文档向量</h2>
-                <div class="endpoint">GET /energy-aidocument/refresh</div>
+                <div class="endpoint">GET /api/energy-ai/document/refresh</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="refreshDocsUrl">API URL:</label>
-                    <input type="text" id="refreshDocsUrl" value="http://192.168.23.145:9051/energy-ai/document/refresh" placeholder="请输入API URL">
+                    <input type="text" id="refreshDocsUrl" value="/api/energy-ai/document/refresh" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="refreshDocsAuth">Authorization:</label>
-                    <input type="text" id="refreshDocsAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <button class="btn btn-block" onclick="refreshDocsApi()">调用接口</button>
                 <div class="loading" id="refreshDocsLoading">
@@ -375,16 +183,14 @@
         <div class="api-card">
             <div class="card-header">
                 <h2>基础对话调用</h2>
-                <div class="endpoint">GET /energy-ai/chat/sync</div>
+                <div class="endpoint">GET /api/energy-ai/chat/sync</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="syncUrl">API URL:</label>
-                    <input type="text" id="syncUrl" value="http://192.168.23.145:9051/energy-ai/chat/sync" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="syncAuth">Authorization:</label>
-                    <input type="text" id="syncAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="syncMessage">消息内容 (message):</label>
@@ -420,16 +226,14 @@
         <div class="api-card">
             <div class="card-header">
                 <h2>基础对话流式调用</h2>
-                <div class="endpoint">GET /energy-ai/chat/sse</div>
+                <div class="endpoint">GET /api/energy-ai/chat/sse</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="sseUrl">API URL:</label>
-                    <input type="text" id="sseUrl" value="http://192.168.23.145:9051/energy-ai/chat/sse" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="sseAuth">Authorization:</label>
-                    <input type="text" id="sseAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="sseMessage">消息内容 (message):</label>
@@ -465,16 +269,14 @@
         <div class="api-card">
             <div class="card-header">
                 <h2>检索增强调用</h2>
-                <div class="endpoint">GET /energy-ai/chat/rag</div>
+                <div class="endpoint">GET /api/energy-ai/chat/rag</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="ragUrl">API URL:</label>
-                    <input type="text" id="ragUrl" value="http://192.168.23.145:9051/energy-ai/chat/rag" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="ragAuth">Authorization:</label>
-                    <input type="text" id="ragAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="ragMessage">消息内容 (message):</label>
@@ -483,6 +285,23 @@
                 <div class="form-group">
                     <label for="ragChatId">聊天ID (chatId):</label>
                     <input type="text" id="ragChatId" placeholder="请输入聊天ID" value='1024'>
+                </div>
+                <div class="form-group">
+                    <label for="ragScopeType">领域类型 (scopeType):</label>
+                    <select id="ragScopeType">
+                        <option value="">不指定（全领域检索）</option>
+                        <option value="市场客服">市场客服</option>
+                        <option value="用户客服" selected>用户客服</option>
+                        <option value="运营服务">运营服务</option>
+                        <option value="开发运维">开发运维</option>
+                        <option value="海外用户客服">海外用户客服</option>
+                        <option value="海外运营客服">海外运营客服</option>
+                        <option value="未知">未知</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ragGroupId">分组ID (groupId，可选):</label>
+                    <input type="text" id="ragGroupId" placeholder="租户/商户分组，留空不传" value='-1'>
                 </div>
 
                 <div class="media-section">
@@ -510,16 +329,14 @@
         <div class="api-card">
             <div class="card-header">
                 <h2>MCP工具调用</h2>
-                <div class="endpoint">GET /energy-ai/chat/mcp</div>
+                <div class="endpoint">GET /api/energy-ai/chat/mcp</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="mcpToolUrl">API URL:</label>
-                    <input type="text" id="mcpToolUrl" value="http://192.168.23.145:9051/energy-ai/chat/mcp" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="mcpToolAuth">Authorization:</label>
-                    <input type="text" id="mcpToolAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="toolsMessage">消息内容 (message):</label>
@@ -545,16 +362,14 @@
         <div class="api-card">
             <div class="card-header">
                 <h2>工具链调用</h2>
-                <div class="endpoint">GET /energy-ai/chat/tools</div>
+                <div class="endpoint">GET /api/energy-ai/chat/tools</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="toolsUrl">API URL:</label>
-                    <input type="text" id="toolsUrl" value="http://192.168.23.145:9051/energy-ai/chat/tools" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="toolsAuth">Authorization:</label>
-                    <input type="text" id="toolsAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="toolsMessage">消息内容 (message):</label>
@@ -580,16 +395,14 @@
         <div class="api-card">
             <div class="card-header">
                 <h2>DeepSeek在线搜索调用</h2>
-                <div class="endpoint">POST /energy-ai/tool/deepseek/sync</div>
+                <div class="endpoint">POST /api/energy-ai/tool/deepseek/sync</div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="deepseekUrl">API URL:</label>
-                    <input type="text" id="deepseekUrl" value="http://192.168.23.145:9051/energy-ai/tool/deepseek/sync" placeholder="请输入API URL">
                 </div>
                 <div class="form-group">
                     <label for="deepseekAuth">Authorization:</label>
-                    <input type="text" id="deepseekAuth" class="auth-input" placeholder="请输入 Authorization 令牌 (可选)" value="">
                 </div>
                 <div class="form-group">
                     <label for="deepseekAnswerFormat">答案格式 (answerFormat):</label>
@@ -613,30 +426,32 @@
     </div>
 
     <footer>
-        <p>智慧能源AI助手 &copy; 2026 | 用于测试和验证AI服务接口</p>
+        <p>Smart Energy AI Assistant © 2025 | 用于测试和验证AI服务接口</p>
     </footer>
 </div>
 
 <script>
-    // ========== 多媒体附件管理 ==========
+    // 多媒体附件管理
     let mediaCounters = {sync: 0, sse: 0, rag: 0};
 
     function addMediaItem(type) {
         mediaCounters[type]++;
-        const id = type + 'Media_' + mediaCounters[type];
-        const container = document.getElementById(type + 'MediaList');
+        const id = `${type}Media_${mediaCounters[type]}`;
+        const container = document.getElementById(`${type}MediaList`);
         const div = document.createElement('div');
         div.className = 'media-item';
         div.id = id;
-        div.innerHTML = '<select class="media-type" onchange="updateMediaPreview(\'' + type + '\')">' +
-            '<option value="IMAGE">图片</option>' +
-            '<option value="AUDIO">音频</option>' +
-            '<option value="VIDEO">视频</option>' +
-            '<option value="DOCUMENT">文档</option>' +
-            '</select>' +
-            '<input type="text" class="media-url" placeholder="请输入媒体URL (如 https://oss.example.com/img.png)" oninput="updateMediaPreview(\'' + type + '\')">' +
-            '<input type="text" class="mime-input" placeholder="MIME类型 (可选, 如 image/png)" oninput="updateMediaPreview(\'' + type + '\')"> ' +
-            '<button type="button" class="btn-remove-media" onclick="removeMediaItem(\'' + type + '\', \'' + id + '\')">删除</button>';
+        div.innerHTML = `
+            <select class="media-type" onchange="updateMediaPreview('${type}')">
+                <option value="IMAGE">图片</option>
+                <option value="AUDIO">音频</option>
+                <option value="VIDEO">视频</option>
+                <option value="DOCUMENT">文档</option>
+            </select>
+            <input type="text" class="media-url" placeholder="请输入媒体URL (如 https://oss.example.com/img/xxx.png)" oninput="updateMediaPreview('${type}')">
+            <input type="text" class="mimeType-input" placeholder="MIME类型 (如 image/png)">
+            <button type="button" class="btn-remove-media" onclick="removeMediaItem('${type}', '${id}')">删除</button>
+        `;
         container.appendChild(div);
     }
 
@@ -649,16 +464,18 @@
     }
 
     function getMediaList(type) {
-        const container = document.getElementById(type + 'MediaList');
+        const container = document.getElementById(`${type}MediaList`);
         const items = container.querySelectorAll('.media-item');
         const mediaList = [];
-        items.forEach(function (item) {
+        items.forEach(item => {
             const mType = item.querySelector('.media-type').value;
             const url = item.querySelector('.media-url').value.trim();
-            const mimeType = item.querySelector('.mime-input').value.trim();
+            const mimeType = item.querySelector('.mimeType-input').value.trim();
             if (url) {
                 const attachment = {type: mType, url: url};
-                if (mimeType) attachment.mimeType = mimeType;
+                if (mimeType) {
+                    attachment.mimeType = mimeType;
+                }
                 mediaList.push(attachment);
             }
         });
@@ -666,7 +483,7 @@
     }
 
     function updateMediaPreview(type) {
-        const preview = document.getElementById(type + 'MediaPreview');
+        const preview = document.getElementById(`${type}MediaPreview`);
         const mediaList = getMediaList(type);
         if (mediaList.length > 0) {
             preview.style.display = 'block';
@@ -676,9 +493,12 @@
         }
     }
 
+    // 将mediaList序列化为JSON字符串用于GET请求参数
     function buildMediaQueryParam(type) {
         const mediaList = getMediaList(type);
-        if (mediaList.length === 0) return '';
+        if (mediaList.length === 0) {
+            return '';
+        }
         return '&mediaList=' + encodeURIComponent(JSON.stringify(mediaList));
     }
 
@@ -693,23 +513,23 @@
 
     // 基础对话调用
     function callSyncApi() {
-        const url = document.getElementById('syncUrl').value;
+        const baseUrl = getApiBaseUrl();
         const message = document.getElementById('syncMessage').value;
         const chatId = document.getElementById('syncChatId').value;
-        const auth = document.getElementById('syncAuth').value;
 
         if (!message || !chatId) {
-            alert('请填写必填参数');
+            showToast('请填写必填参数', 'warning');
             return;
         }
 
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}` + buildMediaQueryParam('sync');
+        let fullUrl = `${baseUrl}/api/energy-ai/chat/sync?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        fullUrl += buildMediaQueryParam('sync');
 
         showLoading('sync');
 
         fetch(fullUrl, {
             method: 'GET',
-            headers: getAuthHeaders(auth)
+            headers: getAuthHeaders()
         })
             .then(response => response.text())
             .then(data => {
@@ -718,22 +538,36 @@
             })
             .catch(error => {
                 hideLoading('sync');
-                showResult('sync', '错误: ' + error.message);
+                showResult('sync', '错误：' + error.message);
             });
     }
 
-    // 刷新RAG文档向量
-    function refreshDocsApi() {
-        const url = document.getElementById('refreshDocsUrl').value;
-        const auth = document.getElementById('refreshDocsAuth').value;
+    // 获取全局配置
+    function getApiBaseUrl() {
+        return document.getElementById('apiBaseUrl').value.trim().replace(/\/$/, '');
+    }
 
-        const fullUrl = `${url}`;
+    function getApiAuth() {
+        return document.getElementById('apiAuth').value.trim();
+    }
+
+    function getAuthHeaders() {
+        const headers = {};
+        const auth = getApiAuth();
+        if (auth) headers['Authorization'] = auth;
+        return headers;
+    }
+
+    // 刷新 RAG 文档向量
+    function refreshDocsApi() {
+        const baseUrl = getApiBaseUrl();
+        const fullUrl = `${baseUrl}/api/energy-ai/document/refresh`;
 
         showLoading('refreshDocs');
 
         fetch(fullUrl, {
             method: 'GET',
-            headers: getAuthHeaders(auth)
+            headers: getAuthHeaders()
         })
             .then(response => response.text())
             .then(data => {
@@ -742,30 +576,31 @@
             })
             .catch(error => {
                 hideLoading('refreshDocs');
-                showResult('refreshDocs', '错误: ' + error.message);
+                showResult('refreshDocs', '错误：' + error.message);
             });
     }
 
-    // 基础对话流式调用 (修正参数)
+    // 基础对话流式调用
     function callSseApi() {
-        const url = document.getElementById('sseUrl').value;
+        const baseUrl = getApiBaseUrl();
         const message = document.getElementById('sseMessage').value;
         const chatId = document.getElementById('sseChatId').value;
-        const auth = document.getElementById('sseAuth').value;
 
         if (!message || !chatId) {
-            alert('请填写必填参数');
+            showToast('请填写必填参数', 'warning');
             return;
         }
 
-        // 修正参数，移除groupId和scopeType
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}` + buildMediaQueryParam('sse');
+        let fullUrl = `${baseUrl}/api/energy-ai/chat/sse?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        fullUrl += buildMediaQueryParam('sse');
 
         showLoading('sse');
         showResult('sse', '', true);
 
-        // 如果有 Authorization，通过 URL 参数传递（EventSource 不支持自定义 headers）
-        const sseUrl = auth && auth.trim() ? `${fullUrl}&Authorization=${encodeURIComponent(auth.trim())}` : fullUrl;
+        // EventSource 无法携带自定义 header，token 降级通过 URL 参数传递。
+        // 注意：后端 SimpleAuthInterceptor 的 query 兜底参数名是 "token"（不是 "Authorization"）
+        const auth = getApiAuth();
+        const sseUrl = auth ? `${fullUrl}&token=${encodeURIComponent(auth)}` : fullUrl;
 
         const eventSource = new EventSource(sseUrl);
         let resultContent = '';
@@ -789,23 +624,31 @@
 
     // 检索增强调用
     function callRagApi() {
-        const url = document.getElementById('ragUrl').value;
+        const baseUrl = getApiBaseUrl();
         const message = document.getElementById('ragMessage').value;
         const chatId = document.getElementById('ragChatId').value;
-        const auth = document.getElementById('ragAuth').value;
+        const scopeType = document.getElementById('ragScopeType').value;
+        const groupId = document.getElementById('ragGroupId').value.trim();
 
         if (!message || !chatId) {
-            alert('请填写必填参数');
+            showToast('请填写必填参数', 'warning');
             return;
         }
 
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}` + buildMediaQueryParam('rag');
+        let fullUrl = `${baseUrl}/api/energy-ai/chat/rag?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        if (scopeType) {
+            fullUrl += `&scopeType=${encodeURIComponent(scopeType)}`;
+        }
+        if (groupId && groupId !== '-1') {
+            fullUrl += `&groupId=${encodeURIComponent(groupId)}`;
+        }
+        fullUrl += buildMediaQueryParam('rag');
 
         showLoading('rag');
 
         fetch(fullUrl, {
             method: 'GET',
-            headers: getAuthHeaders(auth)
+            headers: getAuthHeaders()
         })
             .then(response => response.text())
             .then(data => {
@@ -814,29 +657,28 @@
             })
             .catch(error => {
                 hideLoading('rag');
-                showResult('rag', '错误: ' + error.message);
+                showResult('rag', '错误：' + error.message);
             });
     }
 
     // 工具链调用
     function callToolsApi() {
-        const url = document.getElementById('toolsUrl').value;
+        const baseUrl = getApiBaseUrl();
         const message = document.getElementById('toolsMessage').value;
         const chatId = document.getElementById('toolsChatId').value;
-        const auth = document.getElementById('toolsAuth').value;
 
         if (!message || !chatId) {
-            alert('请填写必填参数');
+            showToast('请填写必填参数', 'warning');
             return;
         }
 
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        const fullUrl = `${baseUrl}/api/energy-ai/chat/tools?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
 
         showLoading('tools');
 
         fetch(fullUrl, {
             method: 'GET',
-            headers: getAuthHeaders(auth)
+            headers: getAuthHeaders()
         })
             .then(response => response.text())
             .then(data => {
@@ -845,30 +687,29 @@
             })
             .catch(error => {
                 hideLoading('tools');
-                showResult('tools', '错误: ' + error.message);
+                showResult('tools', '错误：' + error.message);
             });
     }
 
 
-    // Mcp工具调用
+    // MCP 工具调用
     function mcpToolApi() {
-        const url = document.getElementById('mcpToolUrl').value;
+        const baseUrl = getApiBaseUrl();
         const message = document.getElementById('mcpToolMessage').value;
         const chatId = document.getElementById('mcpToolChatId').value;
-        const auth = document.getElementById('mcpToolAuth').value;
 
         if (!message || !chatId) {
-            alert('请填写必填参数');
+            showToast('请填写必填参数', 'warning');
             return;
         }
 
-        const fullUrl = `${url}?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
+        const fullUrl = `${baseUrl}/api/energy-ai/chat/mcp?message=${encodeURIComponent(message)}&chatId=${encodeURIComponent(chatId)}`;
 
         showLoading('mcpTool');
 
         fetch(fullUrl, {
             method: 'GET',
-            headers: getAuthHeaders(auth)
+            headers: getAuthHeaders()
         })
             .then(response => response.text())
             .then(data => {
@@ -877,30 +718,29 @@
             })
             .catch(error => {
                 hideLoading('mcpTool');
-                showResult('mcpTool', '错误: ' + error.message);
+                showResult('mcpTool', '错误：' + error.message);
             });
     }
 
-    // DeepSeek在线搜索调用 (修正为POST请求)
+    // DeepSeek 在线搜索调用
     function callDeepseekApi() {
-        const url = document.getElementById('deepseekUrl').value;
+        const baseUrl = getApiBaseUrl();
         const answerFormat = document.getElementById('deepseekAnswerFormat').value;
         const question = document.getElementById('deepseekQuestion').value;
-        const auth = document.getElementById('deepseekAuth').value;
 
         if (!answerFormat || !question) {
-            alert('请填写必填参数');
+            showToast('请填写必填参数', 'warning');
             return;
         }
 
         showLoading('deepseek');
 
-        // 修正为POST请求，参数放在请求体中
-        fetch(url, {
+        // POST 请求，参数放在请求体中
+        fetch(`${baseUrl}/api/energy-ai/tool/deepseek/sync`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...getAuthHeaders(auth)
+                ...getAuthHeaders()
             },
             body: JSON.stringify({
                 answerFormat: answerFormat,
@@ -914,7 +754,7 @@
             })
             .catch(error => {
                 hideLoading('deepseek');
-                showResult('deepseek', '错误: ' + error.message);
+                showResult('deepseek', '错误：' + error.message);
             });
     }
 
@@ -923,7 +763,7 @@
         document.getElementById(`${type}Loading`).style.display = 'block';
         document.getElementById(`${type}Result`).style.display = 'none';
 
-        // 如果是SSE连接，关闭之前的连接
+        // 如果是 SSE 连接，关闭之前的连接
         if (type === 'sse' && window.sseConnection) {
             window.sseConnection.close();
         }

@@ -9,9 +9,10 @@ CREATE TABLE `ai_knowledge_document`
     `scope_type`    VARCHAR(255) NOT NULL COMMENT '知识领域类型',
     `business_type` VARCHAR(255) NOT NULL COMMENT '业务领域类型',
     `title`         VARCHAR(255) NOT NULL COMMENT '内容标题',
-    `group_id`      BIGINT       DEFAULT NULL COMMENT '内容分组id，如租户id',
+    `doc_id`      BIGINT NOT NULL COMMENT '业务系统知识库文档id',
+    `group_id`    VARCHAR(64)  DEFAULT NULL COMMENT '内容分组id，如租户id',
     `content`       LONGTEXT     NOT NULL COMMENT '精细化文档内容(Markdown/纯文本)',
-    `source_type`   VARCHAR(255) NOT NULL COMMENT '来源类型(1-文档 2-数据库 3-api 0-未知)',
+    `source_type` VARCHAR(255) DEFAULT 1 COMMENT '来源类型(1-文档 2-数据库 3-api 0-未知)',
     `source_path`   VARCHAR(512) DEFAULT NULL COMMENT '文件路径或API地址',
     `doc_version`   int          DEFAULT 1 COMMENT '文档版本号',
     `enable_public` TINYINT(1)   DEFAULT 1 COMMENT '是否公开',
@@ -23,6 +24,8 @@ CREATE TABLE `ai_knowledge_document`
     `update_user`   bigint       DEFAULT '1' COMMENT '更新人',
     `update_time`   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_document_group_doc_id` (`group_id`, `doc_id`),
+    KEY `idx_document_doc_id` (`doc_id`),
     KEY `idx_document_version_loaded` (`loaded`, `doc_version`),
     KEY `idx_document_expired_time` (`expired_time`)
 ) ENGINE = InnoDB
@@ -38,7 +41,7 @@ CREATE TABLE `ai_context_user_record`
     `chat_id`       BIGINT   NOT NULL COMMENT '对话id',
     `user_id`       BIGINT       DEFAULT NULL COMMENT '知识领域类型',
     `user_type`     TINYINT(1)   DEFAULT 1 COMMENT '1普通用户 2客户租户',
-    `group_id`      BIGINT       DEFAULT NULL COMMENT '用户分组id，如租户id',
+    `group_id` VARCHAR(64) DEFAULT NULL COMMENT '用户分组id，如租户id',
     `scope_type`    VARCHAR(255) DEFAULT NULL COMMENT '知识领域类型',
     `business_type` VARCHAR(255) DEFAULT NULL COMMENT '业务领域类型，意图分类',
     `question`      LONGTEXT NOT NULL COMMENT '用户对话问题',
@@ -78,3 +81,5 @@ CREATE TABLE `sys_log`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci COMMENT ='系统日志';
 
+ALTER TABLE ai_knowledge_document
+    MODIFY COLUMN source_type varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '1' NULL COMMENT '来源类型(1-文档 2-数据库 3-api 0-未知)';
